@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Human App</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: #0f0f1a;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  padding: 20px;
+}
+
+/* ── Phone frame ── */
+.phone {
+  width: 390px;
+  height: 844px;
+  background: #000;
+  border-radius: 52px;
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    0 0 0 2px #222,
+    0 0 0 10px #111,
+    0 0 0 12px #2a2a2a,
+    0 50px 100px rgba(0,0,0,0.9);
+  flex-shrink: 0;
+}
+
+/* Notch */
+.phone::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 126px; height: 34px;
+  background: #000;
+  border-radius: 0 0 20px 20px;
+  z-index: 200;
+}
+
+/* Status bar */
+.status-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 28px 8px;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  z-index: 150;
+  pointer-events: none;
+}
+.status-icons { display: flex; gap: 5px; align-items: center; font-size: 13px; }
+.status-icons svg { width: 16px; height: 12px; fill: white; }
+
+/* ── Screen base ── */
+.screen {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  color: white;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+.screen.active { display: flex; }
+
+/* Scrollable content */
+.scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll-content::-webkit-scrollbar { display: none; }
+
+/* ── Buttons ── */
+.btn-primary {
+  width: 100%;
+  padding: 17px;
+  background: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: -0.2px;
+  transition: opacity 0.15s;
+}
+.btn-primary:active { opacity: 0.8; transform: scale(0.98); }
+
+.btn-outline {
+  width: 100%;
+  padding: 16px;
+  background: transparent;
+  color: white;
+  border: 1.5px solid #2a2a2a;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background 0.15s;
+}
+.btn-outline:active { background: #1a1a1a; }
+
+.back-btn {
+  position: absolute;
+  top: 52px; left: 20px;
+  background: #1a1a1a;
+  border: none;
+  color: white;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10;
+}
+
+/* ── Progress bar (onboarding) ── */
+.ob-progress-bar {
+  height: 3px;
+  background: #1a1a1a;
+  border-radius: 2px;
+  margin: 8px 0 0;
+}
+.ob-progress-fill {
+  height: 100%;
+  background: #3B82F6;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+/* ── Onboarding layout ── */
+.ob-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 60px 24px 40px;
+  overflow-y: auto;
+}
+.ob-wrap::-webkit-scrollbar { display: none; }
+.ob-tag {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #3B82F6;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  margin-top: 8px;
+}
+.ob-title {
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  margin-bottom: 28px;
+}
+.ob-footer { margin-top: auto; padding-top: 24px; }
+
+/* ── Form fields ── */
+.field-label {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+.field-input {
+  width: 100%;
+  padding: 14px 16px;
+  background: #111;
+  border: 1.5px solid #1e1e1e;
+  border-radius: 13px;
+  color: white;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 18px;
+}
+.field-input:focus { border-color: #3B82F6; }
+
+/* ── Radio options ── */
+.radio-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 0; }
+.radio-item {
+  padding: 15px 16px;
+  background: #111;
+  border: 1.5px solid #1e1e1e;
+  border-radius: 13px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: border-color 0.2s, background 0.2s;
+  user-select: none;
+}
+.radio-item.sel { border-color: #3B82F6; background: rgba(59,130,246,0.08); }
+.radio-dot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid #333;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.radio-item.sel .radio-dot { background: #3B82F6; border-color: #3B82F6; }
+.radio-item.sel .radio-dot::after {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: white;
+}
+
+/* ── Identity cards ── */
+.identity-list { display: flex; flex-direction: column; gap: 12px; }
+.identity-card {
+  padding: 18px;
+  background: #0d0d0d;
+  border: 1.5px solid #1e1e1e;
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s;
+  user-select: none;
+}
+.identity-card.sel { border-color: #3B82F6; background: rgba(59,130,246,0.07); }
+.identity-card-name { font-size: 21px; font-weight: 600; }
+.identity-icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  transition: background 0.2s;
+}
+.identity-card.sel .identity-icon { background: #3B82F6; }
+
+/* ── Goal options ── */
+.goal-list { display: flex; flex-direction: column; gap: 10px; }
+.goal-item {
+  padding: 15px 16px;
+  background: #0d0d0d;
+  border: 1.5px solid #1e1e1e;
+  border-radius: 13px;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.2s;
+  user-select: none;
+}
+.goal-item.sel { border-color: #3B82F6; background: rgba(59,130,246,0.08); }
+.goal-check {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 2px solid #2a2a2a;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  color: transparent;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.goal-item.sel .goal-check { background: #3B82F6; border-color: #3B82F6; color: white; }
+
+/* ── Frequency toggles ── */
+.symptom-block { margin-bottom: 20px; }
+.symptom-name { font-size: 15px; color: #ddd; margin-bottom: 9px; }
+.freq-row { display: flex; gap: 7px; }
+.freq-btn {
+  flex: 1;
+  padding: 9px 4px;
+  background: #111;
+  border: 1.5px solid #1e1e1e;
+  border-radius: 9px;
+  color: #666;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  user-select: none;
+}
+.freq-btn.sel { background: #3B82F6; border-color: #3B82F6; color: white; }
+
+/* ── Agent name ── */
+.agent-preview-box {
+  background: #0d0d0d;
+  border: 1px solid #1e1e1e;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #888;
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+.agent-preview-box strong { color: #3B82F6; }
+.agent-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.agent-card {
+  padding: 20px 16px;
+  background: #0d0d0d;
+  border: 1.5px solid #1e1e1e;
+  border-radius: 14px;
+  color: white;
+  font-size: 19px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  user-select: none;
+}
+.agent-card.sel { border-color: #3B82F6; background: rgba(59,130,246,0.08); }
+
+/* ════════════ SPLASH ════════════ */
+#splash {
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(ellipse 300px 250px at 50% 90%, rgba(37,99,235,0.35) 0%, transparent 70%), #000;
+}
+.splash-logo {
+  font-size: 76px;
+  font-weight: 800;
+  letter-spacing: -3px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.splash-sub {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.4);
+  text-align: center;
+  white-space: nowrap;
+}
+.splash-btn-wrap {
+  position: absolute;
+  bottom: 52px; left: 24px; right: 24px;
+}
+
+/* ════════════ LOADING ════════════ */
+#loading {
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+}
+.loading-ring { position: relative; width: 200px; height: 200px; }
+.loading-ring svg { transform: rotate(-90deg); }
+.loading-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.loading-num {
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 1;
+}
+.loading-num span { font-size: 26px; font-weight: 400; color: #aaa; }
+.loading-label { font-size: 14px; color: #555; text-align: center; letter-spacing: 0.5px; }
+
+/* ════════════ CREATE ACCOUNT ════════════ */
+#create-account {
+  justify-content: center;
+  align-items: center;
+  padding: 50px 24px 40px;
+  position: relative;
+}
+.ca-step { font-size: 13px; color: #555; margin-bottom: 10px; }
+.ca-title { font-size: 32px; font-weight: 800; text-align: center; letter-spacing: -0.5px; margin-bottom: 8px; }
+.ca-sub { font-size: 15px; color: #666; text-align: center; margin-bottom: 36px; }
+.ca-btns { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+.divider { display: flex; align-items: center; gap: 12px; margin: 4px 0; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #1a1a1a; }
+.divider span { font-size: 12px; color: #444; }
+.ca-login { margin-top: 18px; font-size: 15px; color: #666; text-align: center; }
+.ca-login span { color: #3B82F6; cursor: pointer; }
+.ca-legal { position: absolute; bottom: 28px; left: 24px; right: 24px; font-size: 11px; color: #333; text-align: center; line-height: 1.5; }
+
+/* ════════════ MAIN APP SHELL ════════════ */
+.main-screen { display: none; flex-direction: column; position: absolute; inset: 0; }
+.main-screen.active { display: flex; }
+.tab-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding-top: 50px; padding-bottom: 80px; }
+.tab-content::-webkit-scrollbar { display: none; }
+
+/* Bottom nav */
+.bottom-nav {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 82px;
+  background: rgba(8,8,8,0.97);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid #111;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-around;
+  padding: 10px 0 0;
+}
+.nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  padding: 6px 22px;
+  opacity: 0.35;
+  transition: opacity 0.2s;
+  background: none; border: none; color: white;
+}
+.nav-btn.active { opacity: 1; }
+.nav-btn svg { width: 24px; height: 24px; fill: currentColor; }
+.nav-btn span { font-size: 10px; color: white; letter-spacing: 0.3px; }
+
+/* ════════════ DASHBOARD ════════════ */
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 8px;
+}
+.dash-greeting { font-size: 13px; color: #666; }
+.dash-name { font-size: 24px; font-weight: 700; letter-spacing: -0.3px; }
+.dash-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: #3B82F6;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 700;
+}
+
+/* Body Battery */
+.battery-wrap { display: flex; flex-direction: column; align-items: center; padding: 12px 20px 16px; }
+.battery-section-label { font-size: 10px; letter-spacing: 2px; color: #555; text-transform: uppercase; margin-bottom: 12px; }
+.battery-ring { position: relative; width: 168px; height: 168px; }
+.battery-ring svg { transform: rotate(-90deg); }
+.battery-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.battery-num { font-size: 52px; font-weight: 800; line-height: 1; letter-spacing: -2px; }
+.battery-num span { font-size: 22px; font-weight: 500; }
+.battery-caption { font-size: 12px; color: #888; margin-top: 10px; text-align: center; }
+.battery-delta { font-size: 12px; color: #34D399; margin-top: 3px; }
+
+/* Stats row */
+.stats-row { display: flex; gap: 10px; padding: 0 20px 14px; }
+.stat-tile {
+  flex: 1;
+  background: #0d0d0d;
+  border-radius: 14px;
+  padding: 13px 14px;
+  border: 1px solid #111;
+}
+.stat-tile-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; }
+.stat-tile-val { font-size: 24px; font-weight: 700; display: flex; align-items: baseline; gap: 3px; }
+.stat-tile-val .up { font-size: 14px; color: #34D399; }
+
+/* Agent message card */
+.agent-msg-card {
+  margin: 0 20px 14px;
+  background: linear-gradient(135deg, #08142e, #0a1a3a);
+  border: 1px solid #1b3460;
+  border-radius: 16px;
+  padding: 14px 16px;
+}
+.agent-msg-tag { font-size: 10px; letter-spacing: 2px; color: #3B82F6; text-transform: uppercase; margin-bottom: 8px; }
+.agent-msg-text { font-size: 14px; color: #bbb; line-height: 1.55; }
+
+/* Plan del día */
+.plan-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.plan-title { font-size: 10px; letter-spacing: 2px; color: #555; text-transform: uppercase; }
+.plan-see-all { font-size: 13px; color: #3B82F6; cursor: pointer; }
+.plan-section { padding: 0 20px 14px; }
+.plan-item {
+  background: #0d0d0d;
+  border: 1px solid #111;
+  border-radius: 13px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.plan-item-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+.plan-item-time { font-size: 13px; color: #666; }
+
+/* Daily test CTA */
+.daily-cta {
+  margin: 0 20px 20px;
+  background: linear-gradient(135deg, #0d0d1f, #0d0d0d);
+  border: 1px solid #222;
+  border-radius: 16px;
+  padding: 16px 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: border-color 0.2s;
+}
+.daily-cta:active { border-color: #3B82F6; }
+.daily-cta-icon { font-size: 28px; }
+.daily-cta-title { font-size: 16px; font-weight: 600; margin-bottom: 3px; }
+.daily-cta-sub { font-size: 13px; color: #666; }
+
+/* ════════════ INSIGHTS ════════════ */
+.insights-header { padding: 20px 20px 0; }
+.insights-tag { font-size: 10px; letter-spacing: 2px; color: #3B82F6; text-transform: uppercase; margin-bottom: 8px; }
+.insights-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 20px; }
+.period-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.period-tab {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #666;
+  background: #0d0d0d;
+  border: 1px solid #1e1e1e;
+  transition: all 0.2s;
+  user-select: none;
+}
+.period-tab.active { background: #fff; color: #000; border-color: #fff; }
+
+.insight-tile {
+  margin: 0 20px 12px;
+  background: #0d0d0d;
+  border: 1px solid #111;
+  border-radius: 16px;
+  padding: 16px 18px;
+}
+.insight-tile-label { font-size: 10px; color: #555; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 5px; }
+.insight-big { font-size: 44px; font-weight: 800; letter-spacing: -1px; display: flex; align-items: baseline; }
+.insight-big span { font-size: 20px; font-weight: 500; }
+.insight-delta { font-size: 12px; color: #34D399; margin-top: 4px; }
+.chart-svg-wrap { margin-top: 14px; }
+
+.peak-row { display: flex; gap: 10px; padding: 0 20px 12px; }
+.peak-tile {
+  flex: 1;
+  background: #0d0d0d;
+  border: 1px solid #111;
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.peak-tile-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; }
+.peak-tile-val { font-size: 38px; font-weight: 800; letter-spacing: -1px; display: flex; align-items: baseline; }
+.peak-tile-val span { font-size: 18px; font-weight: 500; }
+.peak-tile-day { font-size: 13px; color: #34D399; margin-top: 3px; }
+.peak-tile-day.low { color: #F59E0B; }
+
+.recovery-card {
+  margin: 0 20px 16px;
+  background: #0d0d0d;
+  border: 1px solid #111;
+  border-radius: 16px;
+  padding: 16px 18px;
+}
+.recovery-card-title { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+.recovery-card-delta { font-size: 14px; color: #34D399; }
+
+/* ════════════ CHAT ════════════ */
+#tab-chat { padding-top: 50px; }
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid #0d0d0d;
+}
+.chat-av {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: #3B82F6;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700;
+}
+.chat-agent-name { font-size: 17px; font-weight: 600; }
+.chat-agent-status { font-size: 12px; color: #555; }
+.chat-messages-wrap { flex: 1; overflow-y: auto; padding: 16px 16px 12px; display: flex; flex-direction: column; gap: 12px; }
+.chat-messages-wrap::-webkit-scrollbar { display: none; }
+.bubble {
+  max-width: 84%;
+  padding: 12px 14px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.bubble.agent {
+  background: #0a1628;
+  border: 1px solid #1b3460;
+  color: #ccc;
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+.bubble.user {
+  background: #3B82F6;
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+.chat-input-row {
+  padding: 10px 16px 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border-top: 1px solid #0d0d0d;
+}
+.chat-text-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: #0d0d0d;
+  border: 1px solid #1a1a1a;
+  border-radius: 24px;
+  color: white;
+  font-size: 15px;
+  outline: none;
+}
+.chat-text-input::placeholder { color: #333; }
+.chat-send {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: #3B82F6;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.chat-send:active { opacity: 0.8; }
+
+/* ════════════ PROFILE ════════════ */
+.profile-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 20px;
+}
+.profile-top-title { font-size: 22px; font-weight: 700; }
+.profile-settings-btn { font-size: 22px; cursor: pointer; color: #666; }
+.profile-avatar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 22px;
+}
+.profile-av {
+  width: 84px; height: 84px;
+  border-radius: 26px;
+  background: #3B82F6;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 38px; font-weight: 700;
+  margin-bottom: 14px;
+}
+.profile-uname { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 8px; }
+.profile-badges { display: flex; gap: 8px; }
+.pill {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+.pill-blue { background: rgba(59,130,246,0.18); color: #60A5FA; border: 1px solid rgba(59,130,246,0.25); }
+.pill-grey { background: #111; color: #666; border: 1px solid #222; }
+
+.profile-stats-row { display: flex; gap: 10px; padding: 0 20px 22px; }
+.profile-stat {
+  flex: 1;
+  background: #0d0d0d;
+  border: 1px solid #111;
+  border-radius: 14px;
+  padding: 14px 10px;
+  text-align: center;
+}
+.profile-stat-val { font-size: 22px; font-weight: 700; margin-bottom: 3px; }
+.profile-stat-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.8px; }
+
+.profile-section { padding: 0 20px 20px; }
+.profile-section-title { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
+.obj-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 0;
+  border-bottom: 1px solid #0d0d0d;
+}
+.obj-row:last-child { border-bottom: none; }
+.obj-name { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+.obj-dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-blue { background: #3B82F6; }
+.dot-green { background: #34D399; }
+.obj-val { font-size: 14px; color: #666; }
+.obj-val.green { color: #34D399; }
+
+.device-row { display: flex; gap: 10px; }
+.device-card {
+  flex: 1;
+  background: #0d0d0d;
+  border: 1px solid #111;
+  border-radius: 13px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.device-info-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+.device-sync { font-size: 11px; color: #34D399; }
+.device-icon-lg { font-size: 22px; }
+
+/* ════════════ DAILY TEST ════════════ */
+.test-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 58px 24px 36px;
+  overflow-y: auto;
+}
+.test-wrap::-webkit-scrollbar { display: none; }
+.test-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.test-label { font-size: 11px; letter-spacing: 2px; color: #3B82F6; text-transform: uppercase; }
+.test-skip { font-size: 14px; color: #555; cursor: pointer; }
+.test-prog-bar { height: 3px; background: #111; border-radius: 2px; margin-bottom: 32px; }
+.test-prog-fill { height: 100%; background: #3B82F6; border-radius: 2px; transition: width 0.4s; }
+.test-q-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.test-question { font-size: 27px; font-weight: 700; line-height: 1.2; margin-bottom: 24px; letter-spacing: -0.3px; }
+
+/* Scale buttons */
+.scale-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.scale-btn {
+  flex: 1;
+  padding: 15px 0;
+  background: #0d0d0d;
+  border: 1.5px solid #1a1a1a;
+  border-radius: 13px;
+  color: #555;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  user-select: none;
+}
+.scale-btn.sel { background: #3B82F6; border-color: #3B82F6; color: white; }
+.scale-labels { display: flex; justify-content: space-between; font-size: 11px; color: #444; margin-bottom: 24px; padding: 0 2px; }
+
+/* Hours big display */
+.big-display {
+  font-size: 76px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: -3px;
+  margin-bottom: 6px;
+}
+.big-display .unit { font-size: 26px; font-weight: 400; color: #666; letter-spacing: 0; }
+.hours-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.pill-btn {
+  padding: 11px 8px;
+  background: #0d0d0d;
+  border: 1.5px solid #1a1a1a;
+  border-radius: 11px;
+  color: #555;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  user-select: none;
+}
+.pill-btn.sel { background: #3B82F6; border-color: #3B82F6; color: white; }
+
+/* Time of day */
+.time-row { display: flex; gap: 10px; margin-bottom: 24px; }
+.time-card {
+  flex: 1;
+  padding: 16px 10px;
+  background: #0d0d0d;
+  border: 1.5px solid #1a1a1a;
+  border-radius: 13px;
+  color: #555;
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+  font-size: 13px;
+  transition: all 0.2s;
+  user-select: none;
+}
+.time-card .icon { font-size: 24px; }
+.time-card.sel { background: rgba(59,130,246,0.12); border-color: #3B82F6; color: white; }
+
+/* Meals counter */
+.meals-num {
+  font-size: 84px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: -3px;
+  margin-bottom: 4px;
+}
+.meals-sub { font-size: 14px; color: #555; text-align: center; margin-bottom: 20px; }
+.counter-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 24px; }
+.counter-btn {
+  width: 54px; height: 54px;
+  border-radius: 50%;
+  background: #0d0d0d;
+  border: 1.5px solid #1a1a1a;
+  color: #555;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  user-select: none;
+}
+.counter-btn.sel { background: #3B82F6; border-color: #3B82F6; color: white; }
+
+/* Duration */
+.dur-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+
+/* ════════════ TOAST ════════════ */
+.toast {
+  position: absolute;
+  bottom: 95px; left: 50%;
+  transform: translateX(-50%);
+  background: #22C55E;
+  color: white;
+  padding: 11px 22px;
+  border-radius: 26px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 999;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: toastAnim 2.5s forwards;
+}
+@keyframes toastAnim {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  15%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <span style="font-weight:700">9:41</span>
+    <div class="status-icons">
+      <svg viewBox="0 0 16 12"><path d="M8 2.4C5.3 2.4 2.9 3.5 1.2 5.3L0 4C2.1 1.5 5 0 8 0s5.9 1.5 8 4l-1.2 1.3C13.1 3.5 10.7 2.4 8 2.4zm0 2.6c-2 0-3.8.8-5.1 2.2L1.7 6C3.4 4.1 5.6 3 8 3s4.6 1.1 6.3 3l-1.2 1.2C11.8 5.8 10 5zm0 2.6c-1.3 0-2.4.5-3.3 1.3L8 12l3.3-3.1C10.4 8.1 9.3 7.6 8 7.6z"/></svg>
+      <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2.5" stroke="white" stroke-width="1.2" fill="none"/><rect x="23" y="4" width="2" height="4" rx="1" fill="white" opacity="0.5"/><rect x="1.5" y="2.5" width="16" height="7" rx="1.5" fill="white"/></svg>
+    </div>
+  </div>
+
+  <!-- ═══════════ SPLASH ═══════════ -->
+  <div class="screen active" id="splash">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div class="splash-logo">Human</div>
+      <div class="splash-sub">RENDIMIENTO, BASE DE TODO PROGRESO.</div>
+    </div>
+    <div class="splash-btn-wrap">
+      <button class="btn-primary" onclick="go('ob-name')">Comenzar</button>
+    </div>
+  </div>
+
+  <!-- ═══════════ OB: NOMBRE ═══════════ -->
+  <div class="screen" id="ob-name">
+    <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:20%"></div></div>
+    <div class="ob-wrap">
+      <div class="ob-tag">EN POCO SOBRE TI</div>
+      <div class="ob-title">¿Cómo te llamas?</div>
+      <div class="field-label">Nombre</div>
+      <input class="field-input" type="text" placeholder="Tu nombre" value="Nikos Horischnik">
+      <div class="field-label">Edad</div>
+      <input class="field-input" type="number" placeholder="Tu edad" value="17" style="margin-bottom:18px">
+      <div class="field-label">Sexo</div>
+      <div class="radio-list">
+        <div class="radio-item sel" onclick="pick(this,'radio')"><span>Hombre</span><div class="radio-dot"></div></div>
+        <div class="radio-item" onclick="pick(this,'radio')"><span>Mujer</span><div class="radio-dot"></div></div>
+        <div class="radio-item" onclick="pick(this,'radio')"><span>Prefiero no decir</span><div class="radio-dot"></div></div>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="go('ob-identity')">Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ OB: IDENTITY ═══════════ -->
+  <div class="screen" id="ob-identity">
+    <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:40%"></div></div>
+    <button class="back-btn" onclick="go('ob-name')">‹</button>
+    <div class="ob-wrap" style="padding-top:70px">
+      <div class="ob-tag">PERSONALIZA TU AGENTE</div>
+      <div class="ob-title">¿Cómo te identificas?</div>
+      <div class="identity-list">
+        <div class="identity-card" onclick="pick(this,'identity')">
+          <span class="identity-card-name">Founder</span>
+          <div class="identity-icon">🏔</div>
+        </div>
+        <div class="identity-card sel" onclick="pick(this,'identity')">
+          <span class="identity-card-name">Atleta</span>
+          <div class="identity-icon">⚡</div>
+        </div>
+        <div class="identity-card" onclick="pick(this,'identity')">
+          <span class="identity-card-name">Ambos</span>
+          <div class="identity-icon">∞</div>
+        </div>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="go('ob-goal')">Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ OB: GOAL ═══════════ -->
+  <div class="screen" id="ob-goal">
+    <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:60%"></div></div>
+    <button class="back-btn" onclick="go('ob-identity')">‹</button>
+    <div class="ob-wrap" style="padding-top:70px">
+      <div class="ob-tag">TU META REAL</div>
+      <div class="ob-title">¿Cuál es tu objetivo ahora?</div>
+      <div class="goal-list">
+        <div class="goal-item" onclick="pick(this,'goal')"><span>Rendir al máximo sin quemarme</span><div class="goal-check">✓</div></div>
+        <div class="goal-item sel" onclick="pick(this,'goal')"><span>Recuperarme más rápido</span><div class="goal-check">✓</div></div>
+        <div class="goal-item" onclick="pick(this,'goal')"><span>Dormir mejor y más profundo</span><div class="goal-check">✓</div></div>
+        <div class="goal-item" onclick="pick(this,'goal')"><span>Perder grasa y ganar músculo</span><div class="goal-check">✓</div></div>
+        <div class="goal-item" onclick="pick(this,'goal')"><span>Mejorar foco y claridad mental</span><div class="goal-check">✓</div></div>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="go('ob-symptoms')">Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ OB: SÍNTOMAS ═══════════ -->
+  <div class="screen" id="ob-symptoms">
+    <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:80%"></div></div>
+    <button class="back-btn" onclick="go('ob-goal')">‹</button>
+    <div class="ob-wrap" style="padding-top:70px">
+      <div class="ob-tag">LO CIERTO REAL</div>
+      <div class="ob-title">¿Con qué frecuencia experimentas esto?</div>
+      <div class="symptom-block">
+        <div class="symptom-name">Fatiga mental a media tarde</div>
+        <div class="freq-row">
+          <div class="freq-btn" onclick="pickFreq(this)">Nunca</div>
+          <div class="freq-btn" onclick="pickFreq(this)">A veces</div>
+          <div class="freq-btn sel" onclick="pickFreq(this)">Siempre</div>
+        </div>
+      </div>
+      <div class="symptom-block">
+        <div class="symptom-name">Dificultad para dormir profundo</div>
+        <div class="freq-row">
+          <div class="freq-btn" onclick="pickFreq(this)">Nunca</div>
+          <div class="freq-btn" onclick="pickFreq(this)">A veces</div>
+          <div class="freq-btn sel" onclick="pickFreq(this)">Siempre</div>
+        </div>
+      </div>
+      <div class="symptom-block">
+        <div class="symptom-name">Poca energía al despertar</div>
+        <div class="freq-row">
+          <div class="freq-btn" onclick="pickFreq(this)">Nunca</div>
+          <div class="freq-btn sel" onclick="pickFreq(this)">A veces</div>
+          <div class="freq-btn" onclick="pickFreq(this)">Siempre</div>
+        </div>
+      </div>
+      <div class="symptom-block">
+        <div class="symptom-name">Estrés constante / ansiedad</div>
+        <div class="freq-row">
+          <div class="freq-btn" onclick="pickFreq(this)">Nunca</div>
+          <div class="freq-btn sel" onclick="pickFreq(this)">A veces</div>
+          <div class="freq-btn" onclick="pickFreq(this)">Siempre</div>
+        </div>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="go('ob-agent')">Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ OB: AGENTE ═══════════ -->
+  <div class="screen" id="ob-agent">
+    <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:100%"></div></div>
+    <button class="back-btn" onclick="go('ob-symptoms')">‹</button>
+    <div class="ob-wrap" style="padding-top:70px">
+      <div class="ob-tag">PERSONALIZA TU AGENTE</div>
+      <div class="ob-title">¿Cómo se llamará tu agente?</div>
+      <div class="agent-preview-box">
+        <strong id="agentName">Jarvis</strong> está a tu disposición para ayudarte a crear más contexto y conseguir los mejores resultados de salud y rendimiento.
+      </div>
+      <div class="agent-grid">
+        <div class="agent-card sel" onclick="pickAgent(this,'Jarvis')">Jarvis</div>
+        <div class="agent-card" onclick="pickAgent(this,'Max')">Max</div>
+        <div class="agent-card" onclick="pickAgent(this,'Sam')">Sam</div>
+        <div class="agent-card" onclick="pickAgent(this,'Nino')">Nino</div>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" id="agentBtn" onclick="startLoading()">Continuar con Jarvis</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ LOADING ═══════════ -->
+  <div class="screen" id="loading">
+    <div class="loading-ring">
+      <svg width="200" height="200" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="86" fill="none" stroke="#111" stroke-width="10"/>
+        <circle id="loadCircle" cx="100" cy="100" r="86" fill="none"
+          stroke="#3B82F6" stroke-width="10"
+          stroke-linecap="round"
+          stroke-dasharray="540" stroke-dashoffset="130"/>
+      </svg>
+      <div class="loading-center">
+        <div class="loading-num">92<span>%</span></div>
+      </div>
+    </div>
+    <div class="loading-label">Analizando tu perfil…</div>
+  </div>
+
+  <!-- ═══════════ CREAR CUENTA ═══════════ -->
+  <div class="screen" id="create-account">
+    <div class="ca-step">1 / 4</div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px;">
+      <div class="ca-title">Crea tu cuenta</div>
+      <div class="ca-sub">Empieza gratis. Sin tarjeta de crédito.</div>
+      <div class="ca-btns">
+        <button class="btn-outline"><span style="font-size:20px">🍎</span><span>Continuar con Apple</span></button>
+        <button class="btn-outline"><span style="font-size:18px;font-weight:700;color:#4285F4">G</span><span>Continuar con Google</span></button>
+        <div class="divider"><span>o continúa con email</span></div>
+        <button class="btn-primary" onclick="enterApp()">Crear cuenta con email</button>
+      </div>
+      <div class="ca-login">¿Ya tienes cuenta? <span onclick="enterApp()">Iniciar sesión</span></div>
+    </div>
+    <div class="ca-legal">Al crear la cuenta, aceptas los Términos de uso y la Política de privacidad de Human.</div>
+  </div>
+
+  <!-- ═══════════ MAIN APP ═══════════ -->
+  <div class="main-screen" id="main-app">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="tab-content" id="tab-dashboard" style="display:block">
+      <div class="dash-header">
+        <div>
+          <div class="dash-greeting">Buenos días,</div>
+          <div class="dash-name">Nikos</div>
+        </div>
+        <div class="dash-avatar">N</div>
+      </div>
+
+      <div class="battery-wrap">
+        <div class="battery-section-label">BODY BATTERY</div>
+        <div class="battery-ring">
+          <svg width="168" height="168" viewBox="0 0 168 168">
+            <defs>
+              <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#1d4ed8"/>
+                <stop offset="100%" stop-color="#60A5FA"/>
+              </linearGradient>
+            </defs>
+            <circle cx="84" cy="84" r="72" fill="none" stroke="#0d0d0d" stroke-width="10"/>
+            <circle cx="84" cy="84" r="72" fill="none"
+              stroke="url(#bg)" stroke-width="10"
+              stroke-linecap="round"
+              stroke-dasharray="452" stroke-dashoffset="108"
+              transform="rotate(-90 84 84)"/>
+          </svg>
+          <div class="battery-center">
+            <div class="battery-num">78<span>%</span></div>
+          </div>
+        </div>
+        <div class="battery-caption">Recuperación óptima</div>
+        <div class="battery-delta">↑ −11% vs ayer</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-tile">
+          <div class="stat-tile-label">SUEÑO</div>
+          <div class="stat-tile-val">7 <span class="up">↑</span></div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-tile-label">ESTRÉS</div>
+          <div class="stat-tile-val">3 <span class="up">↑</span></div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-tile-label">DEPORTE</div>
+          <div class="stat-tile-val">4 <span class="up">↑</span></div>
+        </div>
+      </div>
+
+      <div class="agent-msg-card">
+        <div class="agent-msg-tag">TU AGENTE</div>
+        <div class="agent-msg-text">Recuperación alta. Hoy es buen día para entrenar intensidad. Mete 20g extra de carbohidratos en el desayuno y cafeína después de las 10:00.</div>
+      </div>
+
+      <div class="plan-section">
+        <div class="plan-header">
+          <div class="plan-title">PLAN DE HOY</div>
+          <span class="plan-see-all">Ver todo</span>
+        </div>
+        <div class="plan-item">
+          <div class="plan-item-name">Entrenamiento híbrido · 45 min</div>
+          <div class="plan-item-time">Zona 4-5 · 18:00</div>
+        </div>
+        <div class="plan-item">
+          <div class="plan-item-name">Meditación profunda · 15 min</div>
+          <div class="plan-item-time">20:00</div>
+        </div>
+      </div>
+
+      <div class="daily-cta" onclick="goTest()">
+        <div class="daily-cta-icon">📊</div>
+        <div>
+          <div class="daily-cta-title">Test diario</div>
+          <div class="daily-cta-sub">Registra sueño, estrés, nutrición y deporte</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── INSIGHTS ── -->
+    <div class="tab-content" id="tab-insights" style="display:none">
+      <div class="insights-header">
+        <div class="insights-tag">INSIGHTS</div>
+        <div class="insights-title">Tu recuperación</div>
+        <div class="period-tabs">
+          <div class="period-tab" onclick="pickPeriod(this)">1D</div>
+          <div class="period-tab active" onclick="pickPeriod(this)">7D</div>
+          <div class="period-tab" onclick="pickPeriod(this)">30D</div>
+          <div class="period-tab" onclick="pickPeriod(this)">90D</div>
+        </div>
+      </div>
+
+      <div class="insight-tile">
+        <div class="insight-tile-label">BODY BATTERY PROMEDIO</div>
+        <div class="insight-big">74<span>%</span></div>
+        <div class="insight-delta">↑ 9% vs sem</div>
+        <div class="chart-svg-wrap">
+          <svg width="100%" height="80" viewBox="0 0 340 80" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,64 C20,60 40,56 60,52 S100,60 120,50 S160,38 200,34 S260,26 300,18 L340,12" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M0,64 C20,60 40,56 60,52 S100,60 120,50 S160,38 200,34 S260,26 300,18 L340,12 L340,80 L0,80 Z" fill="url(#areaGrad)"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="peak-row">
+        <div class="peak-tile">
+          <div class="peak-tile-label">PICO</div>
+          <div class="peak-tile-val">92<span>%</span></div>
+          <div class="peak-tile-day">Domingo</div>
+        </div>
+        <div class="peak-tile">
+          <div class="peak-tile-label">MÍNIMO</div>
+          <div class="peak-tile-val">41<span>%</span></div>
+          <div class="peak-tile-day low">Martes</div>
+        </div>
+      </div>
+
+      <div class="recovery-card">
+        <div class="recovery-card-title">Recuperación al alza</div>
+        <div class="recovery-card-delta">+12% vs media</div>
+      </div>
+    </div>
+
+    <!-- ── CHAT ── -->
+    <div id="tab-chat" style="display:none; flex-direction:column; flex:1; padding-top:50px;">
+      <div class="chat-header">
+        <div class="chat-av" id="chatAv">J</div>
+        <div>
+          <div class="chat-agent-name" id="chatAgentName">Jarvis</div>
+          <div class="chat-agent-status">Aprendiendo de ti</div>
+        </div>
+      </div>
+      <div class="chat-messages-wrap" id="chatMessages">
+        <div class="bubble agent">Buenos días, Nikos. Tu body battery está al 78% por lo que hoy podremos rendir a un gran nivel si gestionamos bien la energía.</div>
+        <div class="bubble user">Buenos días Jarvis, la verdad que sí, me siento con bastante energía, así que hoy podemos hacer un buen bloque de trabajo profundo y entrenamiento híbrido.</div>
+        <div class="bubble agent">Eso es, será un día intenso de alto rendimiento, pero tenemos la recuperación y batería necesaria para afrontarlo correctamente. Además hoy harás una meditación profunda a las 20:00 para relajar el sistema nervioso y activar el sistema parasimpático, te vendrá bien después de entrenar, y así también vamos preparándonos para un sueño profundo y de calidad.</div>
+      </div>
+      <div class="chat-input-row">
+        <input class="chat-text-input" id="chatInput" placeholder="Pregunta a tu agente..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="chat-send" onclick="sendChat()">→</button>
+      </div>
+    </div>
+
+    <!-- ── PERFIL ── -->
+    <div class="tab-content" id="tab-profile" style="display:none">
+      <div class="profile-top">
+        <div class="profile-top-title">Perfil</div>
+        <div class="profile-settings-btn">⚙</div>
+      </div>
+      <div class="profile-avatar-wrap">
+        <div class="profile-av">N</div>
+        <div class="profile-uname">Nikos Horischnik</div>
+        <div class="profile-badges">
+          <span class="pill pill-blue">FOUNDER</span>
+          <span class="pill pill-grey">NIVEL 18</span>
+        </div>
+      </div>
+      <div class="profile-stats-row">
+        <div class="profile-stat"><div class="profile-stat-val">214</div><div class="profile-stat-label">DÍAS ACTIVO</div></div>
+        <div class="profile-stat"><div class="profile-stat-val">74%</div><div class="profile-stat-label">BATTERY AVG</div></div>
+        <div class="profile-stat"><div class="profile-stat-val">31</div><div class="profile-stat-label">RACHA</div></div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">OBJETIVOS</div>
+        <div class="obj-row">
+          <div class="obj-name"><div class="obj-dot dot-blue"></div>Rendimiento cognitivo</div>
+          <div class="obj-val green">Alto</div>
+        </div>
+        <div class="obj-row">
+          <div class="obj-name"><div class="obj-dot dot-blue"></div>Subir HRV</div>
+          <div class="obj-val">70 ms</div>
+        </div>
+        <div class="obj-row">
+          <div class="obj-name"><div class="obj-dot dot-green"></div>Dormir 7.5h</div>
+          <div class="obj-val">7.3h avg</div>
+        </div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">DISPOSITIVOS</div>
+        <div class="device-row">
+          <div class="device-card"><div><div class="device-info-name">Apple Watch</div><div class="device-sync">● Sync</div></div><div class="device-icon-lg">⌚</div></div>
+          <div class="device-card"><div><div class="device-info-name">Oura Ring</div><div class="device-sync">● Sync</div></div><div class="device-icon-lg">💍</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+      <button class="nav-btn active" id="nav-dashboard" onclick="switchTab('dashboard')">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span>Inicio</span>
+      </button>
+      <button class="nav-btn" id="nav-insights" onclick="switchTab('insights')">
+        <svg viewBox="0 0 24 24"><path d="M3.5 18.5l6-6 4 4L22 6.92" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Insights</span>
+      </button>
+      <button class="nav-btn" id="nav-chat" onclick="switchTab('chat')">
+        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        <span>Chat</span>
+      </button>
+      <button class="nav-btn" id="nav-profile" onclick="switchTab('profile')">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+        <span>Perfil</span>
+      </button>
+    </div>
+  </div><!-- /main-app -->
+
+  <!-- ═══════════ TEST DIARIO: SUEÑO ═══════════ -->
+  <div class="screen" id="test-sleep">
+    <div class="test-wrap">
+      <div class="test-top">
+        <span class="test-label">SUEÑO</span>
+        <span class="test-skip" onclick="go('test-stress')">Saltar</span>
+      </div>
+      <div class="test-prog-bar"><div class="test-prog-fill" style="width:25%"></div></div>
+      <div class="test-q-label">CALIDAD</div>
+      <div class="test-question">¿Cómo dormiste anoche?</div>
+      <div class="scale-row">
+        <div class="scale-btn" onclick="pickScale(this)">1</div>
+        <div class="scale-btn" onclick="pickScale(this)">2</div>
+        <div class="scale-btn" onclick="pickScale(this)">3</div>
+        <div class="scale-btn sel" onclick="pickScale(this)">4</div>
+        <div class="scale-btn" onclick="pickScale(this)">5</div>
+      </div>
+      <div class="scale-labels"><span>Muy mal</span><span>Bien</span><span>Muy bien</span></div>
+      <div class="test-q-label">HORAS DORMIDAS</div>
+      <div class="big-display" id="sleepHoursDisp">7<span class="unit">h</span></div>
+      <div class="hours-grid">
+        <div class="pill-btn" onclick="pickHours(this,'4h')">4h</div>
+        <div class="pill-btn" onclick="pickHours(this,'5h')">5h</div>
+        <div class="pill-btn" onclick="pickHours(this,'6h')">6h</div>
+        <div class="pill-btn sel" onclick="pickHours(this,'7h')">7h</div>
+        <div class="pill-btn" onclick="pickHours(this,'8h')">8h</div>
+        <div class="pill-btn" onclick="pickHours(this,'9h')">9h</div>
+        <div class="pill-btn" onclick="pickHours(this,'10h')">10h</div>
+        <div class="pill-btn" onclick="pickHours(this,'11h')">11h</div>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="go('test-stress')">Siguiente</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TEST DIARIO: ESTRÉS ═══════════ -->
+  <div class="screen" id="test-stress">
+    <button class="back-btn" onclick="go('test-sleep')">‹</button>
+    <div class="test-wrap" style="padding-top:70px">
+      <div class="test-top">
+        <span class="test-label">ESTRÉS</span>
+        <span class="test-skip" onclick="go('test-nutrition')">Saltar</span>
+      </div>
+      <div class="test-prog-bar"><div class="test-prog-fill" style="width:50%"></div></div>
+      <div class="test-q-label">NIVEL</div>
+      <div class="test-question">¿Cuál fue tu nivel de estrés ayer?</div>
+      <div class="scale-row">
+        <div class="scale-btn" onclick="pickScale(this)">1</div>
+        <div class="scale-btn sel" onclick="pickScale(this)">2</div>
+        <div class="scale-btn" onclick="pickScale(this)">3</div>
+        <div class="scale-btn" onclick="pickScale(this)">4</div>
+        <div class="scale-btn" onclick="pickScale(this)">5</div>
+      </div>
+      <div class="scale-labels"><span>Muy bajo</span><span>Normal</span><span>Muy alto</span></div>
+      <div class="test-q-label" style="margin-top:4px">¿CUÁNDO FUE PEOR?</div>
+      <div class="time-row">
+        <div class="time-card" onclick="pickTime(this)"><span class="icon">🌅</span><span>Mañana</span></div>
+        <div class="time-card sel" onclick="pickTime(this)"><span class="icon">☀️</span><span>Tarde</span></div>
+        <div class="time-card" onclick="pickTime(this)"><span class="icon">🌙</span><span>Noche</span></div>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="go('test-nutrition')">Siguiente</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TEST DIARIO: NUTRICIÓN ═══════════ -->
+  <div class="screen" id="test-nutrition">
+    <button class="back-btn" onclick="go('test-stress')">‹</button>
+    <div class="test-wrap" style="padding-top:70px">
+      <div class="test-top">
+        <span class="test-label">NUTRICIÓN</span>
+        <span class="test-skip" onclick="go('test-sport')">Saltar</span>
+      </div>
+      <div class="test-prog-bar"><div class="test-prog-fill" style="width:75%"></div></div>
+      <div class="test-q-label">CALIDAD</div>
+      <div class="test-question">¿Cómo comiste ayer?</div>
+      <div class="scale-row">
+        <div class="scale-btn" onclick="pickScale(this)">1</div>
+        <div class="scale-btn" onclick="pickScale(this)">2</div>
+        <div class="scale-btn" onclick="pickScale(this)">3</div>
+        <div class="scale-btn sel" onclick="pickScale(this)">4</div>
+        <div class="scale-btn" onclick="pickScale(this)">5</div>
+      </div>
+      <div class="scale-labels"><span>Muy mal</span><span>Bien</span><span>Perfecto</span></div>
+      <div class="test-q-label" style="margin-top:4px">COMIDAS AL DÍA</div>
+      <div class="meals-num" id="mealsNum">3</div>
+      <div class="meals-sub">comidas</div>
+      <div class="counter-row">
+        <div class="counter-btn" onclick="pickMeals(this,1)">1</div>
+        <div class="counter-btn" onclick="pickMeals(this,2)">2</div>
+        <div class="counter-btn sel" onclick="pickMeals(this,3)">3</div>
+        <div class="counter-btn" onclick="pickMeals(this,4)">4</div>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="go('test-sport')">Siguiente</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TEST DIARIO: DEPORTE ═══════════ -->
+  <div class="screen" id="test-sport">
+    <button class="back-btn" onclick="go('test-nutrition')">‹</button>
+    <div class="test-wrap" style="padding-top:70px">
+      <div class="test-top">
+        <span class="test-label">DEPORTE</span>
+        <span class="test-skip" onclick="finishTest()">Saltar</span>
+      </div>
+      <div class="test-prog-bar"><div class="test-prog-fill" style="width:100%"></div></div>
+      <div class="test-q-label">INTENSIDAD</div>
+      <div class="test-question">¿Entrenaste ayer?</div>
+      <div class="scale-row">
+        <div class="scale-btn" onclick="pickScale(this)">1</div>
+        <div class="scale-btn" onclick="pickScale(this)">2</div>
+        <div class="scale-btn sel" onclick="pickScale(this)">3</div>
+        <div class="scale-btn" onclick="pickScale(this)">4</div>
+        <div class="scale-btn" onclick="pickScale(this)">5</div>
+      </div>
+      <div class="scale-labels"><span>Nada</span><span>Moderado</span><span>Máximo</span></div>
+      <div class="test-q-label" style="margin-top:4px">DURACIÓN</div>
+      <div class="big-display" id="durDisp">45<span class="unit">min</span></div>
+      <div class="dur-grid">
+        <div class="pill-btn" onclick="pickDur(this,15)">15</div>
+        <div class="pill-btn" onclick="pickDur(this,30)">30</div>
+        <div class="pill-btn sel" onclick="pickDur(this,45)">45</div>
+        <div class="pill-btn" onclick="pickDur(this,60)">60</div>
+        <div class="pill-btn" onclick="pickDur(this,75)">75</div>
+        <div class="pill-btn" onclick="pickDur(this,90)">90</div>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="finishTest()">Finalizar test</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+// ── Navigation ──
+let agentName = 'Jarvis';
+
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+function startLoading() {
+  go('loading');
+  animateLoader();
+  setTimeout(() => go('create-account'), 2800);
+}
+
+function animateLoader() {
+  const circle = document.getElementById('loadCircle');
+  let offset = 130;
+  const target = 20;
+  const step = (130 - target) / 60;
+  let frame = 0;
+  const id = setInterval(() => {
+    offset -= step;
+    if (offset <= target) { offset = target; clearInterval(id); }
+    circle.setAttribute('stroke-dashoffset', offset.toFixed(1));
+    frame++;
+  }, 35);
+}
+
+function enterApp() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const app = document.getElementById('main-app');
+  app.classList.add('active');
+  // Update chat agent name/avatar
+  document.getElementById('chatAgentName').textContent = agentName;
+  document.getElementById('chatAv').textContent = agentName[0];
+}
+
+function switchTab(tab) {
+  // Hide all tabs
+  ['dashboard','insights','chat','profile'].forEach(t => {
+    const el = document.getElementById('tab-' + t);
+    if (!el) return;
+    el.style.display = 'none';
+    document.getElementById('nav-' + t).classList.remove('active');
+  });
+  // Show selected
+  const target = document.getElementById('tab-' + tab);
+  if (target) {
+    target.style.display = (tab === 'chat') ? 'flex' : 'block';
+  }
+  const navBtn = document.getElementById('nav-' + tab);
+  if (navBtn) navBtn.classList.add('active');
+}
+
+function goTest() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('main-app').classList.remove('active');
+  go('test-sleep');
+}
+
+function finishTest() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('main-app').classList.add('active');
+  switchTab('dashboard');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = '✓ Test completado';
+  document.getElementById('phone').appendChild(t);
+  setTimeout(() => t.remove(), 2600);
+}
+
+// ── Selection helpers ──
+function pick(el, group) {
+  const parent = el.parentElement;
+  parent.querySelectorAll('.' + group + '-item, .identity-card, .goal-item, .radio-item').forEach(i => i.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function pickFreq(el) {
+  el.closest('.freq-row').querySelectorAll('.freq-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function pickAgent(el, name) {
+  el.closest('.agent-grid').querySelectorAll('.agent-card').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  agentName = name;
+  document.getElementById('agentName').textContent = name;
+  document.getElementById('agentBtn').textContent = 'Continuar con ' + name;
+}
+
+function pickPeriod(el) {
+  el.closest('.period-tabs').querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function pickScale(el) {
+  el.closest('.scale-row').querySelectorAll('.scale-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function pickHours(el, val) {
+  el.closest('.hours-grid').querySelectorAll('.pill-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('sleepHoursDisp').innerHTML = val.replace('h','') + '<span class="unit">h</span>';
+}
+
+function pickTime(el) {
+  el.closest('.time-row').querySelectorAll('.time-card').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function pickMeals(el, n) {
+  el.closest('.counter-row').querySelectorAll('.counter-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('mealsNum').textContent = n;
+}
+
+function pickDur(el, val) {
+  el.closest('.dur-grid').querySelectorAll('.pill-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('durDisp').innerHTML = val + '<span class="unit">min</span>';
+}
+
+// ══════════════════════════════════════════
+//  CONFIGURACIÓN DE API
+//  Cambiá esta URL por la de tu backend en Railway
+// ══════════════════════════════════════════
+const API_URL = 'https://TU-BACKEND.railway.app'  // ← reemplazá esto
+
+// Estado de la app
+const appState = {
+  userId:    null,
+  profile:   {},
+  chatHistory: [],
+  dailyTest: {}
+}
+
+// ── Registro / Login ──────────────────────
+async function registerUser(email, password) {
+  const res = await fetch(`${API_URL}/api/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  })
+  const data = await res.json()
+  if (data.userId) {
+    appState.userId = data.userId
+    localStorage.setItem('humanUserId', data.userId)
+  }
+  return data
+}
+
+// ── Guardar onboarding ────────────────────
+async function saveOnboarding() {
+  if (!appState.userId) return
+  await fetch(`${API_URL}/api/onboarding`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      userId:    appState.userId,
+      name:      appState.profile.name      || 'Nikos',
+      age:       appState.profile.age       || 17,
+      sex:       appState.profile.sex       || 'hombre',
+      identity:  appState.profile.identity  || 'atleta',
+      goal:      appState.profile.goal      || 'Recuperarme más rápido',
+      symptoms:  appState.profile.symptoms  || {},
+      agentName: agentName
+    })
+  })
+}
+
+// ── Guardar test diario ───────────────────
+async function saveDailyTest() {
+  if (!appState.userId) return
+  const t = appState.dailyTest
+  await fetch(`${API_URL}/api/daily-test`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      userId:            appState.userId,
+      sleepQuality:      t.sleepQuality     || 4,
+      sleepHours:        t.sleepHours       || 7,
+      stressLevel:       t.stressLevel      || 2,
+      stressPeak:        t.stressPeak       || 'tarde',
+      nutritionQuality:  t.nutritionQuality || 4,
+      mealsCount:        t.mealsCount       || 3,
+      sportIntensity:    t.sportIntensity   || 3,
+      sportDuration:     t.sportDuration    || 45
+    })
+  })
+}
+
+// ── Chat con Claude (API real) ────────────
+async function sendChat() {
+  const input = document.getElementById('chatInput')
+  const msg = input.value.trim()
+  if (!msg) return
+
+  const wrap = document.getElementById('chatMessages')
+
+  // Bubble usuario
+  const userBubble = document.createElement('div')
+  userBubble.className = 'bubble user'
+  userBubble.textContent = msg
+  wrap.appendChild(userBubble)
+  input.value = ''
+  wrap.scrollTop = wrap.scrollHeight
+
+  // Indicador "escribiendo..."
+  const typing = document.createElement('div')
+  typing.className = 'bubble agent'
+  typing.style.opacity = '0.5'
+  typing.textContent = '···'
+  wrap.appendChild(typing)
+  wrap.scrollTop = wrap.scrollHeight
+
+  try {
+    // Si no hay userId, usá respuestas locales de fallback
+    if (!appState.userId || API_URL.includes('TU-BACKEND')) {
+      await new Promise(r => setTimeout(r, 800))
+      const fallbacks = [
+        'Entendido. Ajusto tu plan en consecuencia.',
+        'Perfecto, eso me ayuda a calibrar mejor tu recuperación.',
+        'Anotado. Te recomendaré ajustes según ese dato.',
+        'Gracias por el contexto. Optimizo tu plan del día.'
+      ]
+      typing.textContent = fallbacks[Math.floor(Math.random() * fallbacks.length)]
+      typing.style.opacity = '1'
+      appState.chatHistory.push({ role: 'user', content: msg })
+      return
+    }
+
+    const res = await fetch(`${API_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId:  appState.userId,
+        message: msg,
+        history: appState.chatHistory.slice(-10) // últimos 10 mensajes
+      })
+    })
+    const { reply } = await res.json()
+
+    typing.textContent = reply
+    typing.style.opacity = '1'
+
+    // Guardar en historial local
+    appState.chatHistory.push({ role: 'user', content: msg })
+    appState.chatHistory.push({ role: 'assistant', content: reply })
+
+  } catch (err) {
+    typing.textContent = 'Sin conexión al servidor.'
+    typing.style.opacity = '0.5'
+  }
+  wrap.scrollTop = wrap.scrollHeight
+}
+
+// Al arrancar, recuperar userId si ya existe
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('humanUserId')
+  if (saved) appState.userId = saved
+})
+</script>
+</body>
+</html>
