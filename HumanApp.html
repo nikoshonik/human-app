@@ -339,7 +339,7 @@ body {
 #splash {
   justify-content: center;
   align-items: center;
-  background: radial-gradient(ellipse 300px 250px at 50% 90%, rgba(37,99,235,0.35) 0%, transparent 70%), #000;
+  background: radial-gradient(ellipse 320px 280px at 50% 52%, rgba(37,99,235,0.38) 0%, transparent 70%), #000;
 }
 .splash-logo {
   font-size: 76px;
@@ -391,6 +391,10 @@ body {
   padding: 50px 24px 40px;
   position: relative;
 }
+.ca-progress { display: flex; gap: 5px; margin-bottom: 32px; width: 100%; }
+.ca-prog-seg { flex: 1; height: 3px; border-radius: 2px; }
+.ca-prog-seg.on { background: #3B82F6; }
+.ca-prog-seg.off { background: #1a1a1a; }
 .ca-step { font-size: 13px; color: #555; margin-bottom: 10px; }
 .ca-title { font-size: 32px; font-weight: 800; text-align: center; letter-spacing: -0.5px; margin-bottom: 8px; }
 .ca-sub { font-size: 15px; color: #666; text-align: center; margin-bottom: 36px; }
@@ -543,7 +547,7 @@ body {
   transition: all 0.2s;
   user-select: none;
 }
-.period-tab.active { background: #fff; color: #000; border-color: #fff; }
+.period-tab.active { background: #1e1e1e; color: #fff; border-color: #333; }
 
 .insight-tile {
   margin: 0 20px 12px;
@@ -767,7 +771,7 @@ body {
   user-select: none;
 }
 .scale-btn.sel { background: #3B82F6; border-color: #3B82F6; color: white; }
-.scale-labels { display: flex; justify-content: space-between; font-size: 11px; color: #444; margin-bottom: 24px; padding: 0 2px; }
+.scale-labels { display: grid; grid-template-columns: repeat(5, 1fr); font-size: 10px; color: #444; margin-bottom: 24px; text-align: center; }
 
 /* Hours big display */
 .big-display {
@@ -1041,12 +1045,19 @@ body {
         <div class="loading-num">92<span>%</span></div>
       </div>
     </div>
-    <div class="loading-label">Analizando tu perfil…</div>
+    <div class="loading-label" id="loadingLabel">Jarvis está analizando tu perfil…</div>
   </div>
 
   <!-- ═══════════ CREAR CUENTA ═══════════ -->
   <div class="screen" id="create-account">
-    <div class="ca-step">1 / 4</div>
+    <div style="padding: 58px 24px 0;">
+      <div class="ca-progress">
+        <div class="ca-prog-seg on"></div>
+        <div class="ca-prog-seg off"></div>
+        <div class="ca-prog-seg off"></div>
+        <div class="ca-prog-seg off"></div>
+      </div>
+    </div>
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px;">
       <div class="ca-title">Crea tu cuenta</div>
       <div class="ca-sub">Empieza gratis. Sin tarjeta de crédito.</div>
@@ -1294,7 +1305,7 @@ body {
         <div class="scale-btn sel" onclick="pickScale(this)">4</div>
         <div class="scale-btn" onclick="pickScale(this)">5</div>
       </div>
-      <div class="scale-labels"><span>Muy mal</span><span>Bien</span><span>Muy bien</span></div>
+      <div class="scale-labels"><span>Muy mal</span><span>Mal</span><span>Regular</span><span>Bien</span><span>Muy bien</span></div>
       <div class="test-q-label">HORAS DORMIDAS</div>
       <div class="big-display" id="sleepHoursDisp">7<span class="unit">h</span></div>
       <div class="hours-grid">
@@ -1318,7 +1329,7 @@ body {
     <button class="back-btn" onclick="go('test-sleep')">‹</button>
     <div class="test-wrap" style="padding-top:70px">
       <div class="test-top">
-        <span class="test-label">ESTRÉS</span>
+        <span class="test-label" style="color:#F59E0B">ESTRÉS</span>
         <span class="test-skip" onclick="go('test-nutrition')">Saltar</span>
       </div>
       <div class="test-prog-bar"><div class="test-prog-fill" style="width:50%"></div></div>
@@ -1331,7 +1342,7 @@ body {
         <div class="scale-btn" onclick="pickScale(this)">4</div>
         <div class="scale-btn" onclick="pickScale(this)">5</div>
       </div>
-      <div class="scale-labels"><span>Muy bajo</span><span>Normal</span><span>Muy alto</span></div>
+      <div class="scale-labels"><span>Muy bajo</span><span>Bajo</span><span>Normal</span><span>Alto</span><span>Muy alto</span></div>
       <div class="test-q-label" style="margin-top:4px">¿CUÁNDO FUE PEOR?</div>
       <div class="time-row">
         <div class="time-card" onclick="pickTime(this)"><span class="icon">🌅</span><span>Mañana</span></div>
@@ -1349,7 +1360,7 @@ body {
     <button class="back-btn" onclick="go('test-stress')">‹</button>
     <div class="test-wrap" style="padding-top:70px">
       <div class="test-top">
-        <span class="test-label">NUTRICIÓN</span>
+        <span class="test-label" style="color:#34D399">NUTRICIÓN</span>
         <span class="test-skip" onclick="go('test-sport')">Saltar</span>
       </div>
       <div class="test-prog-bar"><div class="test-prog-fill" style="width:75%"></div></div>
@@ -1362,7 +1373,7 @@ body {
         <div class="scale-btn sel" onclick="pickScale(this)">4</div>
         <div class="scale-btn" onclick="pickScale(this)">5</div>
       </div>
-      <div class="scale-labels"><span>Muy mal</span><span>Bien</span><span>Perfecto</span></div>
+      <div class="scale-labels"><span>Muy mal</span><span>Mal</span><span>Normal</span><span>Bien</span><span>Perfecto</span></div>
       <div class="test-q-label" style="margin-top:4px">COMIDAS AL DÍA</div>
       <div class="meals-num" id="mealsNum">3</div>
       <div class="meals-sub">comidas</div>
@@ -1383,7 +1394,7 @@ body {
     <button class="back-btn" onclick="go('test-nutrition')">‹</button>
     <div class="test-wrap" style="padding-top:70px">
       <div class="test-top">
-        <span class="test-label">DEPORTE</span>
+        <span class="test-label" style="color:#A78BFA">DEPORTE</span>
         <span class="test-skip" onclick="finishTest()">Saltar</span>
       </div>
       <div class="test-prog-bar"><div class="test-prog-fill" style="width:100%"></div></div>
@@ -1396,7 +1407,7 @@ body {
         <div class="scale-btn" onclick="pickScale(this)">4</div>
         <div class="scale-btn" onclick="pickScale(this)">5</div>
       </div>
-      <div class="scale-labels"><span>Nada</span><span>Moderado</span><span>Máximo</span></div>
+      <div class="scale-labels"><span>Nada</span><span>Suave</span><span>Moderado</span><span>Intenso</span><span>Máximo</span></div>
       <div class="test-q-label" style="margin-top:4px">DURACIÓN</div>
       <div class="big-display" id="durDisp">45<span class="unit">min</span></div>
       <div class="dur-grid">
@@ -1427,6 +1438,7 @@ function go(id) {
 
 function startLoading() {
   go('loading');
+  document.getElementById('loadingLabel').textContent = agentName + ' está analizando tu perfil…';
   animateLoader();
   setTimeout(() => go('create-account'), 2800);
 }
