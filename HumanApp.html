@@ -2,7 +2,12 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Human App">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
 <title>Human App</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -15,6 +20,68 @@ body {
   justify-content: center;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
   padding: 20px;
+  /* Prevent overscroll bounce in native */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── NATIVE MODE (Capacitor / standalone) ── */
+/* When running as native app: remove phone frame, go fullscreen */
+body.native-mode {
+  background: #000;
+  padding: 0;
+  align-items: stretch;
+  justify-content: stretch;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body.native-mode .phone {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+body.native-mode .phone::before {
+  display: none; /* hide fake notch — real one handles it */
+}
+
+body.native-mode .status-bar {
+  display: none; /* iOS handles status bar natively */
+}
+
+/* Safe area padding for native mode */
+body.native-mode .main-screen {
+  padding-top: 0; /* Manejado por cada tab directamente */
+}
+
+/* Tabs principales: empujar contenido bajo el Dynamic Island */
+body.native-mode .tab-content {
+  padding-top: max(calc(env(safe-area-inset-top, 0px) + 20px), 82px);
+  padding-bottom: calc(82px + max(env(safe-area-inset-bottom, 0px), 22px));
+}
+
+/* Chat tab tiene padding-top inline — se sobreescribe aquí */
+body.native-mode #tab-chat {
+  padding-top: max(calc(env(safe-area-inset-top, 0px) + 16px), 78px) !important;
+}
+
+body.native-mode .bottom-nav {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 22px);
+  height: calc(82px + max(env(safe-area-inset-bottom, 0px), 22px));
+}
+
+body.native-mode .chat-input-row {
+  bottom: calc(max(env(safe-area-inset-bottom, 0px), 22px) + 78px);
+}
+
+/* Scrollable areas — prevent rubber band on native */
+.scroll-content, .chat-messages-wrap, .ob-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 /* ── Phone frame ── */
@@ -335,6 +402,106 @@ body {
 }
 .agent-card.sel { border-color: #3B82F6; background: rgba(59,130,246,0.08); }
 
+/* ════════════ OB-INTRO ════════════ */
+#ob-intro {
+  justify-content: space-between;
+  background: linear-gradient(180deg, #0c1d42 0%, #07122a 35%, #020810 65%, #000 100%);
+}
+.ob-intro-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 28px 0;
+}
+.ob-intro-logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; color: #fff; }
+.ob-intro-skip { font-size: 12px; color: rgba(255,255,255,0.35); letter-spacing: 1px; cursor: pointer; text-transform: uppercase; }
+.ob-intro-body {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: flex-start; justify-content: center;
+  padding: 0 28px; text-align: left;
+}
+.ob-intro-tag { font-size: 11px; letter-spacing: 3px; color: #3B82F6; text-transform: uppercase; margin-bottom: 20px; }
+.ob-intro-title { font-size: 48px; font-weight: 800; letter-spacing: -2px; line-height: 1.0; margin-bottom: 20px; }
+.ob-intro-sub { font-size: 15px; color: #888; line-height: 1.55; }
+
+/* ════════════ TIME PICKER ════════════ */
+.time-picker-section { margin-bottom: 28px; }
+.time-picker-label { font-size: 11px; color: #3B82F6; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; }
+.time-picker-row { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.time-picker-btn {
+  width: 48px; height: 48px;
+  background: #111; border: 1.5px solid #1e1e1e; border-radius: 50%;
+  font-size: 22px; color: #555; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.time-picker-btn:active { background: #1e1e1e; color: white; }
+.time-val { font-size: 52px; font-weight: 800; letter-spacing: -2px; min-width: 140px; text-align: center; }
+
+/* ════════════ INTEGRATION CARDS ════════════ */
+.integrations-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.integration-card {
+  padding: 18px 14px; background: #0d0d0d; border: 1.5px solid #1e1e1e;
+  border-radius: 14px; text-align: center; cursor: pointer;
+  transition: all 0.2s; user-select: none;
+}
+.integration-card.sel { border-color: #3B82F6; background: rgba(59,130,246,0.08); }
+.integration-icon { font-size: 28px; margin-bottom: 7px; }
+.integration-name { font-size: 13px; color: #666; }
+.integration-card.sel .integration-name { color: #3B82F6; }
+
+/* ════════════ BIG PICKER ════════════ */
+.big-picker-wrap { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 16px 0 28px; }
+.big-picker-btn {
+  width: 52px; height: 52px; background: #111; border: 1.5px solid #1e1e1e;
+  border-radius: 50%; font-size: 28px; color: #555; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.big-picker-btn:active { background: #1e1e1e; color: white; }
+.big-picker-num { font-size: 88px; font-weight: 800; letter-spacing: -3px; color: white; min-width: 130px; text-align: center; }
+.big-picker-unit { font-size: 22px; font-weight: 400; color: #444; margin-top: -6px; text-align: center; }
+
+/* ════════════ PAYWALL ════════════ */
+.paywall-check-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }
+.paywall-check-item { display: flex; align-items: center; gap: 13px; }
+.paywall-check-icon {
+  width: 26px; height: 26px; border-radius: 50%; background: #3B82F6;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: white; flex-shrink: 0; font-weight: 700;
+}
+.paywall-check-text { font-size: 15px; color: #ccc; }
+.social-card {
+  background: #0d0d0d; border: 1px solid #161616; border-radius: 14px;
+  padding: 15px 16px; margin-bottom: 10px;
+}
+.social-stars { font-size: 15px; color: #F59E0B; margin-bottom: 6px; }
+.social-quote { font-size: 13px; color: #888; line-height: 1.55; }
+.social-author { font-size: 12px; color: #444; margin-top: 7px; }
+.feature-row { display: flex; align-items: flex-start; gap: 13px; margin-bottom: 16px; }
+.feature-emoji { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+.feature-title { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+.feature-desc { font-size: 13px; color: #666; line-height: 1.4; }
+.price-card {
+  border-radius: 16px; padding: 18px 20px; margin-bottom: 10px;
+  position: relative; cursor: pointer;
+  transition: border-color 0.2s;
+}
+.price-card.featured {
+  background: linear-gradient(135deg, #0a1628, #0d1f3c);
+  border: 1.5px solid #1b3460;
+}
+.price-card.standard { background: #0d0d0d; border: 1.5px solid #1a1a1a; }
+.price-badge {
+  position: absolute; top: -11px; right: 16px;
+  background: #3B82F6; color: white;
+  font-size: 10px; font-weight: 700; padding: 3px 11px;
+  border-radius: 20px; letter-spacing: 0.5px; text-transform: uppercase;
+}
+.price-period { font-size: 11px; color: #3B82F6; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
+.price-amount { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
+.price-amount span { font-size: 15px; font-weight: 400; color: #555; }
+.price-note { font-size: 12px; color: #444; margin-top: 3px; }
+.price-card.standard .price-period { color: #555; }
+
 /* ════════════ SPLASH ════════════ */
 #splash {
   justify-content: center;
@@ -360,15 +527,14 @@ body {
   bottom: 52px; left: 24px; right: 24px;
 }
 
-/* ════════════ LOADING ════════════ */
+/* ════════════ LOADING / ANALYZING ════════════ */
 #loading {
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  gap: 24px;
 }
-.loading-ring { position: relative; width: 200px; height: 200px; }
-.loading-ring svg { transform: rotate(-90deg); }
-.loading-center {
+.analyzing-ring { position: relative; width: 200px; height: 200px; margin: 0 auto 28px; }
+.analyzing-ring svg { transform: rotate(-90deg); }
+.analyzing-center {
   position: absolute;
   inset: 0;
   display: flex;
@@ -376,13 +542,47 @@ body {
   align-items: center;
   justify-content: center;
 }
-.loading-num {
-  font-size: 72px;
-  font-weight: 800;
-  line-height: 1;
+.analyzing-num { font-size: 72px; font-weight: 800; line-height: 1; }
+.analyzing-num-unit { font-size: 22px; font-weight: 400; color: #aaa; margin-top: -4px; }
+.analyzing-steps { display: flex; flex-direction: column; gap: 14px; width: 100%; padding: 0 8px; }
+.analyzing-step {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 15px; color: #333; transition: color 0.4s;
 }
-.loading-num span { font-size: 26px; font-weight: 400; color: #aaa; }
-.loading-label { font-size: 14px; color: #555; text-align: center; letter-spacing: 0.5px; }
+.analyzing-step.active { color: #ccc; }
+.analyzing-step.done { color: #3B82F6; }
+.analyzing-step-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #222;
+  flex-shrink: 0; transition: background 0.4s;
+}
+.analyzing-step.active .analyzing-step-dot,
+.analyzing-step.done .analyzing-step-dot { background: #3B82F6; }
+
+/* ════════════ PAYWALL — PAIN / PROMISE ════════════ */
+.paywall-pain-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }
+.pain-item { display: flex; align-items: flex-start; gap: 14px; }
+.pain-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+.pain-text { font-size: 15px; color: #ccc; line-height: 1.4; }
+.promise-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }
+.promise-item { display: flex; align-items: center; gap: 13px; }
+.promise-check {
+  width: 26px; height: 26px; border-radius: 50%; background: rgba(59,130,246,0.15);
+  border: 1.5px solid #3B82F6;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: #3B82F6; flex-shrink: 0; font-weight: 700;
+}
+.promise-text { font-size: 15px; color: #ccc; line-height: 1.4; }
+
+/* ════════════ OB-SLEEP-HOURS ════════════ */
+.sleep-hours-big { font-size: 88px; font-weight: 800; text-align: center; letter-spacing: -3px; margin-bottom: 4px; }
+.sleep-hours-unit { font-size: 22px; font-weight: 400; color: #444; text-align: center; margin-bottom: 22px; }
+.sleep-hours-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
+.sleep-hour-btn {
+  padding: 12px 8px; background: #0d0d0d; border: 1.5px solid #1a1a1a;
+  border-radius: 11px; color: #555; font-size: 14px; cursor: pointer;
+  text-align: center; transition: all 0.2s; user-select: none;
+}
+.sleep-hour-btn.sel { background: #3B82F6; border-color: #3B82F6; color: white; }
 
 /* ════════════ CREATE ACCOUNT ════════════ */
 #create-account {
@@ -407,7 +607,7 @@ body {
 .ca-legal { position: absolute; bottom: 28px; left: 24px; right: 24px; font-size: 11px; color: #333; text-align: center; line-height: 1.5; }
 
 /* ════════════ MAIN APP SHELL ════════════ */
-.main-screen { display: none; flex-direction: column; position: absolute; inset: 0; }
+.main-screen { display: none; flex-direction: column; position: absolute; inset: 0; background: #000; color: white; }
 .main-screen.active { display: flex; }
 .tab-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding-top: 50px; padding-bottom: 80px; }
 .tab-content::-webkit-scrollbar { display: none; }
@@ -458,19 +658,22 @@ body {
 }
 
 /* Body Battery */
-.battery-wrap { display: flex; flex-direction: column; align-items: center; padding: 12px 20px 16px; }
-.battery-section-label { font-size: 10px; letter-spacing: 2px; color: #555; text-transform: uppercase; margin-bottom: 12px; }
-.battery-ring { position: relative; width: 168px; height: 168px; }
+.battery-wrap { display: flex; flex-direction: column; align-items: center; padding: 8px 20px 14px; }
+.battery-section-label { font-size: 10px; letter-spacing: 2px; color: #3B82F6; text-transform: uppercase; margin-bottom: 6px; }
+.battery-ring { position: relative; width: 190px; height: 190px; }
 .battery-ring svg { transform: rotate(-90deg); }
 .battery-center {
   position: absolute; inset: 0;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
+  gap: 2px;
+  z-index: 2;
 }
-.battery-num { font-size: 52px; font-weight: 800; line-height: 1; letter-spacing: -2px; }
-.battery-num span { font-size: 22px; font-weight: 500; }
+.battery-num { font-size: 58px; font-weight: 800; line-height: 1; letter-spacing: -2px; }
+.battery-num span { font-size: 24px; font-weight: 500; }
 .battery-caption { font-size: 12px; color: #888; margin-top: 10px; text-align: center; }
 .battery-delta { font-size: 12px; color: #34D399; margin-top: 3px; }
+.up-orange { font-size: 14px; color: #F59E0B; }
 
 /* Stats row */
 .stats-row { display: flex; gap: 10px; padding: 0 20px 14px; }
@@ -587,7 +790,7 @@ body {
 .recovery-card-delta { font-size: 14px; color: #34D399; }
 
 /* ════════════ CHAT ════════════ */
-#tab-chat { padding-top: 50px; }
+#tab-chat { padding-top: 50px; padding-bottom: 0; position: relative; }
 .chat-header {
   display: flex;
   align-items: center;
@@ -604,14 +807,14 @@ body {
 }
 .chat-agent-name { font-size: 17px; font-weight: 600; }
 .chat-agent-status { font-size: 12px; color: #555; }
-.chat-messages-wrap { flex: 1; overflow-y: auto; padding: 16px 16px 12px; display: flex; flex-direction: column; gap: 12px; }
+.chat-messages-wrap { flex: 1; overflow-y: auto; padding: 16px 16px 80px; display: flex; flex-direction: column; gap: 12px; }
 .chat-messages-wrap::-webkit-scrollbar { display: none; }
 .bubble {
   max-width: 84%;
-  padding: 12px 14px;
+  padding: 9px 14px;
   border-radius: 18px;
   font-size: 14px;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 .bubble.agent {
   background: #0a1628;
@@ -627,9 +830,13 @@ body {
   border-bottom-right-radius: 4px;
 }
 .chat-input-row {
-  padding: 10px 16px 20px;
+  position: absolute;
+  bottom: 78px;
+  left: 0; right: 0;
+  padding: 10px 16px 12px;
   display: flex;
   gap: 10px;
+  background: #000;
   align-items: center;
   border-top: 1px solid #0d0d0d;
 }
@@ -674,8 +881,8 @@ body {
   padding-bottom: 22px;
 }
 .profile-av {
-  width: 84px; height: 84px;
-  border-radius: 26px;
+  width: 110px; height: 110px;
+  border-radius: 30px;
   background: #3B82F6;
   display: flex; align-items: center; justify-content: center;
   font-size: 38px; font-weight: 700;
@@ -870,7 +1077,196 @@ body {
   80%  { opacity: 1; }
   100% { opacity: 0; }
 }
+
+/* ════════════ RESPONSIVE — SAFE AREAS & SMALL SCREENS ════════════ */
+
+/* --- Native mode: top padding for ALL onboarding / test screens --- */
+body.native-mode .screen:not(.main-screen) {
+  padding-top: max(env(safe-area-inset-top, 0px), 52px);
+}
+body.native-mode .ob-wrap {
+  padding-top: max(80px, calc(env(safe-area-inset-top, 0px) + 20px));
+}
+body.native-mode .test-wrap {
+  padding-top: max(76px, calc(env(safe-area-inset-top, 0px) + 18px));
+}
+body.native-mode .back-btn {
+  top: max(68px, calc(env(safe-area-inset-top, 0px) + 16px));
+}
+body.native-mode #create-account {
+  padding-top: max(72px, calc(env(safe-area-inset-top, 0px) + 16px));
+}
+body.native-mode .splash-btn-wrap {
+  bottom: max(52px, calc(env(safe-area-inset-bottom, 0px) + 20px));
+}
+body.native-mode #ob-intro > div:last-child {
+  padding-bottom: max(52px, calc(env(safe-area-inset-bottom, 0px) + 20px));
+}
+body.native-mode .ob-intro-header {
+  padding-top: max(16px, calc(env(safe-area-inset-top, 0px) + 8px));
+}
+
+/* --- iPhone SE and small height devices (≤ 680px logical height in frame) --- */
+/* In-frame preview: phone is 844px; SE has ratio ~0.79. Use container queries
+   approach: target .ob-wrap and children based on viewport height of the iframe/screen */
+@media screen and (max-height: 700px) {
+  /* Only applies in native mode on real small phones */
+  .ob-wrap            { padding-top: 44px; padding-bottom: 28px; }
+  .ob-title           { font-size: 22px; margin-bottom: 18px; }
+  .ob-tag             { margin-bottom: 10px; }
+  .ob-footer          { padding-top: 16px; }
+  .ob-intro-title     { font-size: 28px; }
+  .ob-intro-sub       { font-size: 13px; }
+  .identity-card      { padding: 13px 16px; }
+  .identity-card-name { font-size: 17px; }
+  .identity-icon      { width: 34px; height: 34px; font-size: 15px; }
+  .goal-item          { padding: 11px 14px; font-size: 14px; }
+  .symptom-block      { margin-bottom: 14px; }
+  .agent-grid         { gap: 8px; }
+  .agent-card         { padding: 14px 12px; font-size: 16px; }
+  .agent-preview-box  { margin-bottom: 14px; }
+  /* Time picker */
+  .time-val           { font-size: 38px; min-width: 100px; }
+  .time-picker-btn    { width: 40px; height: 40px; font-size: 18px; }
+  .time-picker-section { margin-bottom: 18px; }
+  /* Big picker */
+  .big-picker-num     { font-size: 64px; min-width: 100px; }
+  .big-picker-btn     { width: 44px; height: 44px; font-size: 22px; }
+  .big-picker-wrap    { margin: 10px 0 18px; }
+  /* Daily test */
+  .test-wrap          { padding-top: 44px; padding-bottom: 24px; }
+  .test-question      { font-size: 22px; margin-bottom: 16px; }
+  .test-prog-bar      { margin-bottom: 20px; }
+  .big-display        { font-size: 56px; }
+  .meals-num          { font-size: 64px; }
+  .scale-row          { gap: 5px; margin-bottom: 6px; }
+  .scale-btn          { padding: 11px 0; font-size: 15px; }
+  /* Paywall */
+  .paywall-check-list { gap: 10px; margin-bottom: 18px; }
+  .social-card        { padding: 12px 14px; margin-bottom: 8px; }
+  .price-card         { padding: 14px 16px; }
+  /* Battery on dashboard */
+  .battery-ring       { width: 160px; height: 160px; }
+  .battery-num        { font-size: 46px; }
+}
+
+/* --- Very small screens (iPhone SE width = 375pt) --- */
+@media screen and (max-width: 375px) {
+  .ob-title        { font-size: 24px; }
+  .ob-intro-title  { font-size: 30px; }
+  .integrations-grid { gap: 8px; }
+  .integration-card  { padding: 14px 10px; }
+  .stats-row       { gap: 8px; padding: 0 14px 14px; }
+  .stat-tile       { padding: 11px 10px; }
+  .stat-tile-val   { font-size: 20px; }
+  .nav-btn         { padding: 6px 16px; }
+  .profile-av      { width: 90px; height: 90px; font-size: 30px; }
+  .battery-ring    { width: 170px; height: 170px; }
+  .battery-num     { font-size: 50px; }
+  .big-picker-num  { font-size: 72px; min-width: 110px; }
+  .time-val        { font-size: 44px; min-width: 120px; }
+}
+
+/* --- Fluid height for ob-wrap in native: avoid fixed overflow --- */
+body.native-mode .ob-wrap {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+body.native-mode .test-wrap {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* --- Ensure .screen fills 100% in native always --- */
+body.native-mode .screen {
+  height: 100dvh;
+  max-height: 100dvh;
+}
+
+/* ════════════ SLEEP ROUTINE 4-PICKER ════════════ */
+.routine-section { margin-bottom: 22px; }
+.routine-section-lbl {
+  font-size: 11px; letter-spacing: 2px;
+  color: #3B82F6; text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.routine-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.routine-col { display: flex; flex-direction: column; align-items: center; }
+.routine-col-lbl { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.routine-time-val { font-size: 34px; font-weight: 800; letter-spacing: -1px; margin-bottom: 10px; }
+.routine-adj-row { display: flex; gap: 10px; }
+.routine-adj-btn {
+  width: 38px; height: 38px;
+  background: #111; border: 1.5px solid #1e1e1e; border-radius: 50%;
+  font-size: 20px; color: #555; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.routine-adj-btn:active { background: #1e1e1e; color: white; }
+
+/* ════════════ AGENT GRID 3 ════════════ */
+.agent-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+/* ════════════ PAYWALL-PAIN REDESIGN ════════════ */
+.pain-card-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 8px; }
+.pain-card-red {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: linear-gradient(135deg, #1a0808, #150808);
+  border: 1.5px solid rgba(239,68,68,0.2);
+  border-radius: 12px; padding: 10px 12px;
+}
+.pain-x-icon {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(239,68,68,0.15);
+  color: #EF4444; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
+}
+.pain-card-title { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+.pain-card-sub { font-size: 11.5px; color: #666; line-height: 1.3; }
+.solution-divider {
+  display: flex; align-items: center; gap: 8px;
+  margin: 6px 0;
+}
+.solution-divider .divider-line { flex: 1; height: 1px; background: #1a1a1a; }
+.solution-divider-label {
+  font-size: 10px; color: #34D399; letter-spacing: 1.5px;
+  text-transform: uppercase; white-space: nowrap;
+}
+.solution-card {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: linear-gradient(135deg, #071a11, #0a1f14);
+  border: 1.5px solid #34D399; border-radius: 12px; padding: 12px;
+  box-shadow: 0 0 16px rgba(52,211,153,0.08);
+}
+.solution-check-icon {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #34D399; color: #000; font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.solution-title { font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+.solution-sub { font-size: 12px; color: #888; line-height: 1.3; }
+.account-btn {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 14px 16px; margin-top: 8px;
+  background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 12px;
+  color: #fff; font-size: 14px; font-weight: 500;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.account-btn:active { background: #141414; }
+.account-btn-danger { color: #ef4444; }
+.account-btn-danger:active { background: #1a0a0a; }
 </style>
+<!-- Supabase JS SDK v2 — auth real desde el cliente -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 <div class="phone" id="phone">
@@ -891,7 +1287,24 @@ body {
       <div class="splash-sub">RENDIMIENTO, BASE DE TODO PROGRESO.</div>
     </div>
     <div class="splash-btn-wrap">
-      <button class="btn-primary" onclick="go('ob-name')">Comenzar</button>
+      <button class="btn-primary" onclick="go('ob-intro')">Comenzar</button>
+    </div>
+  </div>
+
+  <!-- ═══════════ OB: INTRO ═══════════ -->
+  <div class="screen" id="ob-intro">
+    <div class="ob-intro-header">
+      <div class="ob-intro-logo">Human</div>
+      <div class="ob-intro-skip" onclick="go('ob-name')">SKIP ›</div>
+    </div>
+    <div class="ob-intro-body">
+      <div class="ob-intro-tag">AI-POWERED HEALTH AGENT</div>
+      <div class="ob-intro-title">La vida es un juego. Mejora tu personaje.</div>
+      <div class="ob-intro-sub">Tu agente personal que optimiza tu recuperación y maximiza tu rendimiento.<br><br>Hecho para founders y atletas que no pueden bajar el ritmo.</div>
+    </div>
+    <div style="padding:0 28px 52px;">
+      <button class="btn-primary" onclick="go('ob-name')">Empezar</button>
+      <div style="text-align:center;margin-top:14px;font-size:13px;color:#444;cursor:pointer" onclick="go('create-account');showLoginForm()">Ya tengo una cuenta del servicio</div>
     </div>
   </div>
 
@@ -899,20 +1312,20 @@ body {
   <div class="screen" id="ob-name">
     <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:20%"></div></div>
     <div class="ob-wrap">
-      <div class="ob-tag">EN POCO SOBRE TI</div>
+      <div class="ob-tag">UN POCO SOBRE TI</div>
       <div class="ob-title">¿Cómo te llamas?</div>
       <div class="field-label">Nombre</div>
-      <input class="field-input" type="text" placeholder="Tu nombre" value="Nikos Horischnik">
+      <input class="field-input" id="inputName" type="text" placeholder="Tu nombre" value="">
       <div class="field-label">Edad</div>
-      <input class="field-input" type="number" placeholder="Tu edad" value="17" style="margin-bottom:18px">
+      <input class="field-input" id="inputAge" type="number" placeholder="Tu edad" value="" style="margin-bottom:18px">
       <div class="field-label">Sexo</div>
       <div class="radio-list">
-        <div class="radio-item sel" onclick="pick(this,'radio')"><span>Hombre</span><div class="radio-dot"></div></div>
+        <div class="radio-item" onclick="pick(this,'radio')"><span>Hombre</span><div class="radio-dot"></div></div>
         <div class="radio-item" onclick="pick(this,'radio')"><span>Mujer</span><div class="radio-dot"></div></div>
         <div class="radio-item" onclick="pick(this,'radio')"><span>Prefiero no decir</span><div class="radio-dot"></div></div>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="go('ob-identity')">Continuar</button>
+        <button class="btn-primary" onclick="collectOb1(); go('ob-identity')">Continuar</button>
       </div>
     </div>
   </div>
@@ -921,7 +1334,7 @@ body {
   <div class="screen" id="ob-identity">
     <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:40%"></div></div>
     <button class="back-btn" onclick="go('ob-name')">‹</button>
-    <div class="ob-wrap" style="padding-top:70px">
+    <div class="ob-wrap" style="padding-top:90px">
       <div class="ob-tag">PERSONALIZA TU AGENTE</div>
       <div class="ob-title">¿Cómo te identificas?</div>
       <div class="identity-list">
@@ -939,7 +1352,7 @@ body {
         </div>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="go('ob-goal')">Continuar</button>
+        <button class="btn-primary" onclick="collectOb2(); go('ob-goal')">Continuar</button>
       </div>
     </div>
   </div>
@@ -948,18 +1361,18 @@ body {
   <div class="screen" id="ob-goal">
     <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:60%"></div></div>
     <button class="back-btn" onclick="go('ob-identity')">‹</button>
-    <div class="ob-wrap" style="padding-top:70px">
+    <div class="ob-wrap" style="padding-top:90px">
       <div class="ob-tag">TU META REAL</div>
       <div class="ob-title">¿Cuál es tu objetivo ahora?</div>
       <div class="goal-list">
-        <div class="goal-item" onclick="pick(this,'goal')"><span>Rendir al máximo sin quemarme</span><div class="goal-check">✓</div></div>
+        <div class="goal-item" onclick="pick(this,'goal')"><span>Maximizar mi rendimiento</span><div class="goal-check">✓</div></div>
         <div class="goal-item sel" onclick="pick(this,'goal')"><span>Recuperarme más rápido</span><div class="goal-check">✓</div></div>
         <div class="goal-item" onclick="pick(this,'goal')"><span>Dormir mejor y más profundo</span><div class="goal-check">✓</div></div>
-        <div class="goal-item" onclick="pick(this,'goal')"><span>Perder grasa y ganar músculo</span><div class="goal-check">✓</div></div>
-        <div class="goal-item" onclick="pick(this,'goal')"><span>Mejorar foco y claridad mental</span><div class="goal-check">✓</div></div>
+        <div class="goal-item" onclick="pick(this,'goal')"><span>Aumentar mi energía diaria</span><div class="goal-check">✓</div></div>
+        <div class="goal-item" onclick="pick(this,'goal')"><span>Aumentar mi bienestar general</span><div class="goal-check">✓</div></div>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="go('ob-symptoms')">Continuar</button>
+        <button class="btn-primary" onclick="collectOb3(); go('ob-symptoms')">Continuar</button>
       </div>
     </div>
   </div>
@@ -968,27 +1381,11 @@ body {
   <div class="screen" id="ob-symptoms">
     <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:80%"></div></div>
     <button class="back-btn" onclick="go('ob-goal')">‹</button>
-    <div class="ob-wrap" style="padding-top:70px">
-      <div class="ob-tag">LO CIERTO REAL</div>
+    <div class="ob-wrap" style="padding-top:90px">
+      <div class="ob-tag">EL DATO REAL</div>
       <div class="ob-title">¿Con qué frecuencia experimentas esto?</div>
       <div class="symptom-block">
-        <div class="symptom-name">Fatiga mental a media tarde</div>
-        <div class="freq-row">
-          <div class="freq-btn" onclick="pickFreq(this)">Nunca</div>
-          <div class="freq-btn" onclick="pickFreq(this)">A veces</div>
-          <div class="freq-btn sel" onclick="pickFreq(this)">Siempre</div>
-        </div>
-      </div>
-      <div class="symptom-block">
-        <div class="symptom-name">Dificultad para dormir profundo</div>
-        <div class="freq-row">
-          <div class="freq-btn" onclick="pickFreq(this)">Nunca</div>
-          <div class="freq-btn" onclick="pickFreq(this)">A veces</div>
-          <div class="freq-btn sel" onclick="pickFreq(this)">Siempre</div>
-        </div>
-      </div>
-      <div class="symptom-block">
-        <div class="symptom-name">Poca energía al despertar</div>
+        <div class="symptom-name">Dificultad de dormir profunda</div>
         <div class="freq-row">
           <div class="freq-btn" onclick="pickFreq(this)">Nunca</div>
           <div class="freq-btn sel" onclick="pickFreq(this)">A veces</div>
@@ -996,7 +1393,23 @@ body {
         </div>
       </div>
       <div class="symptom-block">
-        <div class="symptom-name">Estrés constante / ansiedad</div>
+        <div class="symptom-name">Cansancio al despertarse</div>
+        <div class="freq-row">
+          <div class="freq-btn" onclick="pickFreq(this)">Nunca</div>
+          <div class="freq-btn" onclick="pickFreq(this)">A veces</div>
+          <div class="freq-btn sel" onclick="pickFreq(this)">Siempre</div>
+        </div>
+      </div>
+      <div class="symptom-block">
+        <div class="symptom-name">Estrés constante / serenidad</div>
+        <div class="freq-row">
+          <div class="freq-btn" onclick="pickFreq(this)">Nunca</div>
+          <div class="freq-btn sel" onclick="pickFreq(this)">A veces</div>
+          <div class="freq-btn" onclick="pickFreq(this)">Siempre</div>
+        </div>
+      </div>
+      <div class="symptom-block">
+        <div class="symptom-name">Mala alimentación</div>
         <div class="freq-row">
           <div class="freq-btn" onclick="pickFreq(this)">Nunca</div>
           <div class="freq-btn sel" onclick="pickFreq(this)">A veces</div>
@@ -1004,7 +1417,7 @@ body {
         </div>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="go('ob-agent')">Continuar</button>
+        <button class="btn-primary" onclick="collectOb4(); go('ob-sleep-routine')">Continuar</button>
       </div>
     </div>
   </div>
@@ -1012,18 +1425,25 @@ body {
   <!-- ═══════════ OB: AGENTE ═══════════ -->
   <div class="screen" id="ob-agent">
     <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:100%"></div></div>
-    <button class="back-btn" onclick="go('ob-symptoms')">‹</button>
-    <div class="ob-wrap" style="padding-top:70px">
+    <button class="back-btn" onclick="go('test-sport')">‹</button>
+    <div class="ob-wrap" style="padding-top:90px">
       <div class="ob-tag">PERSONALIZA TU AGENTE</div>
       <div class="ob-title">¿Cómo se llamará tu agente?</div>
       <div class="agent-preview-box">
         <strong id="agentName">Jarvis</strong> está a tu disposición para ayudarte a crear más contexto y conseguir los mejores resultados de salud y rendimiento.
       </div>
-      <div class="agent-grid">
+      <div class="agent-grid-3">
         <div class="agent-card sel" onclick="pickAgent(this,'Jarvis')">Jarvis</div>
+        <div class="agent-card" onclick="pickAgent(this,'Mi')">Mi</div>
         <div class="agent-card" onclick="pickAgent(this,'Max')">Max</div>
+        <div class="agent-card" onclick="pickAgent(this,'S')">S</div>
         <div class="agent-card" onclick="pickAgent(this,'Sam')">Sam</div>
+        <div class="agent-card" onclick="pickAgent(this,'N')">N</div>
         <div class="agent-card" onclick="pickAgent(this,'Nino')">Nino</div>
+      </div>
+      <div style="margin-top:14px">
+        <div class="field-label" style="font-size:10px;color:#444;letter-spacing:1.5px;margin-bottom:8px">O PON UN NOMBRE PROPIO</div>
+        <input class="field-input" id="agentCustomName" type="text" placeholder="Nombre personalizado..." oninput="onCustomAgentName(this.value)" style="margin-bottom:0">
       </div>
       <div class="ob-footer">
         <button class="btn-primary" id="agentBtn" onclick="startLoading()">Continuar con Jarvis</button>
@@ -1031,21 +1451,344 @@ body {
     </div>
   </div>
 
-  <!-- ═══════════ LOADING ═══════════ -->
-  <div class="screen" id="loading">
-    <div class="loading-ring">
-      <svg width="200" height="200" viewBox="0 0 200 200">
-        <circle cx="100" cy="100" r="86" fill="none" stroke="#111" stroke-width="10"/>
-        <circle id="loadCircle" cx="100" cy="100" r="86" fill="none"
-          stroke="#3B82F6" stroke-width="10"
-          stroke-linecap="round"
-          stroke-dasharray="540" stroke-dashoffset="130"/>
-      </svg>
-      <div class="loading-center">
-        <div class="loading-num">92<span>%</span></div>
+  <!-- ═══════════ OB: RUTINA DE SUEÑO ═══════════ -->
+  <div class="screen" id="ob-sleep-routine">
+    <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:62%"></div></div>
+    <button class="back-btn" onclick="go('ob-symptoms')">‹</button>
+    <div class="ob-wrap" style="padding-top:90px">
+      <div class="ob-tag">CONSTANCIA DE SUEÑO</div>
+      <div class="ob-title">¿Cómo es tu rutina de sueño?</div>
+      <div style="font-size:13px;color:#555;margin-bottom:22px">Las horas en que habitualmente te despiertas y te acuestas.</div>
+
+      <div class="routine-section">
+        <div class="routine-section-lbl">ACTUAL</div>
+        <div class="routine-cols">
+          <div class="routine-col">
+            <div class="routine-col-lbl">Dormir</div>
+            <div class="routine-time-val" id="actualSleepDisp">00:30</div>
+            <div class="routine-adj-row">
+              <button class="routine-adj-btn" onclick="adjustTime4('as',-15)">−</button>
+              <button class="routine-adj-btn" onclick="adjustTime4('as',15)">+</button>
+            </div>
+          </div>
+          <div class="routine-col">
+            <div class="routine-col-lbl">Despertar</div>
+            <div class="routine-time-val" id="actualWakeDisp">07:00</div>
+            <div class="routine-adj-row">
+              <button class="routine-adj-btn" onclick="adjustTime4('aw',-15)">−</button>
+              <button class="routine-adj-btn" onclick="adjustTime4('aw',15)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="routine-section">
+        <div class="routine-section-lbl">OBJETIVO</div>
+        <div class="routine-cols">
+          <div class="routine-col">
+            <div class="routine-col-lbl">Dormir</div>
+            <div class="routine-time-val" id="targetSleepDisp">23:00</div>
+            <div class="routine-adj-row">
+              <button class="routine-adj-btn" onclick="adjustTime4('ts',-15)">−</button>
+              <button class="routine-adj-btn" onclick="adjustTime4('ts',15)">+</button>
+            </div>
+          </div>
+          <div class="routine-col">
+            <div class="routine-col-lbl">Despertar</div>
+            <div class="routine-time-val" id="targetWakeDisp">06:30</div>
+            <div class="routine-adj-row">
+              <button class="routine-adj-btn" onclick="adjustTime4('tw',-15)">−</button>
+              <button class="routine-adj-btn" onclick="adjustTime4('tw',15)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="collectSleepRoutine4(); enterObTestMode()">Continuar</button>
       </div>
     </div>
-    <div class="loading-label" id="loadingLabel">Jarvis está analizando tu perfil…</div>
+  </div>
+
+  <!-- ═══════════ OB: HORAS DE SUEÑO ═══════════ -->
+  <div class="screen" id="ob-sleep-hours">
+    <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:66%"></div></div>
+    <button class="back-btn" onclick="go('ob-sleep-routine')">‹</button>
+    <div class="ob-wrap" style="padding-top:90px">
+      <div class="ob-tag">TU RUTINA</div>
+      <div class="ob-title">¿Cuántas horas duermes actualmente?</div>
+      <div class="sleep-hours-big" id="sleepHoursBaseDisp">7</div>
+      <div class="sleep-hours-unit">horas</div>
+      <div class="sleep-hours-grid">
+        <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,4)">4h</div>
+        <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,5)">5h</div>
+        <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,6)">6h</div>
+        <div class="sleep-hour-btn sel" onclick="pickSleepBaseline(this,7)">7h</div>
+        <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,8)">8h</div>
+        <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,9)">9h</div>
+        <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,10)">10h</div>
+        <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,11)">+10h</div>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="collectSleepHoursBaseline(); go('ob-integrations')">Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ OB: INTEGRACIONES ═══════════ -->
+  <div class="screen" id="ob-integrations">
+    <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:72%"></div></div>
+    <button class="back-btn" onclick="go('ob-sleep-hours')">‹</button>
+    <div class="ob-wrap" style="padding-top:90px">
+      <div class="ob-tag">CONECTA TUS DATOS</div>
+      <div class="ob-title">¿Qué dispositivos usas?</div>
+      <div class="integrations-grid">
+        <div class="integration-card" onclick="toggleIntegration(this)">
+          <div class="integration-icon">⌚</div>
+          <div class="integration-name">Apple Watch</div>
+        </div>
+        <div class="integration-card" onclick="toggleIntegration(this)">
+          <div class="integration-icon">📡</div>
+          <div class="integration-name">Garmin</div>
+        </div>
+        <div class="integration-card" onclick="toggleIntegration(this)">
+          <div class="integration-icon">💍</div>
+          <div class="integration-name">Oura Ring</div>
+        </div>
+        <div class="integration-card" onclick="toggleIntegration(this)">
+          <div class="integration-icon">💪</div>
+          <div class="integration-name">Whoop</div>
+        </div>
+        <div class="integration-card" onclick="toggleIntegration(this)">
+          <div class="integration-icon">❤️</div>
+          <div class="integration-name">Apple Health</div>
+        </div>
+        <div class="integration-card" onclick="toggleIntegration(this)">
+          <div class="integration-icon">🏃</div>
+          <div class="integration-name">Ninguno</div>
+        </div>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="collectIntegrations(); go('ob-stress-baseline')">Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ OB: BASELINE ESTRÉS ═══════════ -->
+  <div class="screen" id="ob-stress-baseline">
+    <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:80%"></div></div>
+    <button class="back-btn" onclick="go('ob-integrations')">‹</button>
+    <div class="ob-wrap" style="padding-top:90px">
+      <div class="ob-tag">BASELINE</div>
+      <div class="ob-title">¿Cuál suele ser tu nivel de estrés?</div>
+      <div style="font-size:13px;color:#555;margin-bottom:8px">Del 1 (muy bajo) al 10 (muy alto)</div>
+      <div class="big-picker-wrap">
+        <button class="big-picker-btn" onclick="adjustBaseline('stress',-1)">−</button>
+        <div>
+          <div class="big-picker-num" id="stressBaseline">3</div>
+        </div>
+        <button class="big-picker-btn" onclick="adjustBaseline('stress',1)">+</button>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="collectBaselines(); go('ob-score-baseline')">Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ OB: BASELINE ENERGÍA ═══════════ -->
+  <div class="screen" id="ob-score-baseline">
+    <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:88%"></div></div>
+    <button class="back-btn" onclick="go('ob-stress-baseline')">‹</button>
+    <div class="ob-wrap" style="padding-top:90px">
+      <div class="ob-tag">BASELINE</div>
+      <div class="ob-title">¿Cómo calificarías tu energía actual?</div>
+      <div style="font-size:13px;color:#555;margin-bottom:8px">Tu Body Battery de partida</div>
+      <div class="big-picker-wrap">
+        <button class="big-picker-btn" onclick="adjustBaseline('score',-5)">−</button>
+        <div style="text-align:center">
+          <div class="big-picker-num" id="scoreBaseline">45</div>
+          <div class="big-picker-unit">%</div>
+        </div>
+        <button class="big-picker-btn" onclick="adjustBaseline('score',5)">+</button>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="collectBaselines(); go('ob-agent')">Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ LOADING ═══════════ -->
+  <div class="screen" id="loading">
+    <div style="padding: 70px 24px 0; width:100%; display:flex; flex-direction:column; align-items:center;">
+      <div style="font-size: 11px; letter-spacing: 2px; color: #3B82F6; text-transform: uppercase; margin-bottom: 28px;" id="loadingLabel">ANALIZANDO TU PERFIL</div>
+      <div class="analyzing-ring">
+        <svg width="200" height="200" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="86" fill="none" stroke="#111" stroke-width="10"/>
+          <circle id="loadCircle" cx="100" cy="100" r="86" fill="none"
+            stroke="#3B82F6" stroke-width="10"
+            stroke-linecap="round"
+            stroke-dasharray="540" stroke-dashoffset="540"/>
+        </svg>
+        <div class="analyzing-center">
+          <div class="analyzing-num" id="analyzeNum">0</div>
+          <div class="analyzing-num-unit">%</div>
+        </div>
+      </div>
+      <div class="analyzing-steps">
+        <div class="analyzing-step" id="astep0"><div class="analyzing-step-dot"></div><span>Analizando perfil de sueño</span></div>
+        <div class="analyzing-step" id="astep1"><div class="analyzing-step-dot"></div><span>Calculando nivel de estrés base</span></div>
+        <div class="analyzing-step" id="astep2"><div class="analyzing-step-dot"></div><span>Optimizando plan personal</span></div>
+        <div class="analyzing-step" id="astep3"><div class="analyzing-step-dot"></div><span>Configurando tu agente</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ PAYWALL: DOLOR ═══════════ -->
+  <div class="screen" id="paywall-pain">
+    <div class="ob-wrap" style="padding-top:70px">
+      <div class="ob-tag" style="color:#EF4444">EL COSTO REAL</div>
+      <div class="ob-title" style="margin-bottom:4px;font-size:22px">¿Cuánto te está costando esto?</div>
+      <div style="font-size:12.5px;color:#555;margin-bottom:16px">Lo que pierdes cada día funcionando al 60%.</div>
+      <div class="pain-card-list">
+        <div class="pain-card-red">
+          <div class="pain-x-icon">✕</div>
+          <div>
+            <div class="pain-card-title">Cerebro en survival, no en creación</div>
+            <div class="pain-card-sub">Sin recuperación real, no puedes tomar las mejores decisiones</div>
+          </div>
+        </div>
+        <div class="pain-card-red">
+          <div class="pain-x-icon">✕</div>
+          <div>
+            <div class="pain-card-title">Decisiones con fatiga cargada</div>
+            <div class="pain-card-sub">Fatiga crónica impacta tu rendimiento hasta el 40%</div>
+          </div>
+        </div>
+        <div class="pain-card-red">
+          <div class="pain-x-icon">✕</div>
+          <div>
+            <div class="pain-card-title">Sin recuperación a días completos</div>
+            <div class="pain-card-sub">Posibilidades de éxito se reducen cuando no recuperas bien</div>
+          </div>
+        </div>
+        <div class="pain-card-red">
+          <div class="pain-x-icon">✕</div>
+          <div>
+            <div class="pain-card-title">Imposibilidad de alcanzar el 100%</div>
+            <div class="pain-card-sub">Al 60% puede que nunca llegues a tu mejor versión</div>
+          </div>
+        </div>
+      </div>
+      <div class="solution-divider">
+        <div class="divider-line"></div>
+        <span class="solution-divider-label">LA SOLUCIÓN</span>
+        <div class="divider-line"></div>
+      </div>
+      <div class="solution-card">
+        <div class="solution-check-icon">✓</div>
+        <div>
+          <div class="solution-title">Al 80% puedes cambiar todo</div>
+          <div class="solution-sub">Human te ayuda a recuperarte y rendir al máximo cada día con datos reales</div>
+        </div>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="go('paywall-social')">Quiero cambiar →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ PAYWALL: SOCIAL PROOF ═══════════ -->
+  <div class="screen" id="paywall-social">
+    <div class="ob-wrap" style="padding-top:70px">
+      <div class="ob-tag">RESULTADOS REALES</div>
+      <div class="ob-title" style="margin-bottom:20px">Ellos ya usaron Human</div>
+      <div class="social-card">
+        <div class="social-stars">★★★★★</div>
+        <div class="social-quote">"En 3 semanas mejoré mi sueño un 40% y reduje el estrés significativamente. Jarvis entiende exactamente qué necesito."</div>
+        <div class="social-author">— Alejandro M., Founder · Madrid</div>
+      </div>
+      <div class="social-card">
+        <div class="social-stars">★★★★★</div>
+        <div class="social-quote">"El mejor investment en salud que he hecho. Mis tiempos en competición mejoraron desde que empecé a optimizar mi recuperación."</div>
+        <div class="social-author">— Laura G., Atleta amateur · Barcelona</div>
+      </div>
+      <div class="social-card">
+        <div class="social-stars">★★★★★</div>
+        <div class="social-quote">"Pensé que era otro app de salud genérica. Me equivoqué. Se adapta a mi rutina y me da exactamente lo que necesito cada día."</div>
+        <div class="social-author">— Pablo R., CEO · Valencia</div>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="go('paywall-promise')">Continuar →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ PAYWALL: PROMESA ═══════════ -->
+  <div class="screen" id="paywall-promise">
+    <div class="ob-wrap" style="padding-top:70px">
+      <div class="ob-tag">TU COMPROMISO</div>
+      <div class="ob-title" style="margin-bottom:8px">Una promesa contigo mismo</div>
+      <div style="font-size:14px;color:#555;margin-bottom:24px">Para conseguir resultados reales, necesitas comprometerte con esto:</div>
+      <div class="promise-list">
+        <div class="promise-item">
+          <div class="promise-check">✓</div>
+          <div class="promise-text">Haré el test diario cada mañana para que mi agente tenga datos reales</div>
+        </div>
+        <div class="promise-item">
+          <div class="promise-check">✓</div>
+          <div class="promise-text">Seguiré el plan que mi agente me recomiende, incluso cuando no me apetezca</div>
+        </div>
+        <div class="promise-item">
+          <div class="promise-check">✓</div>
+          <div class="promise-text">Priorizaré mi recuperación como base de todo mi rendimiento</div>
+        </div>
+        <div class="promise-item">
+          <div class="promise-check">✓</div>
+          <div class="promise-text">Seré constante durante al menos 21 días para ver resultados reales</div>
+        </div>
+      </div>
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="go('paywall-features')">Lo prometo →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ PAYWALL: FEATURES + PRECIOS ═══════════ -->
+  <div class="screen" id="paywall-features">
+    <div class="ob-wrap" style="padding-top:70px">
+      <div class="ob-tag">TU PLATAFORMA</div>
+      <div class="ob-title" style="margin-bottom:20px">Optimiza tu rendimiento y maximiza tu perfil</div>
+      <div class="feature-row">
+        <div class="feature-emoji">🧠</div>
+        <div><div class="feature-title">IA que aprende de ti</div><div class="feature-desc">Recomendaciones adaptadas a tus datos reales cada día</div></div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-emoji">📊</div>
+        <div><div class="feature-title">Body Battery en tiempo real</div><div class="feature-desc">Métricas de recuperación basadas en tu test diario y biometría</div></div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-emoji">🌙</div>
+        <div><div class="feature-title">Test diario inteligente</div><div class="feature-desc">A tu hora de despertar, para capturar los datos frescos del día</div></div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-emoji">⚡</div>
+        <div><div class="feature-title">Plan del día dinámico</div><div class="feature-desc">Entrenamiento, nutrición y descanso ajustados a tu recuperación</div></div>
+      </div>
+      <div class="price-card featured">
+        <div class="price-badge">MÁS POPULAR</div>
+        <div class="price-period">ANUAL</div>
+        <div class="price-amount">29,99€ <span>/ año</span></div>
+        <div class="price-note">≈ 2,50€/mes · Cancela cuando quieras</div>
+      </div>
+      <div class="price-card standard">
+        <div class="price-period">MENSUAL</div>
+        <div class="price-amount">9,99€ <span>/ mes</span></div>
+      </div>
+      <div class="ob-footer" style="padding-top:10px">
+        <button class="btn-primary" onclick="go('create-account')">Empezar ahora →</button>
+        <div style="text-align:center;font-size:12px;color:#333;margin-top:12px">7 días de prueba gratis · Sin tarjeta de crédito</div>
+      </div>
+    </div>
   </div>
 
   <!-- ═══════════ CREAR CUENTA ═══════════ -->
@@ -1058,16 +1801,19 @@ body {
         <div class="ca-prog-seg off"></div>
       </div>
     </div>
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px;">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px 80px;">
       <div class="ca-title">Crea tu cuenta</div>
       <div class="ca-sub">Empieza gratis. Sin tarjeta de crédito.</div>
       <div class="ca-btns">
-        <button class="btn-outline"><span style="font-size:20px">🍎</span><span>Continuar con Apple</span></button>
-        <button class="btn-outline"><span style="font-size:18px;font-weight:700;color:#4285F4">G</span><span>Continuar con Google</span></button>
-        <div class="divider"><span>o continúa con email</span></div>
-        <button class="btn-primary" onclick="enterApp()">Crear cuenta con email</button>
+        <div id="emailForm" style="display:none;width:100%">
+          <input class="field-input" id="regEmail" type="email" autocomplete="email" inputmode="email" placeholder="tu@email.com" style="margin-bottom:10px">
+          <input class="field-input" id="regPassword" type="password" autocomplete="new-password" placeholder="Contraseña (mín. 8 caracteres)">
+          <div id="regError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:8px;display:none"></div>
+          <button class="btn-primary" id="regBtn" style="margin-top:12px" onclick="doRegister()">Crear mi cuenta →</button>
+        </div>
+        <button class="btn-primary" id="emailRegBtn" onclick="showEmailForm()">Crear cuenta con email</button>
       </div>
-      <div class="ca-login">¿Ya tienes cuenta? <span onclick="enterApp()">Iniciar sesión</span></div>
+      <div class="ca-login">¿Ya tienes cuenta? <span onclick="showLoginForm()">Iniciar sesión</span></div>
     </div>
     <div class="ca-legal">Al crear la cuenta, aceptas los Términos de uso y la Política de privacidad de Human.</div>
   </div>
@@ -1079,77 +1825,74 @@ body {
     <div class="tab-content" id="tab-dashboard" style="display:block">
       <div class="dash-header">
         <div>
-          <div class="dash-greeting">Buenos días,</div>
-          <div class="dash-name">Nikos</div>
+          <div class="dash-greeting" id="dashGreeting">Hola,</div>
+          <div class="dash-name" id="dashName">—</div>
         </div>
-        <div class="dash-avatar">N</div>
+        <div class="dash-avatar" id="dashAvatar">·</div>
       </div>
 
       <div class="battery-wrap">
-        <div class="battery-section-label">BODY BATTERY</div>
         <div class="battery-ring">
-          <svg width="168" height="168" viewBox="0 0 168 168">
+          <svg width="190" height="190" viewBox="0 0 190 190">
             <defs>
               <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stop-color="#1d4ed8"/>
                 <stop offset="100%" stop-color="#60A5FA"/>
               </linearGradient>
             </defs>
-            <circle cx="84" cy="84" r="72" fill="none" stroke="#0d0d0d" stroke-width="10"/>
-            <circle cx="84" cy="84" r="72" fill="none"
+            <circle cx="95" cy="95" r="82" fill="none" stroke="#0d0d0d" stroke-width="10"/>
+            <circle id="batteryRingCircle" cx="95" cy="95" r="82" fill="none"
               stroke="url(#bg)" stroke-width="10"
               stroke-linecap="round"
-              stroke-dasharray="452" stroke-dashoffset="108"
-              transform="rotate(-90 84 84)"/>
+              stroke-dasharray="515" stroke-dashoffset="515"
+              transform="rotate(-90 95 95)"/>
           </svg>
           <div class="battery-center">
-            <div class="battery-num">78<span>%</span></div>
+            <div class="battery-section-label">BODY BATTERY</div>
+            <div class="battery-num" id="batteryNum">—</div>
           </div>
         </div>
-        <div class="battery-caption">Recuperación óptima</div>
-        <div class="battery-delta">↑ −11% vs ayer</div>
+        <div class="battery-caption" id="batteryCaption">Aún sin datos</div>
+        <div class="battery-delta" id="batteryDelta" style="visibility:hidden">·</div>
       </div>
 
       <div class="stats-row">
         <div class="stat-tile">
           <div class="stat-tile-label">SUEÑO</div>
-          <div class="stat-tile-val">7 <span class="up">↑</span></div>
+          <div class="stat-tile-val" id="statSleep">—</div>
         </div>
         <div class="stat-tile">
           <div class="stat-tile-label">ESTRÉS</div>
-          <div class="stat-tile-val">3 <span class="up">↑</span></div>
+          <div class="stat-tile-val" id="statStress">—</div>
         </div>
         <div class="stat-tile">
           <div class="stat-tile-label">DEPORTE</div>
-          <div class="stat-tile-val">4 <span class="up">↑</span></div>
+          <div class="stat-tile-val" id="statSport">—</div>
         </div>
       </div>
 
       <div class="agent-msg-card">
-        <div class="agent-msg-tag">TU AGENTE</div>
-        <div class="agent-msg-text">Recuperación alta. Hoy es buen día para entrenar intensidad. Mete 20g extra de carbohidratos en el desayuno y cafeína después de las 10:00.</div>
+        <div class="agent-msg-tag" id="agentMsgTag"><span style="display:inline-block;width:8px;height:8px;background:#3B82F6;border-radius:50%;margin-right:8px;vertical-align:middle;"></span>TU AGENTE</div>
+        <div class="agent-msg-text" id="agentMsgText">Haz tu primer test diario para que pueda darte recomendaciones reales.</div>
       </div>
 
-      <div class="plan-section">
+      <div class="plan-section" id="planSection">
         <div class="plan-header">
           <div class="plan-title">PLAN DE HOY</div>
-          <span class="plan-see-all">Ver todo</span>
+          <span class="plan-see-all" id="planSeeAll" style="display:none">Ver todo</span>
         </div>
-        <div class="plan-item">
-          <div class="plan-item-name">Entrenamiento híbrido · 45 min</div>
-          <div class="plan-item-time">Zona 4-5 · 18:00</div>
-        </div>
-        <div class="plan-item">
-          <div class="plan-item-name">Meditación profunda · 15 min</div>
-          <div class="plan-item-time">20:00</div>
+        <div id="planItems">
+          <div class="plan-item plan-item-empty">
+            <div class="plan-item-name" style="color:#666">Tu plan aparecerá tras tu primer test</div>
+          </div>
         </div>
       </div>
 
-      <div class="daily-cta" onclick="goTest()">
+      <div class="daily-cta" id="dailyCta" onclick="goTest()">
         <div class="daily-cta-icon">📊</div>
         <div>
-          <div class="daily-cta-title">Test diario</div>
-          <div class="daily-cta-sub">Registra sueño, estrés, nutrición y deporte</div>
+          <div class="daily-cta-title" id="dailyCtaTitle">Test diario</div>
+          <div class="daily-cta-sub" id="dailyCtaSub">Registra sueño, estrés, nutrición y deporte</div>
         </div>
       </div>
     </div>
@@ -1159,48 +1902,60 @@ body {
       <div class="insights-header">
         <div class="insights-tag">INSIGHTS</div>
         <div class="insights-title">Tu recuperación</div>
-        <div class="period-tabs">
-          <div class="period-tab" onclick="pickPeriod(this)">1D</div>
-          <div class="period-tab active" onclick="pickPeriod(this)">7D</div>
-          <div class="period-tab" onclick="pickPeriod(this)">30D</div>
-          <div class="period-tab" onclick="pickPeriod(this)">90D</div>
+        <div class="period-tabs" id="insightsPeriodTabs">
+          <div class="period-tab" data-days="1" onclick="pickPeriod(this); refreshInsights()">1D</div>
+          <div class="period-tab active" data-days="7" onclick="pickPeriod(this); refreshInsights()">7D</div>
+          <div class="period-tab" data-days="30" onclick="pickPeriod(this); refreshInsights()">30D</div>
+          <div class="period-tab" data-days="90" onclick="pickPeriod(this); refreshInsights()">90D</div>
+          <div class="period-tab" data-days="365" onclick="pickPeriod(this); refreshInsights()">TODO</div>
         </div>
       </div>
 
-      <div class="insight-tile">
-        <div class="insight-tile-label">BODY BATTERY PROMEDIO</div>
-        <div class="insight-big">74<span>%</span></div>
-        <div class="insight-delta">↑ 9% vs sem</div>
-        <div class="chart-svg-wrap">
-          <svg width="100%" height="80" viewBox="0 0 340 80" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.25"/>
-                <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-            <path d="M0,64 C20,60 40,56 60,52 S100,60 120,50 S160,38 200,34 S260,26 300,18 L340,12" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M0,64 C20,60 40,56 60,52 S100,60 120,50 S160,38 200,34 S260,26 300,18 L340,12 L340,80 L0,80 Z" fill="url(#areaGrad)"/>
-          </svg>
-        </div>
+      <!-- Estado vacío (se muestra cuando no hay suficientes tests) -->
+      <div class="insight-empty" id="insightsEmpty" style="display:none; padding:40px 20px; text-align:center;">
+        <div style="font-size:42px; margin-bottom:18px">📊</div>
+        <div style="font-size:16px; color:#fff; margin-bottom:8px; font-weight:600" id="insightsEmptyTitle">Aún no hay datos suficientes</div>
+        <div style="font-size:13px; color:#888; line-height:1.5; margin-bottom:24px" id="insightsEmptySub">Haz tu primer test diario para empezar a ver tu recuperación.</div>
+        <button class="btn-primary" style="max-width:240px; margin:0 auto" onclick="goTest()">Hacer test diario</button>
       </div>
 
-      <div class="peak-row">
-        <div class="peak-tile">
-          <div class="peak-tile-label">PICO</div>
-          <div class="peak-tile-val">92<span>%</span></div>
-          <div class="peak-tile-day">Domingo</div>
+      <!-- Contenido real (oculto hasta que haya tests) -->
+      <div id="insightsContent" style="display:none">
+        <div class="insight-tile">
+          <div class="insight-tile-label">BODY BATTERY PROMEDIO</div>
+          <div class="insight-big" id="insightAvg">—</div>
+          <div class="insight-delta" id="insightDelta" style="visibility:hidden">·</div>
+          <div class="chart-svg-wrap">
+            <svg width="100%" height="80" viewBox="0 0 340 80" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path id="insightsChartLine" d="" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path id="insightsChartArea" d="" fill="url(#areaGrad)"/>
+            </svg>
+          </div>
         </div>
-        <div class="peak-tile">
-          <div class="peak-tile-label">MÍNIMO</div>
-          <div class="peak-tile-val">41<span>%</span></div>
-          <div class="peak-tile-day low">Martes</div>
-        </div>
-      </div>
 
-      <div class="recovery-card">
-        <div class="recovery-card-title">Recuperación al alza</div>
-        <div class="recovery-card-delta">+12% vs media</div>
+        <div class="peak-row">
+          <div class="peak-tile">
+            <div class="peak-tile-label">PICO</div>
+            <div class="peak-tile-val" id="insightPeakVal">—</div>
+            <div class="peak-tile-day" id="insightPeakDay">·</div>
+          </div>
+          <div class="peak-tile">
+            <div class="peak-tile-label">MÍNIMO</div>
+            <div class="peak-tile-val" id="insightLowVal">—</div>
+            <div class="peak-tile-day low" id="insightLowDay">·</div>
+          </div>
+        </div>
+
+        <div class="recovery-card" id="recoveryCard" style="display:none">
+          <div class="recovery-card-title" id="recoveryCardTitle">Recuperación al alza</div>
+          <div class="recovery-card-delta" id="recoveryCardDelta">·</div>
+        </div>
       </div>
     </div>
 
@@ -1213,11 +1968,7 @@ body {
           <div class="chat-agent-status">Aprendiendo de ti</div>
         </div>
       </div>
-      <div class="chat-messages-wrap" id="chatMessages">
-        <div class="bubble agent">Buenos días, Nikos. Tu body battery está al 78% por lo que hoy podremos rendir a un gran nivel si gestionamos bien la energía.</div>
-        <div class="bubble user">Buenos días Jarvis, la verdad que sí, me siento con bastante energía, así que hoy podemos hacer un buen bloque de trabajo profundo y entrenamiento híbrido.</div>
-        <div class="bubble agent">Eso es, será un día intenso de alto rendimiento, pero tenemos la recuperación y batería necesaria para afrontarlo correctamente. Además hoy harás una meditación profunda a las 20:00 para relajar el sistema nervioso y activar el sistema parasimpático, te vendrá bien después de entrenar, y así también vamos preparándonos para un sueño profundo y de calidad.</div>
-      </div>
+      <div class="chat-messages-wrap" id="chatMessages"></div>
       <div class="chat-input-row">
         <input class="chat-text-input" id="chatInput" placeholder="Pregunta a tu agente..." onkeydown="if(event.key==='Enter')sendChat()">
         <button class="chat-send" onclick="sendChat()">→</button>
@@ -1231,40 +1982,48 @@ body {
         <div class="profile-settings-btn">⚙</div>
       </div>
       <div class="profile-avatar-wrap">
-        <div class="profile-av">N</div>
-        <div class="profile-uname">Nikos Horischnik</div>
+        <div class="profile-av" id="profileAv">·</div>
+        <div class="profile-uname" id="profileUname">—</div>
+        <div class="profile-email" id="profileEmail" style="font-size:13px;color:#888;margin-top:4px"></div>
         <div class="profile-badges">
-          <span class="pill pill-blue">FOUNDER</span>
-          <span class="pill pill-grey">NIVEL 18</span>
+          <span class="pill pill-blue" id="profileIdentityPill" style="display:none">·</span>
         </div>
       </div>
       <div class="profile-stats-row">
-        <div class="profile-stat"><div class="profile-stat-val">214</div><div class="profile-stat-label">DÍAS ACTIVO</div></div>
-        <div class="profile-stat"><div class="profile-stat-val">74%</div><div class="profile-stat-label">BATTERY AVG</div></div>
-        <div class="profile-stat"><div class="profile-stat-val">31</div><div class="profile-stat-label">RACHA</div></div>
+        <div class="profile-stat"><div class="profile-stat-val" id="profileDaysActive">—</div><div class="profile-stat-label">DÍAS ACTIVO</div></div>
+        <div class="profile-stat"><div class="profile-stat-val" id="profileBatteryAvg">—</div><div class="profile-stat-label">BATTERY AVG</div></div>
+        <div class="profile-stat"><div class="profile-stat-val" id="profileStreak">—</div><div class="profile-stat-label">RACHA</div></div>
       </div>
-      <div class="profile-section">
-        <div class="profile-section-title">OBJETIVOS</div>
+      <div class="profile-section" id="profileGoalsSection" style="display:none">
+        <div class="profile-section-title">OBJETIVO</div>
         <div class="obj-row">
-          <div class="obj-name"><div class="obj-dot dot-blue"></div>Rendimiento cognitivo</div>
-          <div class="obj-val green">Alto</div>
-        </div>
-        <div class="obj-row">
-          <div class="obj-name"><div class="obj-dot dot-blue"></div>Subir HRV</div>
-          <div class="obj-val">70 ms</div>
-        </div>
-        <div class="obj-row">
-          <div class="obj-name"><div class="obj-dot dot-green"></div>Dormir 7.5h</div>
-          <div class="obj-val">7.3h avg</div>
+          <div class="obj-name"><div class="obj-dot dot-blue"></div><span id="profileGoalText">—</span></div>
+          <div class="obj-val" id="profileGoalStatus">En curso</div>
         </div>
       </div>
       <div class="profile-section">
-        <div class="profile-section-title">DISPOSITIVOS</div>
-        <div class="device-row">
-          <div class="device-card"><div><div class="device-info-name">Apple Watch</div><div class="device-sync">● Sync</div></div><div class="device-icon-lg">⌚</div></div>
-          <div class="device-card"><div><div class="device-info-name">Oura Ring</div><div class="device-sync">● Sync</div></div><div class="device-icon-lg">💍</div></div>
+        <div class="profile-section-title">RUTINA</div>
+        <div class="obj-row">
+          <div class="obj-name"><div class="obj-dot dot-blue"></div>Hora de despertar</div>
+          <div class="obj-val" id="profileWakeTime">—</div>
+        </div>
+        <div class="obj-row">
+          <div class="obj-name"><div class="obj-dot dot-blue"></div>Hora de dormir</div>
+          <div class="obj-val" id="profileSleepTime">—</div>
         </div>
       </div>
+      <div class="profile-section">
+        <div class="profile-section-title">CUENTA</div>
+        <button class="account-btn" onclick="doLogout()">
+          <span>Cerrar sesión</span>
+          <span style="opacity:0.5">›</span>
+        </button>
+        <button class="account-btn account-btn-danger" onclick="doDeleteAccount()">
+          <span>Borrar mi cuenta</span>
+          <span style="opacity:0.5">›</span>
+        </button>
+      </div>
+      <div style="height:40px"></div>
     </div>
 
     <!-- BOTTOM NAV -->
@@ -1290,6 +2049,7 @@ body {
 
   <!-- ═══════════ TEST DIARIO: SUEÑO ═══════════ -->
   <div class="screen" id="test-sleep">
+    <button class="back-btn" id="testSleepBackBtn" style="display:none" onclick="go('ob-sleep-routine')">‹</button>
     <div class="test-wrap">
       <div class="test-top">
         <span class="test-label">SUEÑO</span>
@@ -1419,7 +2179,7 @@ body {
         <div class="pill-btn" onclick="pickDur(this,90)">90</div>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="finishTest()">Finalizar test</button>
+        <button class="btn-primary" onclick="finishTestOrOb()">Finalizar test</button>
       </div>
     </div>
   </div>
@@ -1427,210 +2187,886 @@ body {
 </div><!-- /phone -->
 
 <script>
-// ── Navigation ──
-let agentName = 'Jarvis';
-
-function go(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  const el = document.getElementById(id);
-  if (el) el.classList.add('active');
-}
-
-function startLoading() {
-  go('loading');
-  document.getElementById('loadingLabel').textContent = agentName + ' está analizando tu perfil…';
-  animateLoader();
-  setTimeout(() => go('create-account'), 2800);
-}
-
-function animateLoader() {
-  const circle = document.getElementById('loadCircle');
-  let offset = 130;
-  const target = 20;
-  const step = (130 - target) / 60;
-  let frame = 0;
-  const id = setInterval(() => {
-    offset -= step;
-    if (offset <= target) { offset = target; clearInterval(id); }
-    circle.setAttribute('stroke-dashoffset', offset.toFixed(1));
-    frame++;
-  }, 35);
-}
-
-function enterApp() {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  const app = document.getElementById('main-app');
-  app.classList.add('active');
-  // Update chat agent name/avatar
-  document.getElementById('chatAgentName').textContent = agentName;
-  document.getElementById('chatAv').textContent = agentName[0];
-}
-
-function switchTab(tab) {
-  // Hide all tabs
-  ['dashboard','insights','chat','profile'].forEach(t => {
-    const el = document.getElementById('tab-' + t);
-    if (!el) return;
-    el.style.display = 'none';
-    document.getElementById('nav-' + t).classList.remove('active');
-  });
-  // Show selected
-  const target = document.getElementById('tab-' + tab);
-  if (target) {
-    target.style.display = (tab === 'chat') ? 'flex' : 'block';
-  }
-  const navBtn = document.getElementById('nav-' + tab);
-  if (navBtn) navBtn.classList.add('active');
-}
-
-function goTest() {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('main-app').classList.remove('active');
-  go('test-sleep');
-}
-
-function finishTest() {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('main-app').classList.add('active');
-  switchTab('dashboard');
-  const t = document.createElement('div');
-  t.className = 'toast';
-  t.textContent = '✓ Test completado';
-  document.getElementById('phone').appendChild(t);
-  setTimeout(() => t.remove(), 2600);
-}
-
-// ── Selection helpers ──
-function pick(el, group) {
-  const parent = el.parentElement;
-  parent.querySelectorAll('.' + group + '-item, .identity-card, .goal-item, .radio-item').forEach(i => i.classList.remove('sel'));
-  el.classList.add('sel');
-}
-
-function pickFreq(el) {
-  el.closest('.freq-row').querySelectorAll('.freq-btn').forEach(b => b.classList.remove('sel'));
-  el.classList.add('sel');
-}
-
-function pickAgent(el, name) {
-  el.closest('.agent-grid').querySelectorAll('.agent-card').forEach(c => c.classList.remove('sel'));
-  el.classList.add('sel');
-  agentName = name;
-  document.getElementById('agentName').textContent = name;
-  document.getElementById('agentBtn').textContent = 'Continuar con ' + name;
-}
-
-function pickPeriod(el) {
-  el.closest('.period-tabs').querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-}
-
-function pickScale(el) {
-  el.closest('.scale-row').querySelectorAll('.scale-btn').forEach(b => b.classList.remove('sel'));
-  el.classList.add('sel');
-}
-
-function pickHours(el, val) {
-  el.closest('.hours-grid').querySelectorAll('.pill-btn').forEach(b => b.classList.remove('sel'));
-  el.classList.add('sel');
-  document.getElementById('sleepHoursDisp').innerHTML = val.replace('h','') + '<span class="unit">h</span>';
-}
-
-function pickTime(el) {
-  el.closest('.time-row').querySelectorAll('.time-card').forEach(c => c.classList.remove('sel'));
-  el.classList.add('sel');
-}
-
-function pickMeals(el, n) {
-  el.closest('.counter-row').querySelectorAll('.counter-btn').forEach(b => b.classList.remove('sel'));
-  el.classList.add('sel');
-  document.getElementById('mealsNum').textContent = n;
-}
-
-function pickDur(el, val) {
-  el.closest('.dur-grid').querySelectorAll('.pill-btn').forEach(b => b.classList.remove('sel'));
-  el.classList.add('sel');
-  document.getElementById('durDisp').innerHTML = val + '<span class="unit">min</span>';
-}
-
 // ══════════════════════════════════════════
-//  CONFIGURACIÓN DE API
-//  Cambiá esta URL por la de tu backend en Railway
+//  HUMAN APP — Frontend conectado al backend
 // ══════════════════════════════════════════
 const API_URL = 'https://human-app-backend-production.up.railway.app'
 
-// Estado de la app
+// ── Supabase Auth ──
+const SUPABASE_URL  = 'https://rmdtzxozwghdupeurbzx.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtZHR6eG96d2doZHVwZXVyYnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzOTM5MzUsImV4cCI6MjA5NDk2OTkzNX0.9lY_zX1yK4st6KIQK7L2Sl5MBiISpPdf6NSg0yIv1j'
+
+let sb = null
+if (window.supabase && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('__')) {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+  })
+} else {
+  console.warn('⚠️ Supabase SDK no inicializado: falta ANON_KEY o SDK no cargó')
+}
+
+// ── authFetch: añade Authorization automáticamente, timeout 10s, maneja 401 ──
+async function authFetch(path, opts = {}) {
+  const session = sb ? (await sb.auth.getSession()).data.session : null
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) }
+  if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`
+
+  const controller = new AbortController()
+  const timeoutMs = opts.timeout || 10000
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const res = await fetch(`${API_URL}${path}`, { ...opts, headers, signal: controller.signal })
+    if (res.status === 401) {
+      await handleSessionExpired()
+      throw new Error('Sesión expirada')
+    }
+    return res
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error('La petición tardó demasiado. Revisa tu conexión.')
+    throw err
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+async function handleSessionExpired() {
+  try { if (sb) await sb.auth.signOut() } catch {}
+  appState.userId = null
+  appState.profile = {}
+  appState.tests = []
+  document.querySelectorAll('.screen, .main-screen').forEach(s => s.classList.remove('active'))
+  const ca = document.getElementById('create-account')
+  if (ca) ca.classList.add('active')
+  showLoginForm()
+  const errEl = document.getElementById('regError')
+  if (errEl) {
+    errEl.textContent = 'Tu sesión expiró. Inicia sesión de nuevo.'
+    errEl.style.display = 'block'
+  }
+}
+
+// ── Logout ──
+async function doLogout() {
+  if (!confirm('¿Cerrar sesión?')) return
+  try { if (sb) await sb.auth.signOut() } catch (err) { console.error(err) }
+  appState.userId = null
+  appState.profile = {}
+  appState.tests = []
+  document.querySelectorAll('.screen, .main-screen').forEach(s => s.classList.remove('active'))
+  document.getElementById('splash')?.classList.add('active')
+  showToast('Sesión cerrada')
+}
+
+// ── Borrar cuenta (Apple exige este flujo) ──
+async function doDeleteAccount() {
+  const ok1 = confirm('Vas a borrar tu cuenta y todos tus datos (perfil, tests, conversaciones con Jarvis). Esta acción NO se puede deshacer. ¿Continuar?')
+  if (!ok1) return
+  const typed = prompt('Para confirmar, escribe BORRAR en mayúsculas:')
+  if (typed !== 'BORRAR') {
+    showToast('Cancelado.')
+    return
+  }
+  try {
+    const res = await authFetch('/api/user/me', { method: 'DELETE' })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.error || 'No se pudo borrar la cuenta.')
+    }
+    try { if (sb) await sb.auth.signOut() } catch {}
+    appState.userId = null
+    appState.profile = {}
+    appState.tests = []
+    document.querySelectorAll('.screen, .main-screen').forEach(s => s.classList.remove('active'))
+    document.getElementById('splash')?.classList.add('active')
+    showToast('Cuenta borrada.')
+  } catch (err) {
+    alert('Error: ' + (err.message || err))
+  }
+}
+
 const appState = {
   userId:    null,
   profile:   {},
-  chatHistory: [],
-  dailyTest: {}
+  dailyTest: {},
+  tests:     [],
+  stats:     { daysActive: 1, streak: 0, totalTests: 0 }
 }
 
-// ── Registro / Login ──────────────────────
-async function registerUser(email, password) {
-  const res = await fetch(`${API_URL}/api/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
+let agentName = 'Jarvis'
+
+// ── Navegación ──
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+  const el = document.getElementById(id)
+  if (el) el.classList.add('active')
+}
+
+// ── Loading ──
+function startLoading() {
+  go('loading')
+  const targetScore = Math.min(99, (appState.profile.score_baseline || 45) + 35)
+  const numEl  = document.getElementById('analyzeNum')
+  const circle = document.getElementById('loadCircle')
+  const steps  = ['astep0','astep1','astep2','astep3'].map(id => document.getElementById(id))
+  const fullDash = 540
+
+  // Reset
+  steps.forEach(s => { if (s) s.className = 'analyzing-step' })
+  if (numEl)  numEl.textContent = '0'
+  if (circle) circle.setAttribute('stroke-dashoffset', fullDash)
+
+  // Activate steps sequentially
+  const stepTimes = [300, 900, 1500, 2100]
+  stepTimes.forEach((t, i) => {
+    setTimeout(() => {
+      steps.forEach((s, si) => {
+        if (!s) return
+        if (si < i)        s.className = 'analyzing-step done'
+        else if (si === i) s.className = 'analyzing-step active'
+        else               s.className = 'analyzing-step'
+      })
+    }, t)
   })
-  const data = await res.json()
-  if (data.userId) {
-    appState.userId = data.userId
-    localStorage.setItem('humanUserId', data.userId)
+
+  // Animate ring & number
+  const totalDuration = 2800
+  const startTime = Date.now()
+  const interval = setInterval(() => {
+    const elapsed  = Date.now() - startTime
+    const progress = Math.min(elapsed / totalDuration, 1)
+    const current  = Math.round(progress * targetScore)
+    if (numEl)  numEl.textContent = current
+    if (circle) circle.setAttribute('stroke-dashoffset', (fullDash * (1 - progress)).toFixed(1))
+    if (progress >= 1) {
+      clearInterval(interval)
+      steps.forEach(s => { if (s) s.className = 'analyzing-step done' })
+      setTimeout(() => go('paywall-pain'), 400)
+    }
+  }, 30)
+}
+
+// ── Onboarding — recoger datos ──
+function collectOb1() {
+  appState.profile.name = document.getElementById('inputName').value.trim() || 'Usuario'
+  appState.profile.age  = parseInt(document.getElementById('inputAge').value) || 18
+  const selSex = document.querySelector('#ob-name .radio-item.sel span')
+  appState.profile.sex  = selSex ? selSex.textContent.toLowerCase() : null
+}
+function collectOb2() {
+  const sel = document.querySelector('#ob-identity .identity-card.sel .identity-card-name')
+  appState.profile.identity = sel ? sel.textContent.toLowerCase() : 'atleta'
+}
+function collectOb3() {
+  const sels = document.querySelectorAll('#ob-goal .goal-item.sel span')
+  appState.profile.goal = sels.length > 0
+    ? Array.from(sels).map(s => s.textContent).join(', ')
+    : 'Rendir al máximo'
+}
+function collectOb4() {
+  const symptoms = {}
+  document.querySelectorAll('#ob-symptoms .symptom-block').forEach(block => {
+    const name = block.querySelector('.symptom-name').textContent
+    const sel  = block.querySelector('.freq-btn.sel')
+    symptoms[name] = sel ? sel.textContent : 'Nunca'
+  })
+  appState.profile.symptoms = symptoms
+}
+
+// ── Onboarding test mode flag ──
+let obMode = false
+
+function enterObTestMode() {
+  obMode = true
+  const backBtn = document.getElementById('testSleepBackBtn')
+  if (backBtn) backBtn.style.display = 'flex'
+  go('test-sleep')
+}
+
+// ── Time Picker (legacy 2-picker) ──
+let wakeMinutes = 7 * 60   // 07:00
+let sleepMinutes = 23 * 60 // 23:00
+
+function minutesToTime(m) {
+  const total = ((m % 1440) + 1440) % 1440
+  const h = Math.floor(total / 60)
+  const min = total % 60
+  return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`
+}
+function adjustTime(type, delta) {
+  if (type === 'wake') {
+    wakeMinutes = ((wakeMinutes + delta) % 1440 + 1440) % 1440
+    document.getElementById('wakeTimeDisp') && (document.getElementById('wakeTimeDisp').textContent = minutesToTime(wakeMinutes))
+  } else {
+    sleepMinutes = ((sleepMinutes + delta) % 1440 + 1440) % 1440
+    document.getElementById('sleepTimeDisp') && (document.getElementById('sleepTimeDisp').textContent = minutesToTime(sleepMinutes))
   }
-  return data
+}
+function collectSleepRoutine() {
+  appState.profile.wake_time  = minutesToTime(wakeMinutes)
+  appState.profile.sleep_time = minutesToTime(sleepMinutes)
 }
 
-// ── Guardar onboarding ────────────────────
-async function saveOnboarding() {
+// ── Time Picker 4 (ACTUAL + OBJETIVO) ──
+const sleepRoutineTimes = {
+  as: 30,    // actualSleep:  00:30
+  aw: 420,   // actualWake:   07:00
+  ts: 1380,  // targetSleep:  23:00
+  tw: 390    // targetWake:   06:30
+}
+const sleepTimeDispMap = {
+  as: 'actualSleepDisp', aw: 'actualWakeDisp',
+  ts: 'targetSleepDisp', tw: 'targetWakeDisp'
+}
+function adjustTime4(key, delta) {
+  sleepRoutineTimes[key] = ((sleepRoutineTimes[key] + delta) % 1440 + 1440) % 1440
+  const el = document.getElementById(sleepTimeDispMap[key])
+  if (el) el.textContent = minutesToTime(sleepRoutineTimes[key])
+}
+function collectSleepRoutine4() {
+  appState.profile.actual_sleep_time  = minutesToTime(sleepRoutineTimes.as)
+  appState.profile.actual_wake_time   = minutesToTime(sleepRoutineTimes.aw)
+  appState.profile.target_sleep_time  = minutesToTime(sleepRoutineTimes.ts)
+  appState.profile.target_wake_time   = minutesToTime(sleepRoutineTimes.tw)
+  // Also set legacy fields for backward compat
+  appState.profile.wake_time  = minutesToTime(sleepRoutineTimes.aw)
+  appState.profile.sleep_time = minutesToTime(sleepRoutineTimes.ts)
+}
+
+// ── Sleep Hours Baseline ──
+let sleepHoursBaselineVal = 7
+function pickSleepBaseline(el, hours) {
+  el.closest('.sleep-hours-grid').querySelectorAll('.sleep-hour-btn').forEach(b => b.classList.remove('sel'))
+  el.classList.add('sel')
+  sleepHoursBaselineVal = hours
+  document.getElementById('sleepHoursBaseDisp').textContent = hours
+}
+function collectSleepHoursBaseline() {
+  appState.profile.sleep_hours_baseline = sleepHoursBaselineVal
+}
+
+// ── Integraciones ──
+function toggleIntegration(el) { el.classList.toggle('sel') }
+function collectIntegrations() {
+  const sel = []
+  document.querySelectorAll('#ob-integrations .integration-card.sel .integration-name')
+    .forEach(n => sel.push(n.textContent))
+  appState.profile.integrations = sel
+}
+
+// ── Baselines ──
+let stressBaselineVal = 3
+let scoreBaselineVal  = 45
+function adjustBaseline(type, delta) {
+  if (type === 'stress') {
+    stressBaselineVal = Math.max(1, Math.min(10, stressBaselineVal + delta))
+    document.getElementById('stressBaseline').textContent = stressBaselineVal
+  } else {
+    scoreBaselineVal = Math.max(10, Math.min(100, scoreBaselineVal + delta))
+    document.getElementById('scoreBaseline').textContent = scoreBaselineVal
+  }
+}
+function collectBaselines() {
+  appState.profile.stress_baseline = stressBaselineVal
+  appState.profile.score_baseline  = scoreBaselineVal
+}
+
+// ── Create Account ──
+function showEmailForm() {
+  document.getElementById('emailForm').style.display = 'block'
+  document.getElementById('emailRegBtn').style.display = 'none'
+}
+function showLoginForm() {
+  showEmailForm()
+  const btn = document.getElementById('regBtn')
+  btn.textContent = 'Iniciar sesión →'
+  btn.onclick = doLogin
+  document.querySelector('.ca-title').textContent = 'Bienvenido de vuelta'
+  document.querySelector('.ca-sub').textContent   = 'Inicia sesión en tu cuenta.'
+}
+
+async function doRegister() {
+  const email    = document.getElementById('regEmail').value.trim()
+  const password = document.getElementById('regPassword').value
+  const errEl    = document.getElementById('regError')
+  const btn      = document.getElementById('regBtn')
+  if (!sb) {
+    errEl.textContent = 'Auth no disponible. Falta configurar Supabase.'
+    errEl.style.display = 'block'; return
+  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = 'Introduce un email válido.'
+    errEl.style.display = 'block'; return
+  }
+  if (!password || password.length < 8) {
+    errEl.textContent = 'La contraseña debe tener al menos 8 caracteres.'
+    errEl.style.display = 'block'; return
+  }
+  btn.textContent = 'Creando cuenta…'; btn.disabled = true; errEl.style.display = 'none'
+  try {
+    const { data, error } = await sb.auth.signUp({ email, password })
+    if (error) throw error
+    // Esperar sesión (algunas configs de Supabase la devuelven inmediatamente)
+    let session = data.session
+    if (!session) {
+      // Intento login inmediato (email confirm OFF)
+      const r = await sb.auth.signInWithPassword({ email, password })
+      if (r.error) {
+        // Email confirm probablemente está ON
+        throw new Error('Cuenta creada. Confirma tu email para continuar.')
+      }
+      session = r.data.session
+    }
+    if (!session?.user) throw new Error('No se pudo iniciar sesión.')
+    appState.userId = session.user.id
+    await _saveOnboarding()
+    await enterApp()
+  } catch (err) {
+    const msg = String(err.message || err)
+    errEl.textContent =
+      msg.includes('already registered') || msg.includes('User already') ? 'Este email ya existe. Inicia sesión.' :
+      msg.includes('Password')           ? 'La contraseña no cumple los requisitos.' :
+      msg
+    errEl.style.display = 'block'
+    btn.textContent = 'Crear mi cuenta →'; btn.disabled = false
+  }
+}
+
+async function doLogin() {
+  const email    = document.getElementById('regEmail').value.trim()
+  const password = document.getElementById('regPassword').value
+  const errEl    = document.getElementById('regError')
+  const btn      = document.getElementById('regBtn')
+  if (!sb) {
+    errEl.textContent = 'Auth no disponible. Falta configurar Supabase.'
+    errEl.style.display = 'block'; return
+  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = 'Introduce un email válido.'
+    errEl.style.display = 'block'; return
+  }
+  if (!password || password.length < 8) {
+    errEl.textContent = 'La contraseña debe tener al menos 8 caracteres.'
+    errEl.style.display = 'block'; return
+  }
+  btn.textContent = 'Iniciando sesión…'; btn.disabled = true; errEl.style.display = 'none'
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password })
+    if (error) throw error
+    if (!data.session?.user) throw new Error('Email o contraseña incorrectos.')
+    appState.userId = data.session.user.id
+    await enterApp()
+  } catch (err) {
+    const msg = String(err.message || err)
+    errEl.textContent = msg.includes('Invalid') || msg.includes('invalid')
+      ? 'Email o contraseña incorrectos.' : msg
+    errEl.style.display = 'block'
+    btn.textContent = 'Iniciar sesión →'; btn.disabled = false
+  }
+}
+
+async function _saveOnboarding() {
   if (!appState.userId) return
-  await fetch(`${API_URL}/api/onboarding`, {
+  await authFetch('/api/onboarding', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      userId:    appState.userId,
-      name:      appState.profile.name      || 'Nikos',
-      age:       appState.profile.age       || 17,
-      sex:       appState.profile.sex       || 'hombre',
-      identity:  appState.profile.identity  || 'atleta',
-      goal:      appState.profile.goal      || 'Recuperarme más rápido',
-      symptoms:  appState.profile.symptoms  || {},
-      agentName: agentName
+      name:            appState.profile.name             || 'Usuario',
+      age:             appState.profile.age              || 18,
+      sex:             appState.profile.sex              || null,
+      identity:        appState.profile.identity         || 'atleta',
+      goal:            appState.profile.goal             || 'Rendir al máximo',
+      symptoms:        appState.profile.symptoms         || {},
+      agentName:       agentName,
+      wake_time:       appState.profile.wake_time        || '07:00',
+      sleep_time:      appState.profile.sleep_time       || '23:00',
+      stress_baseline: appState.profile.stress_baseline  || 3,
+      score_baseline:  appState.profile.score_baseline   || 45,
+      integrations:    appState.profile.integrations     || []
     })
   })
 }
 
-// ── Guardar test diario ───────────────────
+// ── Entrar a la app ──
+async function enterApp() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+  document.getElementById('main-app').classList.add('active')
+  document.getElementById('chatAgentName').textContent = agentName
+  document.getElementById('chatAv').textContent = agentName[0]
+  if (appState.userId) await loadUserData()
+}
+
+// ── Cargar datos reales del usuario ──
+async function loadUserData() {
+  try {
+    const res  = await authFetch('/api/user/me')
+    const data = await res.json()
+    if (data.error || !data.profile) return
+    const { profile, lastTest, tests, stats } = data
+    appState.profile = profile
+    appState.tests   = tests || []
+    appState.stats   = stats || { daysActive: 1, streak: 0, totalTests: 0 }
+
+    renderHeader(profile)
+    renderAgent(profile)
+    renderDashboard(profile, lastTest)
+    renderInsights(appState.tests)
+    renderProfile(profile, appState.stats)
+    renderChatGreeting(profile)
+    flagDailyTestState(profile, lastTest)
+
+  } catch (err) { console.error('loadUserData:', err) }
+}
+
+// ── Saludo y avatar en dashboard ──
+function renderHeader(profile) {
+  const name = (profile?.name || '').trim() || 'Bienvenido'
+  const firstName = name.split(' ')[0]
+  const initial = firstName ? firstName[0].toUpperCase() : '·'
+  const dashName = document.getElementById('dashName')
+  const dashAvatar = document.getElementById('dashAvatar')
+  if (dashName) dashName.textContent = firstName
+  if (dashAvatar) dashAvatar.textContent = initial
+
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Buenos días,' : hour < 20 ? 'Buenas tardes,' : 'Buenas noches,'
+  const greetEl = document.getElementById('dashGreeting')
+  if (greetEl) greetEl.textContent = greeting
+}
+
+// ── Aplicar nombre del agente en todos los puntos ──
+function renderAgent(profile) {
+  if (profile?.agent_name) {
+    agentName = profile.agent_name
+  }
+  const agentEl = document.getElementById('chatAgentName')
+  if (agentEl) agentEl.textContent = agentName
+  const agentAv = document.getElementById('chatAv')
+  if (agentAv) agentAv.textContent = agentName[0].toUpperCase()
+  const tag = document.getElementById('agentMsgTag')
+  if (tag) {
+    tag.innerHTML = `<span style="display:inline-block;width:8px;height:8px;background:#3B82F6;border-radius:50%;margin-right:8px;vertical-align:middle;"></span>${agentName.toUpperCase()}`
+  }
+}
+
+// ── Dashboard: estado vacío vs lleno ──
+function renderDashboard(profile, lastTest) {
+  const batteryNum = document.getElementById('batteryNum')
+  const batteryCaption = document.getElementById('batteryCaption')
+  const batteryDelta = document.getElementById('batteryDelta')
+  const statSleep = document.getElementById('statSleep')
+  const statStress = document.getElementById('statStress')
+  const statSport = document.getElementById('statSport')
+  const agentMsg = document.getElementById('agentMsgText')
+  const planItems = document.getElementById('planItems')
+
+  if (!lastTest) {
+    // ESTADO VACÍO — primer día sin test
+    if (batteryNum) batteryNum.innerHTML = '—'
+    if (batteryCaption) batteryCaption.textContent = 'Aún sin datos'
+    if (batteryDelta) batteryDelta.style.visibility = 'hidden'
+    updateBatteryRing(0)
+    if (statSleep)  statSleep.textContent = '—'
+    if (statStress) statStress.textContent = '—'
+    if (statSport)  statSport.textContent = '—'
+    if (agentMsg)   agentMsg.textContent = `Haz tu primer test diario para que ${agentName} pueda darte recomendaciones reales.`
+    if (planItems)  planItems.innerHTML = '<div class="plan-item plan-item-empty"><div class="plan-item-name" style="color:#666">Tu plan aparecerá tras tu primer test</div></div>'
+    return
+  }
+
+  // ESTADO LLENO
+  const battery = calcBodyBattery(lastTest)
+  if (batteryNum) batteryNum.innerHTML = `${battery}<span>%</span>`
+  updateBatteryRing(battery)
+  if (batteryCaption) batteryCaption.textContent = batteryCaptionFor(battery)
+
+  // Delta vs ayer si tenemos al menos 2 tests
+  if (batteryDelta && Array.isArray(appState.tests) && appState.tests.length >= 2) {
+    const prev = appState.tests[1]
+    const prevBattery = calcBodyBattery(prev)
+    const delta = battery - prevBattery
+    if (delta === 0) {
+      batteryDelta.style.visibility = 'hidden'
+    } else {
+      const arrow = delta > 0 ? '↑' : '↓'
+      batteryDelta.textContent = `${arrow} ${Math.abs(delta)}% vs ayer`
+      batteryDelta.style.visibility = 'visible'
+    }
+  } else if (batteryDelta) {
+    batteryDelta.style.visibility = 'hidden'
+  }
+
+  if (statSleep)  statSleep.innerHTML  = `${lastTest.sleep_quality ?? '—'}`
+  if (statStress) statStress.innerHTML = `${lastTest.stress_level  ?? '—'}`
+  if (statSport)  statSport.innerHTML  = `${lastTest.sport_intensity ?? '—'}`
+
+  // Plan del día
+  const lines = (lastTest.daily_plan || '').split('\n').filter(Boolean)
+  if (lines.length === 0) {
+    if (planItems) planItems.innerHTML = '<div class="plan-item plan-item-empty"><div class="plan-item-name" style="color:#666">Tu plan se está generando…</div></div>'
+    if (agentMsg) agentMsg.textContent = 'Test registrado. Generando tu plan personalizado…'
+  } else {
+    const msgLine    = lines.find(l => l.startsWith('MENSAJE DE JARVIS:'))
+    const estadoLine = lines.find(l => l.startsWith('ESTADO DE HOY:'))
+    const entreLine  = lines.find(l => l.startsWith('ENTRENAMIENTO:'))
+    const nutriLine  = lines.find(l => l.startsWith('NUTRICIÓN:'))
+    const recupLine  = lines.find(l => l.startsWith('RECUPERACIÓN:'))
+    if (agentMsg) {
+      const txt = (msgLine || estadoLine || '').replace(/^[^:]+:\s*/, '').trim()
+      agentMsg.textContent = txt || 'Tu plan personalizado está listo abajo.'
+    }
+    if (planItems) {
+      const items = []
+      if (entreLine) items.push(planItem('Entrenamiento', entreLine.replace(/^[^:]+:\s*/, '').trim()))
+      if (nutriLine) items.push(planItem('Nutrición',     nutriLine.replace(/^[^:]+:\s*/, '').trim()))
+      if (recupLine) items.push(planItem('Recuperación',  recupLine.replace(/^[^:]+:\s*/, '').trim()))
+      planItems.innerHTML = items.join('') || '<div class="plan-item plan-item-empty"><div class="plan-item-name" style="color:#666">Tu plan se está generando…</div></div>'
+    }
+  }
+}
+
+function planItem(title, body) {
+  return `<div class="plan-item"><div class="plan-item-name">${title}</div><div class="plan-item-time">${escapeHtml(body)}</div></div>`
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
+}
+
+function batteryCaptionFor(pct) {
+  if (pct >= 80) return 'Recuperación óptima'
+  if (pct >= 60) return 'Recuperación buena'
+  if (pct >= 40) return 'Recuperación media'
+  if (pct >= 20) return 'Recuperación baja'
+  return 'Recuperación muy baja'
+}
+
+// ── Estado del CTA del test diario según si ya se hizo hoy ──
+function flagDailyTestState(profile, lastTest) {
+  const cta = document.getElementById('dailyCta')
+  const title = document.getElementById('dailyCtaTitle')
+  const sub = document.getElementById('dailyCtaSub')
+  if (!cta || !title || !sub) return
+  const today = new Date().toISOString().slice(0, 10)
+  const testDate = lastTest?.date ? String(lastTest.date).slice(0, 10) : null
+  const doneToday = testDate === today
+  if (doneToday) {
+    title.textContent = 'Test de hoy completado'
+    sub.textContent = 'Volverás a hacerlo mañana. Tu plan está actualizado.'
+    cta.style.opacity = '0.7'
+  } else {
+    title.textContent = 'Test diario'
+    sub.textContent = 'Registra sueño, estrés, nutrición y deporte de ayer'
+    cta.style.opacity = '1'
+  }
+}
+
+// ── Perfil ──
+function renderProfile(profile, stats) {
+  const name = (profile?.name || '').trim()
+  const firstName = name.split(' ')[0] || ''
+  const initial = firstName ? firstName[0].toUpperCase() : '·'
+  setText('profileUname', name || '—')
+  setText('profileAv', initial)
+  setText('profileEmail', profile?.email || '')
+
+  const pill = document.getElementById('profileIdentityPill')
+  if (pill) {
+    if (profile?.identity) {
+      pill.textContent = profile.identity.toUpperCase()
+      pill.style.display = 'inline-block'
+    } else {
+      pill.style.display = 'none'
+    }
+  }
+
+  // Stats
+  setText('profileDaysActive', stats?.daysActive ?? '—')
+  setText('profileStreak', stats?.streak ?? 0)
+
+  // Battery avg solo si hay tests
+  const tests = appState.tests || []
+  if (tests.length > 0) {
+    const avg = Math.round(tests.reduce((a, t) => a + calcBodyBattery(t), 0) / tests.length)
+    setText('profileBatteryAvg', `${avg}%`)
+  } else {
+    setText('profileBatteryAvg', '—')
+  }
+
+  // Objetivo
+  const goalsSec = document.getElementById('profileGoalsSection')
+  if (profile?.goal) {
+    setText('profileGoalText', profile.goal)
+    if (goalsSec) goalsSec.style.display = 'block'
+  } else if (goalsSec) {
+    goalsSec.style.display = 'none'
+  }
+
+  // Rutina
+  setText('profileWakeTime', profile?.wake_time || '—')
+  setText('profileSleepTime', profile?.sleep_time || '—')
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id)
+  if (el) el.textContent = val
+}
+
+// ── Chat: saludo inicial limpio (sin burbujas demo) ──
+function renderChatGreeting(profile) {
+  const wrap = document.getElementById('chatMessages')
+  if (!wrap) return
+  wrap.innerHTML = ''
+  const firstName = (profile?.name || '').split(' ')[0]
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches'
+  const personal = firstName ? `${greeting}, ${firstName}.` : `${greeting}.`
+  const bubble = document.createElement('div')
+  bubble.className = 'bubble agent'
+  bubble.textContent = `${personal} ¿En qué te puedo ayudar hoy?`
+  wrap.appendChild(bubble)
+}
+
+// ── Insights ──
+function renderInsights(tests) {
+  const empty   = document.getElementById('insightsEmpty')
+  const content = document.getElementById('insightsContent')
+  if (!empty || !content) return
+
+  const total = (tests || []).length
+  if (total === 0) {
+    empty.style.display = 'block'
+    content.style.display = 'none'
+    setText('insightsEmptyTitle', 'Aún no hay datos')
+    setText('insightsEmptySub', 'Haz tu primer test diario para empezar a ver tu recuperación.')
+    return
+  }
+  if (total < 2) {
+    empty.style.display = 'block'
+    content.style.display = 'none'
+    setText('insightsEmptyTitle', 'Necesitas más días')
+    setText('insightsEmptySub', 'Con al menos 2 días de tests podrás ver tu evolución y picos.')
+    return
+  }
+
+  empty.style.display = 'none'
+  content.style.display = 'block'
+  refreshInsights()
+}
+
+function refreshInsights() {
+  const tests = appState.tests || []
+  if (tests.length === 0) return
+  const tab = document.querySelector('#insightsPeriodTabs .period-tab.active')
+  const days = tab ? parseInt(tab.dataset.days || '7') : 7
+
+  // Filtrar últimos N días por fecha
+  const cutoff = Date.now() - days * 86400 * 1000
+  const filtered = tests.filter(t => {
+    const ts = t.date ? new Date(t.date).getTime() : new Date(t.created_at || 0).getTime()
+    return ts >= cutoff
+  })
+  const subset = filtered.length > 0 ? filtered : tests.slice(0, 1)
+
+  const batteries = subset.map(t => ({ pct: calcBodyBattery(t), date: t.date || t.created_at }))
+  const avg = Math.round(batteries.reduce((a, b) => a + b.pct, 0) / batteries.length)
+  setText('insightAvg', `${avg}%`)
+
+  // Pico y mínimo
+  const peak = batteries.reduce((m, b) => b.pct > m.pct ? b : m, batteries[0])
+  const low  = batteries.reduce((m, b) => b.pct < m.pct ? b : m, batteries[0])
+  setText('insightPeakVal', `${peak.pct}%`)
+  setText('insightPeakDay', dayLabel(peak.date))
+  setText('insightLowVal', `${low.pct}%`)
+  setText('insightLowDay', dayLabel(low.date))
+
+  // Delta vs día anterior
+  const delta = document.getElementById('insightDelta')
+  if (delta) {
+    if (batteries.length >= 2) {
+      const last = batteries[0].pct
+      const prev = batteries[batteries.length - 1].pct
+      const d = last - prev
+      if (d === 0) {
+        delta.style.visibility = 'hidden'
+      } else {
+        delta.textContent = `${d > 0 ? '↑' : '↓'} ${Math.abs(d)}% en ${batteries.length}d`
+        delta.style.visibility = 'visible'
+      }
+    } else {
+      delta.style.visibility = 'hidden'
+    }
+  }
+
+  // Curva: SVG path con puntos
+  const line = document.getElementById('insightsChartLine')
+  const area = document.getElementById('insightsChartArea')
+  if (line && area) {
+    const pts = [...batteries].reverse() // oldest → newest
+    const W = 340, H = 80
+    const stepX = pts.length > 1 ? W / (pts.length - 1) : 0
+    const path = pts.map((p, i) => {
+      const x = i * stepX
+      const y = H - (p.pct / 100) * (H - 8) - 4
+      return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`
+    }).join(' ')
+    line.setAttribute('d', path)
+    if (path) {
+      area.setAttribute('d', `${path} L${W},${H} L0,${H} Z`)
+    } else {
+      area.setAttribute('d', '')
+    }
+  }
+
+  // Tarjeta de tendencia (oculta por ahora — se evalúa con más datos)
+  const card = document.getElementById('recoveryCard')
+  if (card) card.style.display = 'none'
+}
+
+function dayLabel(dateStr) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado']
+  return days[d.getDay()] || ''
+}
+
+function calcBodyBattery(test) {
+  if (!test) return 0
+  const s = (test.sleep_quality     || 3) / 5
+  const e = 1 - (test.stress_level  || 3) / 5
+  const n = (test.nutrition_quality || 3) / 5
+  const d = (test.sport_intensity   || 3) / 5
+  return Math.round(Math.min(99, Math.max(10, (s * 0.35 + e * 0.30 + n * 0.20 + d * 0.15) * 100)))
+}
+
+function updateBatteryRing(pct) {
+  const circle = document.getElementById('batteryRingCircle')
+  if (!circle) return
+  const clamped = Math.max(0, Math.min(100, Number(pct) || 0))
+  circle.setAttribute('stroke-dashoffset', (515 * (1 - clamped / 100)).toFixed(0))
+}
+
+// ── Tabs ──
+function switchTab(tab) {
+  ;['dashboard','insights','chat','profile'].forEach(t => {
+    const el  = document.getElementById('tab-' + t)
+    const nav = document.getElementById('nav-' + t)
+    if (el)  el.style.display = 'none'
+    if (nav) nav.classList.remove('active')
+  })
+  const target = document.getElementById('tab-' + tab)
+  if (target) target.style.display = (tab === 'chat') ? 'flex' : 'block'
+  const navBtn = document.getElementById('nav-' + tab)
+  if (navBtn) navBtn.classList.add('active')
+}
+
+// ── Test diario ──
+function goTest() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+  document.getElementById('main-app').classList.remove('active')
+  // Reset preselecciones para que "Saltar" no guarde valores por defecto
+  document.querySelectorAll('#test-sleep .scale-btn.sel, #test-sleep .pill-btn.sel, #test-stress .scale-btn.sel, #test-stress .time-card.sel, #test-nutrition .scale-btn.sel, #test-nutrition .counter-btn.sel, #test-sport .scale-btn.sel, #test-sport .pill-btn.sel')
+    .forEach(el => el.classList.remove('sel'))
+  go('test-sleep')
+}
+
+// ── Finish test (daily) OR ob mode → ob-agent ──
+function finishTestOrOb() {
+  if (obMode) {
+    obMode = false
+    const backBtn = document.getElementById('testSleepBackBtn')
+    if (backBtn) backBtn.style.display = 'none'
+    collectTestData()
+    // Save test data as baseline
+    appState.profile.stress_baseline = appState.dailyTest.stressLevel || 3
+    appState.profile.score_baseline  = Math.min(99, (appState.dailyTest.sleepQuality || 3) * 15 + (appState.dailyTest.nutritionQuality || 3) * 5)
+    go('ob-agent')
+  } else {
+    finishTest()
+  }
+}
+
+// ── Custom agent name input ──
+function onCustomAgentName(val) {
+  const trimmed = val.trim()
+  if (trimmed.length > 0) {
+    // Deselect all grid cards
+    document.querySelectorAll('#ob-agent .agent-card').forEach(c => c.classList.remove('sel'))
+    agentName = trimmed
+    document.getElementById('agentName').textContent = trimmed
+    document.getElementById('agentBtn').textContent = `Continuar con ${trimmed}`
+  }
+}
+
+async function finishTest() {
+  collectTestData()
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+  document.getElementById('main-app').classList.add('active')
+  switchTab('dashboard')
+  showToast('✓ Test completado')
+  if (appState.userId) {
+    try {
+      await saveDailyTest()
+      setTimeout(loadUserData, 4000) // esperar a que el plan se genere
+    } catch (err) {
+      console.error('finishTest:', err)
+      showToast('⚠️ No se pudo guardar el test. Reintenta.')
+    }
+  }
+}
+
+// ── Toast robusto: funciona en web y en Capacitor nativo ──
+function showToast(text, duration = 2600) {
+  const toast = document.createElement('div')
+  toast.className = 'toast'
+  toast.textContent = text
+  // Posicionamiento fijo para no depender del wrapper #phone
+  Object.assign(toast.style, {
+    position: 'fixed',
+    bottom: '90px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: '9999'
+  })
+  const host = document.getElementById('phone') || document.body
+  host.appendChild(toast)
+  setTimeout(() => toast.remove(), duration)
+}
+
+function collectTestData() {
+  const sleepSel  = document.querySelector('#test-sleep .scale-row .scale-btn.sel')
+  const stressSel = document.querySelector('#test-stress .scale-row .scale-btn.sel')
+  const nutrSel   = document.querySelector('#test-nutrition .scale-row .scale-btn.sel')
+  const sportSel  = document.querySelector('#test-sport .scale-row .scale-btn.sel')
+  const timeSel   = document.querySelector('#test-stress .time-card.sel span:last-child')
+  const sleepHoursSel = document.querySelector('#test-sleep .hours-grid .pill-btn.sel')
+  const mealsSel = document.querySelector('#test-nutrition .counter-row .counter-btn.sel')
+  const durSel = document.querySelector('#test-sport .dur-grid .pill-btn.sel')
+  appState.dailyTest = {
+    sleepQuality:     sleepSel       ? parseInt(sleepSel.textContent)              : null,
+    sleepHours:       sleepHoursSel  ? parseInt(sleepHoursSel.textContent)         : null,
+    stressLevel:      stressSel      ? parseInt(stressSel.textContent)             : null,
+    stressPeak:       timeSel        ? timeSel.textContent.toLowerCase()           : null,
+    nutritionQuality: nutrSel        ? parseInt(nutrSel.textContent)               : null,
+    mealsCount:       mealsSel       ? parseInt(mealsSel.textContent)              : null,
+    sportIntensity:   sportSel       ? parseInt(sportSel.textContent)              : null,
+    sportDuration:    durSel         ? parseInt(durSel.textContent)                : null
+  }
+}
+
 async function saveDailyTest() {
-  if (!appState.userId) return
   const t = appState.dailyTest
-  await fetch(`${API_URL}/api/daily-test`, {
+  await authFetch('/api/daily-test', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      userId:            appState.userId,
-      sleepQuality:      t.sleepQuality     || 4,
-      sleepHours:        t.sleepHours       || 7,
-      stressLevel:       t.stressLevel      || 2,
-      stressPeak:        t.stressPeak       || 'tarde',
-      nutritionQuality:  t.nutritionQuality || 4,
-      mealsCount:        t.mealsCount       || 3,
-      sportIntensity:    t.sportIntensity   || 3,
-      sportDuration:     t.sportDuration    || 45
-    })
+    body: JSON.stringify({ ...t })
   })
 }
 
-// ── Chat con Claude (API real) ────────────
+// ── Chat con Jarvis ──
 async function sendChat() {
   const input = document.getElementById('chatInput')
-  const msg = input.value.trim()
+  const msg   = input.value.trim()
   if (!msg) return
+  const wrap  = document.getElementById('chatMessages')
 
-  const wrap = document.getElementById('chatMessages')
-
-  // Bubble usuario
   const userBubble = document.createElement('div')
   userBubble.className = 'bubble user'
   userBubble.textContent = msg
@@ -1638,7 +3074,6 @@ async function sendChat() {
   input.value = ''
   wrap.scrollTop = wrap.scrollHeight
 
-  // Indicador "escribiendo..."
   const typing = document.createElement('div')
   typing.className = 'bubble agent'
   typing.style.opacity = '0.5'
@@ -1647,50 +3082,116 @@ async function sendChat() {
   wrap.scrollTop = wrap.scrollHeight
 
   try {
-    // Si no hay userId, usá respuestas locales de fallback
-    if (!appState.userId || API_URL.includes('TU-BACKEND')) {
+    if (!appState.userId) {
       await new Promise(r => setTimeout(r, 800))
-      const fallbacks = [
-        'Entendido. Ajusto tu plan en consecuencia.',
-        'Perfecto, eso me ayuda a calibrar mejor tu recuperación.',
-        'Anotado. Te recomendaré ajustes según ese dato.',
-        'Gracias por el contexto. Optimizo tu plan del día.'
-      ]
-      typing.textContent = fallbacks[Math.floor(Math.random() * fallbacks.length)]
-      typing.style.opacity = '1'
-      appState.chatHistory.push({ role: 'user', content: msg })
-      return
+      typing.textContent = 'Crea tu cuenta para que pueda responderte de verdad.'
+      typing.style.opacity = '1'; return
     }
-
-    const res = await fetch(`${API_URL}/api/chat`, {
+    const res = await authFetch('/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId:  appState.userId,
-        message: msg,
-        history: appState.chatHistory.slice(-10) // últimos 10 mensajes
-      })
+      body: JSON.stringify({ message: msg })
     })
-    const { reply } = await res.json()
-
-    typing.textContent = reply
+    const data = await res.json()
+    if (data.error) throw new Error(data.error)
+    typing.textContent = data.reply || '(sin respuesta)'
     typing.style.opacity = '1'
-
-    // Guardar en historial local
-    appState.chatHistory.push({ role: 'user', content: msg })
-    appState.chatHistory.push({ role: 'assistant', content: reply })
-
   } catch (err) {
-    typing.textContent = 'Sin conexión al servidor.'
+    typing.textContent = String(err.message || '').includes('expirada')
+      ? 'Tu sesión expiró. Inicia sesión.'
+      : 'Sin conexión al servidor.'
     typing.style.opacity = '0.5'
   }
   wrap.scrollTop = wrap.scrollHeight
 }
 
-// Al arrancar, recuperar userId si ya existe
-window.addEventListener('load', () => {
-  const saved = localStorage.getItem('humanUserId')
-  if (saved) appState.userId = saved
+// ── Helpers de selección ──
+function pick(el, group) {
+  if (group === 'goal') {
+    el.classList.toggle('sel')
+  } else {
+    el.parentElement.querySelectorAll('.' + group + '-item, .identity-card, .goal-item, .radio-item')
+      .forEach(i => i.classList.remove('sel'))
+    el.classList.add('sel')
+  }
+}
+function pickFreq(el) {
+  el.closest('.freq-row').querySelectorAll('.freq-btn').forEach(b => b.classList.remove('sel'))
+  el.classList.add('sel')
+}
+function pickAgent(el, name) {
+  const grid = el.closest('.agent-grid') || el.closest('.agent-grid-3') || el.parentElement
+  grid.querySelectorAll('.agent-card').forEach(c => c.classList.remove('sel'))
+  el.classList.add('sel')
+  agentName = name
+  document.getElementById('agentName').textContent = name
+  document.getElementById('agentBtn').textContent = 'Continuar con ' + name
+  // Clear custom name input if a preset is picked
+  const customInput = document.getElementById('agentCustomName')
+  if (customInput) customInput.value = ''
+}
+function pickPeriod(el) {
+  el.closest('.period-tabs').querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'))
+  el.classList.add('active')
+}
+function pickScale(el) {
+  el.closest('.scale-row').querySelectorAll('.scale-btn').forEach(b => b.classList.remove('sel'))
+  el.classList.add('sel')
+}
+function pickHours(el, val) {
+  el.closest('.hours-grid').querySelectorAll('.pill-btn').forEach(b => b.classList.remove('sel'))
+  el.classList.add('sel')
+  document.getElementById('sleepHoursDisp').innerHTML = val.replace('h','') + '<span class="unit">h</span>'
+}
+function pickTime(el) {
+  el.closest('.time-row').querySelectorAll('.time-card').forEach(c => c.classList.remove('sel'))
+  el.classList.add('sel')
+}
+function pickMeals(el, n) {
+  el.closest('.counter-row').querySelectorAll('.counter-btn').forEach(b => b.classList.remove('sel'))
+  el.classList.add('sel')
+  document.getElementById('mealsNum').textContent = n
+}
+function pickDur(el, val) {
+  el.closest('.dur-grid').querySelectorAll('.pill-btn').forEach(b => b.classList.remove('sel'))
+  el.classList.add('sel')
+  document.getElementById('durDisp').innerHTML = val + '<span class="unit">min</span>'
+}
+
+// ── Arranque ──
+window.addEventListener('load', async () => {
+  // Detectar modo nativo (Capacitor o standalone)
+  const isNative = window.Capacitor?.isNativePlatform?.() ||
+    window.navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches
+  if (isNative) {
+    document.body.classList.add('native-mode')
+  }
+
+  // Limpiar restos del sistema antiguo (pre-Supabase Auth)
+  try { localStorage.removeItem('humanUserId') } catch {}
+
+  if (!sb) return  // Sin SDK no hay nada que hacer
+
+  // Listener de cambios de auth (login en otra pestaña, expiry, signOut)
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
+      appState.userId = null
+      appState.profile = {}
+      appState.tests = []
+    }
+  })
+
+  // Auto-login si hay sesión persistida
+  try {
+    const { data: { session } } = await sb.auth.getSession()
+    if (session?.user) {
+      appState.userId = session.user.id
+      await enterApp()
+      return
+    }
+  } catch (err) {
+    console.warn('getSession error:', err.message)
+  }
 })
 </script>
 </body>
