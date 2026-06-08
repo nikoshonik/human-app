@@ -14,7 +14,7 @@ dotenv.config()
 // La anon key es pública por diseño (Supabase la documenta así y va embebida
 // en cualquier cliente JS). Hardcoded como fallback para no depender de la
 // env var en Railway. Si se rota, se sobreescribe con la env var.
-const SUPABASE_ANON_KEY_FALLBACK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtZHR6eG96d2doZHVwZXVyYnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzOTM5MzUsImV4cCI6MjA5NDk2OTkzNX0.9lY_zX1yK4st6KIQK7L2Sl5MBiISpPdf6NSg0yIv1j'
+const SUPABASE_ANON_KEY_FALLBACK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtZHR6eG96d2doZHVwZXVyYnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzOTM5MzUsImV4cCI6MjA5NDk2OTkzNX0.9lY_zX1yK4st6KIQK7L2Sl5MBiISpPdf6NSg0yIv1jY'
 
 const SUPABASE_URL  = process.env.SUPABASE_URL || 'https://rmdtzxozwghdupeurbzx.supabase.co'
 const SERVICE_KEY   = process.env.SUPABASE_SERVICE_KEY
@@ -249,7 +249,7 @@ app.delete('/api/user/me', requireAuth, async (req, res) => {
 // Jarvis con las 3 capas de memoria. userId del JWT, no del body.
 // ─────────────────────────────────────────
 app.post('/api/chat', requireAuth, async (req, res) => {
-  const { message } = req.body
+  const { message, context: clientCtx } = req.body
   if (typeof message !== 'string' || !message.trim()) {
     return res.status(400).json({ error: 'Mensaje vacío' })
   }
@@ -260,19 +260,51 @@ app.post('/api/chat', requireAuth, async (req, res) => {
     const { data: profile } = await req.supabase
       .from('profiles').select('*').eq('id', userId).maybeSingle()
 
-    const { data: recentTests } = await req.supabase
+    let { data: recentTests } = await req.supabase
       .from('daily_tests').select('*').eq('user_id', userId)
       .order('date', { ascending: false }).limit(30)
+
+    // Fallback: si la DB no devuelve test pero el cliente sí lo tiene, lo usamos
+    if ((!recentTests || recentTests.length === 0) && clientCtx?.today) {
+      recentTests = [{
+        date:              clientCtx.today.date || new Date().toISOString().slice(0,10),
+        sleep_quality:     clientCtx.today.sleep_quality,
+        sleep_hours:       clientCtx.today.sleep_hours,
+        stress_level:      clientCtx.today.stress_level,
+        stress_peak:       clientCtx.today.stress_peak,
+        nutrition_quality: clientCtx.today.nutrition_quality,
+        meals_count:       clientCtx.today.meals_count,
+        sport_intensity:   clientCtx.today.sport_intensity,
+        sport_duration:    clientCtx.today.sport_duration
+      }]
+    }
 
     const { data: chatHistory } = await req.supabase
       .from('chat_messages').select('role, content').eq('user_id', userId)
       .order('created_at', { ascending: false }).limit(8)
 
     const orderedHistory = (chatHistory || []).reverse()
-    const systemPrompt = buildSystemPrompt(profile, recentTests || [])
+    const systemPrompt = buildSystemPrompt(profile, recentTests || [], clientCtx)
+
+    // Saneamos el historial para la API de Anthropic: la conversación DEBE
+    // empezar por 'user' y alternar user/assistant. Como el par user+assistant
+    // se guarda con el mismo created_at, el orden de lectura puede venir
+    // descolocado (assistant primero, o dos del mismo rol seguidos), lo que
+    // rompía la llamada con un 500. Aquí lo normalizamos siempre.
+    const convo = []
+    for (const m of orderedHistory) {
+      if (m.role !== 'user' && m.role !== 'assistant') continue
+      if (convo.length === 0 && m.role !== 'user') continue          // debe empezar en 'user'
+      if (convo.length && convo[convo.length - 1].role === m.role) {
+        convo[convo.length - 1] = { role: m.role, content: m.content } // colapsa consecutivos del mismo rol
+      } else {
+        convo.push({ role: m.role, content: m.content })
+      }
+    }
+    if (convo.length && convo[convo.length - 1].role === 'user') convo.pop() // evita 2 'user' seguidos
 
     const messages = [
-      ...orderedHistory.map(m => ({ role: m.role, content: m.content })),
+      ...convo,
       { role: 'user', content: message }
     ]
 
@@ -304,12 +336,14 @@ app.post('/api/chat', requireAuth, async (req, res) => {
 // ─────────────────────────────────────────
 // HELPER: system prompt
 // ─────────────────────────────────────────
-function buildSystemPrompt(profile, recentTests) {
-  const name         = profile?.name        || 'usuario'
+function buildSystemPrompt(profile, recentTests, clientCtx) {
+  const name         = profile?.name        || clientCtx?.profile?.name        || 'usuario'
   const agentName    = profile?.agent_name  || 'Jarvis'
-  const identity     = profile?.identity    || 'atleta'
-  const goal         = profile?.goal        || 'rendir mejor'
-  const age          = profile?.age         ? `${profile.age} años` : ''
+  const identity     = profile?.identity    || clientCtx?.profile?.identity    || 'atleta'
+  const goal         = profile?.goal        || clientCtx?.profile?.goal        || 'rendir mejor'
+  const age          = (profile?.age || clientCtx?.profile?.age) ? `${profile?.age || clientCtx?.profile?.age} años` : ''
+  const wakeTime     = profile?.wake_time   || clientCtx?.profile?.wake_time   || null
+  const sleepTime    = profile?.sleep_time  || clientCtx?.profile?.sleep_time  || null
   const jarvisMemory = profile?.jarvis_memory || ''
 
   const toneByIdentity = identity === 'founder'
@@ -323,21 +357,38 @@ function buildSystemPrompt(profile, recentTests) {
     ? `\nLO QUE SÉ DE ${name.toUpperCase()} (memoria acumulada):\n${jarvisMemory}\n`
     : ''
 
+  // Cuando el cliente nos da el body_battery calculado, lo incluimos explícito
+  const todayCtx = clientCtx?.today || {}
+  const bodyBattery = todayCtx.body_battery != null ? `${todayCtx.body_battery}%` : null
+  const explicitTodayBlock = (bodyBattery || trendsBlock === '') && todayCtx.sleep_quality != null
+    ? `\nESTADO DE HOY (datos del test diario que YA hizo):
+- Body Battery: ${bodyBattery || 'calcular según los datos'}
+- Sueño: ${todayCtx.sleep_quality}/5, ${todayCtx.sleep_hours}h
+- Estrés: ${todayCtx.stress_level}/5${todayCtx.stress_peak ? ` (pico ${todayCtx.stress_peak})` : ''}
+- Nutrición: ${todayCtx.nutrition_quality}/5, ${todayCtx.meals_count} comidas
+- Deporte: ${todayCtx.sport_intensity}/5, ${todayCtx.sport_duration} min
+- Rutina: dormir ${sleepTime || '23:00'} → despertar ${wakeTime || '07:00'}\n`
+    : ''
+
   return `Eres ${agentName}, el agente personal de salud y rendimiento de ${name}${age ? ` (${age})` : ''}.
 
 PERFIL:
 - Identidad: ${identity}
 - Objetivo: ${goal}
 - Síntomas iniciales: ${JSON.stringify(profile?.symptoms || {})}
-${memoryBlock}${trendsBlock}
+${memoryBlock}${trendsBlock}${explicitTodayBlock}
+REGLAS CRÍTICAS:
+- TIENES los datos del usuario arriba (Body Battery, sueño, estrés, nutrición, deporte). USALOS SIEMPRE.
+- NUNCA digas "no lo sé", "no tengo datos", "necesitaría más métricas", "datos cardíacos" o algo similar. Los datos del test diario YA TE LOS DAN arriba. Responde con esos.
+- Si te preguntan "cómo dormí", responde con los datos de sueño que tienes (calidad X/5, X horas). Si te preguntan "estoy recuperado", responde con Body Battery + sueño + estrés.
+- Métricas avanzadas que NO tienes (HRV, frecuencia cardíaca, fases reales): nunca las menciones como falta. Trabaja con lo que sí tienes.
+
 CÓMO ACTUAR:
-- Responde SIEMPRE en español
-- Máximo 3-4 oraciones — directo y accionable
-- Usa los datos reales del usuario para personalizar cada respuesta
-- Si hay alertas (⚠️), priorízalas
-- Si conoces patrones del usuario, úsalos para dar mejores consejos
-- Tono: ${toneByIdentity}
-- Eres su agente personal, no un chatbot genérico — trátalo como alguien que conoces bien`
+- Responde SIEMPRE en español, en 2-4 oraciones, directo y accionable.
+- Cita números concretos del usuario (ej: "con tu 71% y sueño 4/5, sí, vas recuperado").
+- Si hay alertas (⚠️), priorízalas.
+- Tono: ${toneByIdentity}.
+- Trátalo como alguien que conoces bien, no como un chatbot genérico.`
 }
 
 function buildTrendsBlock(tests) {
@@ -456,8 +507,8 @@ Estructura exacta (usa estos títulos):
 ESTADO DE HOY: [1 frase que resuma cómo está y por qué]
 FOCO PRINCIPAL: [la prioridad del día según sus datos]
 ENTRENAMIENTO: [qué hacer o no hacer hoy, con intensidad concreta]
-NUTRICIÓN: [2-3 recomendaciones específicas para hoy]
-RECUPERACIÓN: [lo más importante para recuperarse hoy]
+NUTRICIÓN: [2-3 recomendaciones específicas para hoy. Recomienda casi siempre cenar al menos 3 h antes de dormir y priorizar alimentos ricos en triptófano (pavo, huevos, lácteos, plátano, avena, frutos secos), explicando que ambas cosas mejoran la calidad del sueño]
+RECUPERACIÓN: [lo más importante para recuperarse hoy. Incluye casi siempre reducir o bloquear la luz azul (pantallas, LED) al menos 1 h antes de dormir, explicando que favorece la melatonina y mejora la calidad del sueño. Recomienda también, normalmente después de entrenar, unos minutos de meditación y estiramientos para relajar el sistema nervioso]
 MENSAJE DE JARVIS: [1 frase motivadora y personalizada]
 
 Máximo 150 palabras en total. Directo, sin relleno.`

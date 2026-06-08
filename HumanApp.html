@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Human App">
@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#000000">
 <title>Human App</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
 body {
   background: #0f0f1a;
@@ -58,30 +58,32 @@ body.native-mode .main-screen {
   padding-top: 0; /* Manejado por cada tab directamente */
 }
 
-/* Tabs principales: empujar contenido bajo el Dynamic Island */
+/* Tabs principales: empujar contenido bajo el Dynamic Island + dejar espacio para la nav (que crece con safe-area inferior) */
 body.native-mode .tab-content {
-  padding-top: max(calc(env(safe-area-inset-top, 0px) + 20px), 82px);
-  padding-bottom: calc(82px + max(env(safe-area-inset-bottom, 0px), 22px));
+  bottom: calc(60px + max(env(safe-area-inset-bottom, 0px), 4px));
+  padding-top: max(calc(env(safe-area-inset-top, 0px) + 20px), 64px);
+  padding-bottom: 20px;
 }
 
 /* Chat tab tiene padding-top inline — se sobreescribe aquí */
 body.native-mode #tab-chat {
-  padding-top: max(calc(env(safe-area-inset-top, 0px) + 16px), 78px) !important;
+  padding-top: max(calc(env(safe-area-inset-top, 0px) + 16px), 64px) !important;
 }
 
 body.native-mode .bottom-nav {
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 22px);
-  height: calc(82px + max(env(safe-area-inset-bottom, 0px), 22px));
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 4px);
+  height: calc(60px + max(env(safe-area-inset-bottom, 0px), 4px));
 }
 
 body.native-mode .chat-input-row {
-  bottom: calc(max(env(safe-area-inset-bottom, 0px), 22px) + 78px);
+  bottom: calc(max(env(safe-area-inset-bottom, 0px), 4px) + 60px);
 }
 
-/* Scrollable areas — prevent rubber band on native */
-.scroll-content, .chat-messages-wrap, .ob-scroll {
+/* Scrollable areas — prevent rubber band on native + asegurar pan-y para iOS WebView */
+.scroll-content, .chat-messages-wrap, .ob-scroll, .tab-content, .ob-wrap, .test-wrap {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 /* ── Phone frame ── */
@@ -214,14 +216,42 @@ body.native-mode .chat-input-row {
 }
 
 /* ── Onboarding layout ── */
+/* Posicionamiento absoluto: fiable en iOS WebView (flex+overflow es flaky bajo Capacitor) */
 .ob-wrap {
-  flex: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   padding: 60px 24px 40px;
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 .ob-wrap::-webkit-scrollbar { display: none; }
+/* Progress bar (3px) y back-btn deben quedar por encima del ob-wrap absoluto */
+.screen > div[style*="height:3px"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+}
+.back-btn { z-index: 6; }
+/* Cuando una screen tiene back-btn, su ob-wrap/test-wrap necesita más padding-top
+   para que el ob-tag/título no se monte sobre la flecha (especialmente en native
+   donde el back-btn baja por el safe-area). El !important vence los padding inline. */
+.screen:has(.back-btn) .ob-wrap,
+.screen:has(.back-btn) .test-wrap {
+  padding-top: 108px !important;
+}
+body.native-mode .screen:has(.back-btn) .ob-wrap,
+body.native-mode .screen:has(.back-btn) .test-wrap {
+  padding-top: max(120px, calc(env(safe-area-inset-top, 0px) + 64px)) !important;
+}
 .ob-tag {
   font-size: 11px;
   letter-spacing: 2px;
@@ -349,6 +379,36 @@ body.native-mode .chat-input-row {
   transition: all 0.2s;
 }
 .goal-item.sel .goal-check { background: #3B82F6; border-color: #3B82F6; color: white; }
+/* Goal item custom (input para objetivo propio) */
+.goal-item-custom { padding: 0; }
+.goal-custom-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 15px;
+  padding: 15px 16px;
+  outline: none;
+  font-family: inherit;
+  min-width: 0;
+}
+.goal-custom-input::placeholder { color: #555; }
+.goal-item-custom .goal-check { margin-right: 16px; }
+.goal-add-btn {
+  margin-top: 12px;
+  width: 100%;
+  background: transparent;
+  border: 1.5px dashed #2a2a2a;
+  color: #888;
+  border-radius: 13px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.goal-add-btn:active { background: #0d0d0d; color: #aaa; border-color: #3B82F6; }
 
 /* ── Frequency toggles ── */
 .symptom-block { margin-bottom: 20px; }
@@ -584,6 +644,63 @@ body.native-mode .chat-input-row {
 }
 .sleep-hour-btn.sel { background: #3B82F6; border-color: #3B82F6; color: white; }
 
+/* ──────── Onboarding: días de entrenamiento ──────── */
+.training-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.training-day-chip {
+  aspect-ratio: 1 / 1;
+  background: #0d0d0d;
+  border: 1.5px solid #1e1e1e;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.training-day-chip.sel {
+  background: #3B82F6;
+  border-color: #3B82F6;
+  color: #fff;
+}
+.training-time-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  background: #0d0d0d;
+  border: 1px solid #111;
+  border-radius: 11px;
+  margin-bottom: 6px;
+}
+.training-time-day-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #fff;
+  flex: 0 0 60px;
+}
+.training-time-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: right;
+  font-family: inherit;
+  -webkit-appearance: none;
+}
+
 /* ════════════ CREATE ACCOUNT ════════════ */
 #create-account {
   justify-content: center;
@@ -609,21 +726,34 @@ body.native-mode .chat-input-row {
 /* ════════════ MAIN APP SHELL ════════════ */
 .main-screen { display: none; flex-direction: column; position: absolute; inset: 0; background: #000; color: white; }
 .main-screen.active { display: flex; }
-.tab-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding-top: 50px; padding-bottom: 80px; }
+/* tab-content: absolute positioning para garantizar scroll fiable en iOS WebView (flex+overflow es flaky en Capacitor) */
+.tab-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-top: 50px;
+  padding-bottom: 24px;
+}
 .tab-content::-webkit-scrollbar { display: none; }
 
 /* Bottom nav */
 .bottom-nav {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 82px;
+  height: 60px;
   background: rgba(8,8,8,0.97);
   backdrop-filter: blur(20px);
   border-top: 1px solid #111;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-around;
-  padding: 10px 0 0;
+  padding: 14px 0 0;
 }
 .nav-btn {
   display: flex;
@@ -631,13 +761,13 @@ body.native-mode .chat-input-row {
   align-items: center;
   gap: 3px;
   cursor: pointer;
-  padding: 6px 22px;
-  opacity: 0.35;
+  padding: 2px 18px;
+  opacity: 0.4;
   transition: opacity 0.2s;
   background: none; border: none; color: white;
 }
 .nav-btn.active { opacity: 1; }
-.nav-btn svg { width: 24px; height: 24px; fill: currentColor; }
+.nav-btn svg { width: 20px; height: 20px; fill: currentColor; }
 .nav-btn span { font-size: 10px; color: white; letter-spacing: 0.3px; }
 
 /* ════════════ DASHBOARD ════════════ */
@@ -656,12 +786,57 @@ body.native-mode .chat-input-row {
   display: flex; align-items: center; justify-content: center;
   font-size: 17px; font-weight: 700;
 }
+.dash-actions { display: flex; align-items: center; gap: 12px; }
+
+/* ════════════ CAMPANA + NOTIFICACIONES ════════════ */
+.bell-btn {
+  position: relative;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: #0d0d0d; border: 1px solid #1a1a1a;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.bell-btn svg { width: 20px; height: 20px; fill: #cfcfcf; }
+.bell-badge {
+  position: absolute; top: -2px; right: -2px;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  background: #ef4444; color: #fff;
+  font-size: 10px; font-weight: 700; line-height: 18px;
+  border-radius: 9px; text-align: center;
+  border: 2px solid #000; display: none;
+}
+.notif-list { padding: 4px 16px 110px; }
+.notif-empty { text-align: center; color: #555; padding: 80px 24px; font-size: 14px; }
+.notif-card {
+  position: relative;
+  background: #0d0d0d; border: 1px solid #141414;
+  border-radius: 16px; padding: 14px 16px 14px 18px; margin-bottom: 10px;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.notif-card.unread { border-color: #1e3a8a; background: #0b1220; }
+.notif-card.unread::before {
+  content: ''; position: absolute; left: 7px; top: 18px;
+  width: 7px; height: 7px; border-radius: 50%; background: #3B82F6;
+}
+.notif-ico {
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+  background: #15233f;
+}
+.notif-ico.training   { background: #14271a; }
+.notif-ico.nutrition  { background: #2a2410; }
+.notif-ico.motivation { background: #2a1424; }
+.notif-ico.engagement { background: #1a1a1a; }
+.notif-body { flex: 1; min-width: 0; }
+.notif-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; color: #f2f2f2; }
+.notif-text  { font-size: 13px; color: #9a9a9a; line-height: 1.4; }
+.notif-time  { font-size: 11px; color: #555; margin-top: 6px; }
 
 /* Body Battery */
 .battery-wrap { display: flex; flex-direction: column; align-items: center; padding: 8px 20px 14px; }
 .battery-section-label { font-size: 10px; letter-spacing: 2px; color: #3B82F6; text-transform: uppercase; margin-bottom: 6px; }
 .battery-ring { position: relative; width: 190px; height: 190px; }
-.battery-ring svg { transform: rotate(-90deg); }
+.battery-ring svg { /* sin rotate: el path ya empieza en top y va counter-clockwise */ }
 .battery-center {
   position: absolute; inset: 0;
   display: flex; flex-direction: column;
@@ -672,7 +847,10 @@ body.native-mode .chat-input-row {
 .battery-num { font-size: 58px; font-weight: 800; line-height: 1; letter-spacing: -2px; }
 .battery-num span { font-size: 24px; font-weight: 500; }
 .battery-caption { font-size: 12px; color: #888; margin-top: 10px; text-align: center; }
-.battery-delta { font-size: 12px; color: #34D399; margin-top: 3px; }
+.battery-delta { font-size: 12px; color: #555; margin-top: 3px; }
+.battery-delta.up   { color: #34D399; }
+.battery-delta.down { color: #F87171; }
+.battery-delta.flat { color: #555; }
 .up-orange { font-size: 14px; color: #F59E0B; }
 
 /* Stats row */
@@ -681,12 +859,29 @@ body.native-mode .chat-input-row {
   flex: 1;
   background: #0d0d0d;
   border-radius: 14px;
-  padding: 13px 14px;
+  padding: 10px 12px;
   border: 1px solid #111;
+  /* Centrado vertical real del grupo (label + val + delta opcional) */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 84px; /* altura fija: no cambia entre día 1 (sin flecha) y día 2+ */
+  text-align: center;
 }
-.stat-tile-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; }
-.stat-tile-val { font-size: 24px; font-weight: 700; display: flex; align-items: baseline; gap: 3px; }
+.stat-tile-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.8px; }
+.stat-tile-val   { font-size: 24px; font-weight: 700; display: flex; align-items: baseline; justify-content: center; gap: 4px; }
 .stat-tile-val .up { font-size: 14px; color: #34D399; }
+.stat-tile-delta {
+  font-size: 11px; font-weight: 600;
+  align-items: center; justify-content: center; gap: 2px;
+  display: none;          /* oculto el primer día → centrado natural por el padre */
+}
+.stat-tile-delta.has-data { display: flex; }
+.stat-tile-delta.up   { color: #34D399; }
+.stat-tile-delta.down { color: #F87171; }
+.stat-tile-delta.flat { color: #555; }
 
 /* Agent message card */
 .agent-msg-card {
@@ -707,31 +902,120 @@ body.native-mode .chat-input-row {
 .plan-item {
   background: #0d0d0d;
   border: 1px solid #111;
-  border-radius: 13px;
-  padding: 14px 16px;
-  margin-bottom: 8px;
+  border-radius: 12px;
+  padding: 11px 14px;
+  margin-bottom: 7px;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
-.plan-item-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
-.plan-item-time { font-size: 13px; color: #666; }
+.plan-item-eyebrow {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: #3B82F6;
+  margin-bottom: 4px;
+}
+.plan-item-name {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  line-height: 1.25;
+  color: #fff;
+  margin-bottom: 2px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.plan-item.expanded .plan-item-name { -webkit-line-clamp: unset; overflow: visible; }
+.plan-item-time { font-size: 13px; color: #888; line-height: 1.5; letter-spacing: -0.1px; }
+/* Botón colapsable: chevron + label "Descripción" — abajo a la derecha */
+.plan-item-toggle {
+  display: flex; align-items: center; gap: 8px;
+  justify-content: flex-end;
+  font-size: 10.5px; color: #3B82F6; font-weight: 500;
+  letter-spacing: 0.1px;
+  margin-top: 6px;
+  user-select: none;
+}
+.plan-item-toggle .chev {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-right: 1.5px solid #3B82F6;
+  border-bottom: 1.5px solid #3B82F6;
+  transform: rotate(45deg) translate(-1px,-1px);
+  transition: transform 0.25s;
+}
+.plan-item.expanded .plan-item-toggle .chev {
+  transform: rotate(225deg) translate(-1px,-1px);
+}
+.plan-item .plan-item-time {
+  max-height: 0;
+  overflow: hidden;
+  margin-top: 0;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.2s ease, margin-top 0.2s ease;
+}
+.plan-item.expanded .plan-item-time {
+  max-height: 800px;
+  opacity: 1;
+  margin-top: 8px;
+}
+.plan-item.plan-item-empty { cursor: default; }
+.plan-item.plan-item-empty .plan-item-toggle { display: none; }
 
 /* Daily test CTA */
 .daily-cta {
   margin: 0 20px 20px;
-  background: linear-gradient(135deg, #0d0d1f, #0d0d0d);
-  border: 1px solid #222;
+  background: #0d0d0d;
+  border: 1px solid #1c1c1c;
   border-radius: 16px;
-  padding: 16px 18px;
+  padding: 15px 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 14px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background 0.2s;
 }
 .daily-cta:active { border-color: #3B82F6; }
-.daily-cta-icon { font-size: 28px; }
-.daily-cta-title { font-size: 16px; font-weight: 600; margin-bottom: 3px; }
-.daily-cta-sub { font-size: 13px; color: #666; }
+.daily-cta-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: #3B82F6;
+  margin-bottom: 5px;
+}
+.daily-cta-title { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 3px; }
+.daily-cta-sub { font-size: 13px; color: #666; line-height: 1.4; }
+.daily-cta-action {
+  flex-shrink: 0;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 1px solid #2a2a2a;
+  display: flex; align-items: center; justify-content: center;
+}
+.daily-cta-chev {
+  width: 7px; height: 7px;
+  border-top: 1.5px solid #3B82F6;
+  border-right: 1.5px solid #3B82F6;
+  transform: rotate(45deg);
+  margin-left: -2px;
+}
+.daily-cta.done { background: #0c1512; border-color: #14241d; }
+.daily-cta.done .daily-cta-eyebrow { color: #1D9E75; }
+.daily-cta.done .daily-cta-action { border-color: #1D9E75; }
+.daily-cta.done .daily-cta-chev {
+  width: 5px; height: 9px;
+  border-top: none;
+  border-right: 1.5px solid #1D9E75;
+  border-bottom: 1.5px solid #1D9E75;
+  transform: rotate(45deg);
+  margin: 0 0 2px 0;
+}
 
 /* ════════════ INSIGHTS ════════════ */
 .insights-header { padding: 20px 20px 0; }
@@ -807,15 +1091,50 @@ body.native-mode .chat-input-row {
 }
 .chat-agent-name { font-size: 17px; font-weight: 600; }
 .chat-agent-status { font-size: 12px; color: #555; }
-.chat-messages-wrap { flex: 1; overflow-y: auto; padding: 16px 16px 80px; display: flex; flex-direction: column; gap: 12px; }
+/* chat-messages-wrap: absoluto para garantizar scroll fiable en iOS WebView */
+.chat-messages-wrap {
+  position: absolute;
+  top: 124px;     /* padding-top tab-chat (50) + chat-header (~74) */
+  bottom: 124px;  /* chat-input-row bottom (60) + altura input (~64) */
+  left: 0; right: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding: 16px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+body.native-mode .chat-messages-wrap {
+  top: calc(max(env(safe-area-inset-top, 0px) + 16px, 64px) + 70px);
+  bottom: calc(max(env(safe-area-inset-bottom, 0px), 18px) + 60px + 64px);
+}
 .chat-messages-wrap::-webkit-scrollbar { display: none; }
 .bubble {
   max-width: 84%;
-  padding: 9px 14px;
+  padding: 10px 14px;
   border-radius: 18px;
   font-size: 14px;
   line-height: 1.5;
+  letter-spacing: -0.1px;
+  word-break: break-word;
 }
+/* Formato interno de las respuestas del agente: párrafos y bullets ordenados */
+.bubble.agent p { margin: 0 0 8px 0; }
+.bubble.agent p:last-child { margin-bottom: 0; }
+.bubble.agent ul { margin: 4px 0 8px 0; padding-left: 18px; list-style: none; }
+.bubble.agent ul:last-child { margin-bottom: 0; }
+.bubble.agent ul li { position: relative; padding-left: 0; margin-bottom: 4px; }
+.bubble.agent ul li::before {
+  content: '•';
+  color: #60A5FA;
+  position: absolute;
+  left: -14px;
+  font-weight: 700;
+}
+.bubble.agent strong { color: #fff; font-weight: 600; }
 .bubble.agent {
   background: #0a1628;
   border: 1px solid #1b3460;
@@ -831,7 +1150,7 @@ body.native-mode .chat-input-row {
 }
 .chat-input-row {
   position: absolute;
-  bottom: 78px;
+  bottom: 60px;
   left: 0; right: 0;
   padding: 10px 16px 12px;
   display: flex;
@@ -864,6 +1183,20 @@ body.native-mode .chat-input-row {
   flex-shrink: 0;
 }
 .chat-send:active { opacity: 0.8; }
+.chat-mic {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: #0d0d0d;
+  border: 1px solid #1a1a1a;
+  color: #3B82F6;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.15s, background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.chat-mic:active { opacity: 0.8; }
+.chat-mic.recording { background: #ef4444; border-color: #ef4444; color: #fff; }
 
 /* ════════════ PROFILE ════════════ */
 .profile-top {
@@ -889,7 +1222,7 @@ body.native-mode .chat-input-row {
   margin-bottom: 14px;
 }
 .profile-uname { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 8px; }
-.profile-badges { display: flex; gap: 8px; }
+.profile-badges { display: flex; gap: 8px; margin-top: 12px; }
 .pill {
   padding: 5px 12px;
   border-radius: 20px;
@@ -946,11 +1279,18 @@ body.native-mode .chat-input-row {
 
 /* ════════════ DAILY TEST ════════════ */
 .test-wrap {
-  flex: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   padding: 58px 24px 36px;
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 .test-wrap::-webkit-scrollbar { display: none; }
 .test-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -1264,6 +1604,85 @@ body.native-mode .screen {
 .account-btn:active { background: #141414; }
 .account-btn-danger { color: #ef4444; }
 .account-btn-danger:active { background: #1a0a0a; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   SCROLL OVERRIDE — REFACTOR DEFINITIVO
+   Quita position:absolute + overflow:hidden de TODOS los containers
+   para que el WebView haga scroll nativo del documento.
+   La nav y el chat input pasan a position:fixed (flotan sobre scroll).
+   ═══════════════════════════════════════════════════════════════════ */
+html, body { overflow-x: hidden; }
+html { height: 100%; }
+body.native-mode {
+  height: 100dvh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  display: block !important;
+}
+body.native-mode .phone {
+  height: auto !important;
+  min-height: 100%;
+  width: 100% !important;
+  overflow: visible !important;
+  display: block !important;
+}
+.screen {
+  position: static !important;
+  inset: auto !important;
+  overflow: visible !important;
+  min-height: 100dvh;
+}
+.screen:not(.active) { display: none !important; }
+.screen.active        { display: flex !important; flex-direction: column; }
+.main-screen {
+  position: static !important;
+  inset: auto !important;
+  overflow: visible !important;
+  min-height: 100dvh;
+}
+.main-screen:not(.active) { display: none !important; }
+.main-screen.active        { display: flex !important; flex-direction: column; }
+.tab-content {
+  position: static !important;
+  inset: auto !important;
+  overflow: visible !important;
+  height: auto !important;
+  padding-bottom: 110px !important;  /* deja sitio para la nav fixed */
+}
+body.native-mode .tab-content {
+  padding-bottom: calc(80px + max(env(safe-area-inset-bottom, 0px), 4px)) !important;
+  padding-top: max(calc(env(safe-area-inset-top, 0px) + 20px), 64px) !important;
+}
+.ob-wrap, .test-wrap {
+  position: static !important;
+  inset: auto !important;
+  overflow: visible !important;
+  min-height: 100dvh;
+  height: auto !important;
+}
+.chat-messages-wrap {
+  position: static !important;
+  inset: auto !important;
+  overflow: visible !important;
+  height: auto !important;
+  flex: 1 1 auto;
+  padding-bottom: 180px !important; /* nav + input fijos */
+}
+.bottom-nav {
+  position: fixed !important;
+  bottom: 0; left: 0; right: 0;
+  z-index: 100;
+}
+.chat-input-row {
+  position: fixed !important;
+  z-index: 99;
+}
+body.native-mode .chat-input-row {
+  bottom: calc(max(env(safe-area-inset-bottom, 0px), 4px) + 60px) !important;
+}
+/* Status bar y back-btn deben estar fixed para no scrollear con el contenido */
+body.native-mode .back-btn { position: fixed !important; }
 </style>
 <!-- Supabase JS SDK v2 — auth real desde el cliente -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -1300,7 +1719,7 @@ body.native-mode .screen {
     <div class="ob-intro-body">
       <div class="ob-intro-tag">AI-POWERED HEALTH AGENT</div>
       <div class="ob-intro-title">La vida es un juego. Mejora tu personaje.</div>
-      <div class="ob-intro-sub">Tu agente personal que optimiza tu recuperación y maximiza tu rendimiento.<br><br>Hecho para founders y atletas que no pueden bajar el ritmo.</div>
+      <div class="ob-intro-sub">Tu agente personal que optimiza tu recuperación y maximiza tu rendimiento. Hecho para founders y atletas que no pueden bajar el ritmo.</div>
     </div>
     <div style="padding:0 28px 52px;">
       <button class="btn-primary" onclick="go('ob-name')">Empezar</button>
@@ -1370,6 +1789,13 @@ body.native-mode .screen {
         <div class="goal-item" onclick="pick(this,'goal')"><span>Dormir mejor y más profundo</span><div class="goal-check">✓</div></div>
         <div class="goal-item" onclick="pick(this,'goal')"><span>Aumentar mi energía diaria</span><div class="goal-check">✓</div></div>
         <div class="goal-item" onclick="pick(this,'goal')"><span>Aumentar mi bienestar general</span><div class="goal-check">✓</div></div>
+        <div id="goalCustomList">
+          <div class="goal-item goal-item-custom" onclick="pickGoalCustom(this, event)">
+            <input type="text" class="goal-custom-input" placeholder="Otro objetivo (escribe el tuyo)..." onclick="event.stopPropagation()" oninput="onGoalCustomInput(this)">
+            <div class="goal-check">✓</div>
+          </div>
+        </div>
+        <button type="button" class="goal-add-btn" onclick="addGoalCustom()">+ Añadir otro objetivo</button>
       </div>
       <div class="ob-footer">
         <button class="btn-primary" onclick="collectOb3(); go('ob-symptoms')">Continuar</button>
@@ -1401,7 +1827,7 @@ body.native-mode .screen {
         </div>
       </div>
       <div class="symptom-block">
-        <div class="symptom-name">Estrés constante / serenidad</div>
+        <div class="symptom-name">Estrés constante / ansiedad</div>
         <div class="freq-row">
           <div class="freq-btn" onclick="pickFreq(this)">Nunca</div>
           <div class="freq-btn sel" onclick="pickFreq(this)">A veces</div>
@@ -1432,13 +1858,10 @@ body.native-mode .screen {
       <div class="agent-preview-box">
         <strong id="agentName">Jarvis</strong> está a tu disposición para ayudarte a crear más contexto y conseguir los mejores resultados de salud y rendimiento.
       </div>
-      <div class="agent-grid-3">
+      <div class="agent-grid">
         <div class="agent-card sel" onclick="pickAgent(this,'Jarvis')">Jarvis</div>
-        <div class="agent-card" onclick="pickAgent(this,'Mi')">Mi</div>
         <div class="agent-card" onclick="pickAgent(this,'Max')">Max</div>
-        <div class="agent-card" onclick="pickAgent(this,'S')">S</div>
         <div class="agent-card" onclick="pickAgent(this,'Sam')">Sam</div>
-        <div class="agent-card" onclick="pickAgent(this,'N')">N</div>
         <div class="agent-card" onclick="pickAgent(this,'Nino')">Nino</div>
       </div>
       <div style="margin-top:14px">
@@ -1530,7 +1953,38 @@ body.native-mode .screen {
         <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,11)">+10h</div>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="collectSleepHoursBaseline(); go('ob-integrations')">Continuar</button>
+        <button class="btn-primary" onclick="collectSleepHoursBaseline(); go('ob-training-days')">Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ OB: DÍAS DE ENTRENAMIENTO ═══════════ -->
+  <div class="screen" id="ob-training-days">
+    <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:69%"></div></div>
+    <button class="back-btn" onclick="go('ob-sleep-hours')">‹</button>
+    <div class="ob-wrap" style="padding-top:90px">
+      <div class="ob-tag">RUTINA DEPORTIVA</div>
+      <div class="ob-title">¿Qué días entrenas?</div>
+      <div style="font-size:13px;color:#555;margin-bottom:18px">Marca los días que entrenas habitualmente. Después afinamos la hora.</div>
+      <div class="training-days-grid" id="trainingDaysGrid">
+        <div class="training-day-chip" data-day="L" onclick="toggleTrainingDay(this)">L</div>
+        <div class="training-day-chip" data-day="M" onclick="toggleTrainingDay(this)">M</div>
+        <div class="training-day-chip" data-day="X" onclick="toggleTrainingDay(this)">X</div>
+        <div class="training-day-chip" data-day="J" onclick="toggleTrainingDay(this)">J</div>
+        <div class="training-day-chip" data-day="V" onclick="toggleTrainingDay(this)">V</div>
+        <div class="training-day-chip" data-day="S" onclick="toggleTrainingDay(this)">S</div>
+        <div class="training-day-chip" data-day="D" onclick="toggleTrainingDay(this)">D</div>
+      </div>
+
+      <div class="field-label" style="margin-top:22px">Hora habitual</div>
+      <input class="field-input" id="trainingTimeAll" type="time" value="18:00">
+      <div style="text-align:center;margin-top:10px">
+        <span id="customTimesToggle" style="font-size:13px;color:#3B82F6;cursor:pointer;user-select:none" onclick="toggleCustomTimes()">+ Personalizar por día</span>
+      </div>
+      <div id="trainingTimesCustom" style="display:none;margin-top:14px"></div>
+
+      <div class="ob-footer">
+        <button class="btn-primary" onclick="collectTrainingDays(); go('ob-integrations')">Continuar</button>
       </div>
     </div>
   </div>
@@ -1538,7 +1992,7 @@ body.native-mode .screen {
   <!-- ═══════════ OB: INTEGRACIONES ═══════════ -->
   <div class="screen" id="ob-integrations">
     <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:72%"></div></div>
-    <button class="back-btn" onclick="go('ob-sleep-hours')">‹</button>
+    <button class="back-btn" onclick="go('ob-training-days')">‹</button>
     <div class="ob-wrap" style="padding-top:90px">
       <div class="ob-tag">CONECTA TUS DATOS</div>
       <div class="ob-title">¿Qué dispositivos usas?</div>
@@ -1653,29 +2107,29 @@ body.native-mode .screen {
         <div class="pain-card-red">
           <div class="pain-x-icon">✕</div>
           <div>
-            <div class="pain-card-title">Cerebro en survival, no en creación</div>
-            <div class="pain-card-sub">Sin recuperación real, no puedes tomar las mejores decisiones</div>
+            <div class="pain-card-title">Cerebro en survival, no en founder mode</div>
+            <div class="pain-card-sub">Sin foco = decisiones costosas.</div>
           </div>
         </div>
         <div class="pain-card-red">
           <div class="pain-x-icon">✕</div>
           <div>
-            <div class="pain-card-title">Decisiones con fatiga cargada</div>
-            <div class="pain-card-sub">Fatiga crónica impacta tu rendimiento hasta el 40%</div>
+            <div class="pain-card-title">Decisiones con el tanque vacío</div>
+            <div class="pain-card-sub">Impacto directo en tus resultados.</div>
           </div>
         </div>
         <div class="pain-card-red">
           <div class="pain-x-icon">✕</div>
           <div>
-            <div class="pain-card-title">Sin recuperación a días completos</div>
-            <div class="pain-card-sub">Posibilidades de éxito se reducen cuando no recuperas bien</div>
+            <div class="pain-card-title">Sin recuperación = días mediocres</div>
+            <div class="pain-card-sub">Fatiga crónica sin saberlo.</div>
           </div>
         </div>
         <div class="pain-card-red">
           <div class="pain-x-icon">✕</div>
           <div>
-            <div class="pain-card-title">Imposibilidad de alcanzar el 100%</div>
-            <div class="pain-card-sub">Al 60% puede que nunca llegues a tu mejor versión</div>
+            <div class="pain-card-title">Altas posibilidades de abandono</div>
+            <div class="pain-card-sub">Si no recuperas, te vas quemando cada día</div>
           </div>
         </div>
       </div>
@@ -1687,12 +2141,13 @@ body.native-mode .screen {
       <div class="solution-card">
         <div class="solution-check-icon">✓</div>
         <div>
-          <div class="solution-title">Al 80% puedes cambiar todo</div>
-          <div class="solution-sub">Human te ayuda a recuperarte y rendir al máximo cada día con datos reales</div>
+          <div class="solution-title">Al 60% cuando podrías ir al 100%</div>
+          <div class="solution-sub">Human cambia eso desde el día 1.</div>
         </div>
       </div>
+      <div style="text-align:center; font-size:11.5px; color:#666; margin-top:14px; line-height:1.4">*Human detecta esto y te guía cada día. Sin esfuerzo extra.</div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="go('paywall-social')">Quiero cambiar →</button>
+        <button class="btn-primary" onclick="go('paywall-social')">Quiero cambiar</button>
       </div>
     </div>
   </div>
@@ -1727,7 +2182,7 @@ body.native-mode .screen {
   <div class="screen" id="paywall-promise">
     <div class="ob-wrap" style="padding-top:70px">
       <div class="ob-tag">TU COMPROMISO</div>
-      <div class="ob-title" style="margin-bottom:8px">Una promesa contigo mismo</div>
+      <div class="ob-title" id="paywallPromiseTitle" style="margin-bottom:8px">Una promesa contigo mismo</div>
       <div style="font-size:14px;color:#555;margin-bottom:24px">Para conseguir resultados reales, necesitas comprometerte con esto:</div>
       <div class="promise-list">
         <div class="promise-item">
@@ -1777,16 +2232,29 @@ body.native-mode .screen {
       <div class="price-card featured">
         <div class="price-badge">MÁS POPULAR</div>
         <div class="price-period">ANUAL</div>
-        <div class="price-amount">29,99€ <span>/ año</span></div>
-        <div class="price-note">≈ 2,50€/mes · Cancela cuando quieras</div>
+        <div class="price-amount">2,50€ <span>/ mes</span></div>
+        <div class="price-note" style="font-size:13px;color:#888;margin-top:6px">Facturado anualmente como 29,99€ · Cancela cuando quieras</div>
       </div>
       <div class="price-card standard">
         <div class="price-period">MENSUAL</div>
         <div class="price-amount">9,99€ <span>/ mes</span></div>
       </div>
       <div class="ob-footer" style="padding-top:10px">
-        <button class="btn-primary" onclick="go('create-account')">Empezar ahora →</button>
+        <button class="btn-primary" onclick="go('welcome')">Empezar ahora →</button>
         <div style="text-align:center;font-size:12px;color:#333;margin-top:12px">7 días de prueba gratis · Sin tarjeta de crédito</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ WELCOME (post-paywall) ═══════════ -->
+  <div class="screen" id="welcome">
+    <div class="ob-wrap" style="justify-content:center;align-items:center;text-align:center;padding-top:120px">
+      <div style="font-size:13px;letter-spacing:2px;color:#3B82F6;text-transform:uppercase;margin-bottom:18px">BIENVENIDO</div>
+      <div class="welcome-title" style="font-size:32px;font-weight:700;letter-spacing:-0.6px;line-height:1.15;margin-bottom:14px">Hola <span id="welcomeName">—</span></div>
+      <div style="font-size:16px;color:#888;line-height:1.5;margin-bottom:48px;max-width:300px">Tu agente <span id="welcomeAgent" style="color:#fff;font-weight:600">Jarvis</span> está listo para acompañarte. Guarda tu progreso para empezar.</div>
+      <div style="width:100%;display:flex;flex-direction:column;gap:12px;max-width:340px">
+        <button class="btn-primary" onclick="goCreateAccount('register')">Crear cuenta</button>
+        <button class="btn-outline" onclick="goCreateAccount('login')">Ya tengo cuenta · Iniciar sesión</button>
       </div>
     </div>
   </div>
@@ -1808,6 +2276,7 @@ body.native-mode .screen {
         <div id="emailForm" style="display:none;width:100%">
           <input class="field-input" id="regEmail" type="email" autocomplete="email" inputmode="email" placeholder="tu@email.com" style="margin-bottom:10px">
           <input class="field-input" id="regPassword" type="password" autocomplete="new-password" placeholder="Contraseña (mín. 8 caracteres)">
+          <input class="field-input" id="regPassword2" type="password" autocomplete="new-password" placeholder="Confirmar contraseña" style="margin-top:10px">
           <div id="regError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:8px;display:none"></div>
           <button class="btn-primary" id="regBtn" style="margin-top:12px" onclick="doRegister()">Crear mi cuenta →</button>
         </div>
@@ -1828,7 +2297,13 @@ body.native-mode .screen {
           <div class="dash-greeting" id="dashGreeting">Hola,</div>
           <div class="dash-name" id="dashName">—</div>
         </div>
-        <div class="dash-avatar" id="dashAvatar">·</div>
+        <div class="dash-actions">
+          <button class="bell-btn" id="bellBtn" onclick="openNotifications()" aria-label="Notificaciones">
+            <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+            <span class="bell-badge" id="bellBadge">0</span>
+          </button>
+          <div class="dash-avatar" id="dashAvatar" onclick="switchTab('profile')" style="cursor:pointer">·</div>
+        </div>
       </div>
 
       <div class="battery-wrap">
@@ -1841,11 +2316,13 @@ body.native-mode .screen {
               </linearGradient>
             </defs>
             <circle cx="95" cy="95" r="82" fill="none" stroke="#0d0d0d" stroke-width="10"/>
-            <circle id="batteryRingCircle" cx="95" cy="95" r="82" fill="none"
+            <!-- Path arc que empieza en top (12 o'clock) y avanza counter-clockwise (derecha→izquierda) -->
+            <path id="batteryRingCircle"
+              d="M 95,13 A 82,82 0 0 0 13,95 A 82,82 0 0 0 95,177 A 82,82 0 0 0 177,95 A 82,82 0 0 0 95,13"
+              fill="none"
               stroke="url(#bg)" stroke-width="10"
               stroke-linecap="round"
-              stroke-dasharray="515" stroke-dashoffset="515"
-              transform="rotate(-90 95 95)"/>
+              stroke-dasharray="515" stroke-dashoffset="515"/>
           </svg>
           <div class="battery-center">
             <div class="battery-section-label">BODY BATTERY</div>
@@ -1860,14 +2337,17 @@ body.native-mode .screen {
         <div class="stat-tile">
           <div class="stat-tile-label">SUEÑO</div>
           <div class="stat-tile-val" id="statSleep">—</div>
+          <div class="stat-tile-delta" id="statSleepDelta">·</div>
         </div>
         <div class="stat-tile">
           <div class="stat-tile-label">ESTRÉS</div>
           <div class="stat-tile-val" id="statStress">—</div>
+          <div class="stat-tile-delta" id="statStressDelta">·</div>
         </div>
         <div class="stat-tile">
-          <div class="stat-tile-label">DEPORTE</div>
-          <div class="stat-tile-val" id="statSport">—</div>
+          <div class="stat-tile-label">NUTRICIÓN</div>
+          <div class="stat-tile-val" id="statNutri">—</div>
+          <div class="stat-tile-delta" id="statNutriDelta">·</div>
         </div>
       </div>
 
@@ -1889,18 +2369,19 @@ body.native-mode .screen {
       </div>
 
       <div class="daily-cta" id="dailyCta" onclick="goTest()">
-        <div class="daily-cta-icon">📊</div>
         <div>
+          <div class="daily-cta-eyebrow" id="dailyCtaEyebrow">Registro diario</div>
           <div class="daily-cta-title" id="dailyCtaTitle">Test diario</div>
           <div class="daily-cta-sub" id="dailyCtaSub">Registra sueño, estrés, nutrición y deporte</div>
         </div>
+        <div class="daily-cta-action"><span class="daily-cta-chev"></span></div>
       </div>
     </div>
 
     <!-- ── INSIGHTS ── -->
     <div class="tab-content" id="tab-insights" style="display:none">
       <div class="insights-header">
-        <div class="insights-tag">INSIGHTS</div>
+        <div class="insights-tag">RECUPERACIÓN</div>
         <div class="insights-title">Tu recuperación</div>
         <div class="period-tabs" id="insightsPeriodTabs">
           <div class="period-tab" data-days="1" onclick="pickPeriod(this); refreshInsights()">1D</div>
@@ -1971,6 +2452,7 @@ body.native-mode .screen {
       <div class="chat-messages-wrap" id="chatMessages"></div>
       <div class="chat-input-row">
         <input class="chat-text-input" id="chatInput" placeholder="Pregunta a tu agente..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="chat-mic" id="chatMic" onclick="toggleVoice()" aria-label="Dictar por voz"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
         <button class="chat-send" onclick="sendChat()">→</button>
       </div>
     </div>
@@ -1978,8 +2460,14 @@ body.native-mode .screen {
     <!-- ── PERFIL ── -->
     <div class="tab-content" id="tab-profile" style="display:none">
       <div class="profile-top">
+        <button onclick="switchTab('dashboard')" style="
+          background:#1a1a1a; border:none; color:white; width:36px; height:36px;
+          border-radius:50%; font-size:18px; cursor:pointer;
+          display:flex; align-items:center; justify-content:center;
+          -webkit-tap-highlight-color:transparent;
+        ">‹</button>
         <div class="profile-top-title">Perfil</div>
-        <div class="profile-settings-btn">⚙</div>
+        <div style="width:36px"></div>
       </div>
       <div class="profile-avatar-wrap">
         <div class="profile-av" id="profileAv">·</div>
@@ -1995,22 +2483,8 @@ body.native-mode .screen {
         <div class="profile-stat"><div class="profile-stat-val" id="profileStreak">—</div><div class="profile-stat-label">RACHA</div></div>
       </div>
       <div class="profile-section" id="profileGoalsSection" style="display:none">
-        <div class="profile-section-title">OBJETIVO</div>
-        <div class="obj-row">
-          <div class="obj-name"><div class="obj-dot dot-blue"></div><span id="profileGoalText">—</span></div>
-          <div class="obj-val" id="profileGoalStatus">En curso</div>
-        </div>
-      </div>
-      <div class="profile-section">
-        <div class="profile-section-title">RUTINA</div>
-        <div class="obj-row">
-          <div class="obj-name"><div class="obj-dot dot-blue"></div>Hora de despertar</div>
-          <div class="obj-val" id="profileWakeTime">—</div>
-        </div>
-        <div class="obj-row">
-          <div class="obj-name"><div class="obj-dot dot-blue"></div>Hora de dormir</div>
-          <div class="obj-val" id="profileSleepTime">—</div>
-        </div>
+        <div class="profile-section-title" id="profileGoalsTitle">OBJETIVOS</div>
+        <div id="profileGoalsList"></div>
       </div>
       <div class="profile-section">
         <div class="profile-section-title">CUENTA</div>
@@ -2023,7 +2497,27 @@ body.native-mode .screen {
           <span style="opacity:0.5">›</span>
         </button>
       </div>
-      <div style="height:40px"></div>
+
+      <div style="text-align:center; padding:24px 0 100px; color:#444; font-size:11px">
+        Human App · v1.0
+      </div>
+    </div>
+
+    <!-- ── NOTIFICACIONES ── -->
+    <div class="tab-content" id="tab-notifications" style="display:none">
+      <div class="profile-top">
+        <button onclick="switchTab('dashboard')" style="
+          background:#1a1a1a; border:none; color:white; width:36px; height:36px;
+          border-radius:50%; font-size:18px; cursor:pointer;
+          display:flex; align-items:center; justify-content:center;
+          -webkit-tap-highlight-color:transparent;
+        ">‹</button>
+        <div class="profile-top-title">Notificaciones</div>
+        <div style="width:36px"></div>
+      </div>
+      <div class="notif-list" id="notifList">
+        <div class="notif-empty">Aún no tienes notificaciones.</div>
+      </div>
     </div>
 
     <!-- BOTTOM NAV -->
@@ -2034,15 +2528,11 @@ body.native-mode .screen {
       </button>
       <button class="nav-btn" id="nav-insights" onclick="switchTab('insights')">
         <svg viewBox="0 0 24 24"><path d="M3.5 18.5l6-6 4 4L22 6.92" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span>Insights</span>
+        <span>Recuperación</span>
       </button>
       <button class="nav-btn" id="nav-chat" onclick="switchTab('chat')">
         <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
         <span>Chat</span>
-      </button>
-      <button class="nav-btn" id="nav-profile" onclick="switchTab('profile')">
-        <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
-        <span>Perfil</span>
       </button>
     </div>
   </div><!-- /main-app -->
@@ -2171,7 +2661,7 @@ body.native-mode .screen {
       <div class="test-q-label" style="margin-top:4px">DURACIÓN</div>
       <div class="big-display" id="durDisp">45<span class="unit">min</span></div>
       <div class="dur-grid">
-        <div class="pill-btn" onclick="pickDur(this,15)">15</div>
+        <div class="pill-btn" onclick="pickDur(this,0)">0</div>
         <div class="pill-btn" onclick="pickDur(this,30)">30</div>
         <div class="pill-btn sel" onclick="pickDur(this,45)">45</div>
         <div class="pill-btn" onclick="pickDur(this,60)">60</div>
@@ -2194,7 +2684,7 @@ const API_URL = 'https://human-app-backend-production.up.railway.app'
 
 // ── Supabase Auth ──
 const SUPABASE_URL  = 'https://rmdtzxozwghdupeurbzx.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtZHR6eG96d2doZHVwZXVyYnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzOTM5MzUsImV4cCI6MjA5NDk2OTkzNX0.9lY_zX1yK4st6KIQK7L2Sl5MBiISpPdf6NSg0yIv1j'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtZHR6eG96d2doZHVwZXVyYnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzOTM5MzUsImV4cCI6MjA5NDk2OTkzNX0.9lY_zX1yK4st6KIQK7L2Sl5MBiISpPdf6NSg0yIv1jY'
 
 let sb = null
 if (window.supabase && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('__')) {
@@ -2266,22 +2756,34 @@ async function doDeleteAccount() {
     showToast('Cancelado.')
     return
   }
+
+  let backendOk = false
+  // 1. Intentar borrado completo vía backend (incluye user de auth.users)
   try {
-    const res = await authFetch('/api/user/me', { method: 'DELETE' })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.error || 'No se pudo borrar la cuenta.')
+    const res = await authFetch('/api/user/me', { method: 'DELETE', timeout: 8000 })
+    backendOk = res.ok
+  } catch {}
+
+  // 2. Si backend falló (código viejo en Railway), borrar datos vía Supabase RLS
+  if (!backendOk && sb && appState.userId) {
+    try {
+      await sb.from('chat_messages').delete().eq('user_id', appState.userId)
+      await sb.from('daily_tests').delete().eq('user_id', appState.userId)
+      await sb.from('profiles').delete().eq('id', appState.userId)
+    } catch (e) {
+      console.error('client-side delete:', e)
     }
-    try { if (sb) await sb.auth.signOut() } catch {}
-    appState.userId = null
-    appState.profile = {}
-    appState.tests = []
-    document.querySelectorAll('.screen, .main-screen').forEach(s => s.classList.remove('active'))
-    document.getElementById('splash')?.classList.add('active')
-    showToast('Cuenta borrada.')
-  } catch (err) {
-    alert('Error: ' + (err.message || err))
   }
+
+  // 3. Cerrar sesión y volver al splash
+  try { if (sb) await sb.auth.signOut() } catch {}
+  appState.userId = null
+  appState.profile = {}
+  appState.tests = []
+  appState.dailyTest = {}
+  document.querySelectorAll('.screen, .main-screen').forEach(s => s.classList.remove('active'))
+  document.getElementById('splash')?.classList.add('active')
+  showToast(backendOk ? 'Cuenta borrada.' : 'Datos borrados. Sesión cerrada.')
 }
 
 const appState = {
@@ -2289,6 +2791,7 @@ const appState = {
   profile:   {},
   dailyTest: {},
   tests:     [],
+  notifications: [],
   stats:     { daysActive: 1, streak: 0, totalTests: 0 }
 }
 
@@ -2299,6 +2802,25 @@ function go(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
   const el = document.getElementById(id)
   if (el) el.classList.add('active')
+  // Hooks por pantalla
+  if (id === 'paywall-promise') {
+    const title = document.getElementById('paywallPromiseTitle')
+    const fullName = (appState.profile.name || '').trim()
+    const firstName = fullName.split(' ')[0]
+    if (title) {
+      title.textContent = firstName
+        ? `${firstName}, una promesa contigo mismo`
+        : 'Una promesa contigo mismo'
+    }
+  }
+  if (id === 'welcome') {
+    const fullName  = (appState.profile.name || '').trim()
+    const firstName = fullName.split(' ')[0] || ''
+    const wn = document.getElementById('welcomeName')
+    const wa = document.getElementById('welcomeAgent')
+    if (wn) wn.textContent = firstName || 'a bordo'
+    if (wa) wa.textContent = agentName || 'Jarvis'
+  }
 }
 
 // ── Loading ──
@@ -2357,10 +2879,44 @@ function collectOb2() {
   appState.profile.identity = sel ? sel.textContent.toLowerCase() : 'atleta'
 }
 function collectOb3() {
-  const sels = document.querySelectorAll('#ob-goal .goal-item.sel span')
-  appState.profile.goal = sels.length > 0
-    ? Array.from(sels).map(s => s.textContent).join(', ')
-    : 'Rendir al máximo'
+  const sels = document.querySelectorAll('#ob-goal .goal-item.sel')
+  const labels = []
+  sels.forEach(item => {
+    if (item.classList.contains('goal-item-custom')) {
+      const v = item.querySelector('.goal-custom-input')?.value.trim()
+      if (v) labels.push(v)
+    } else {
+      const span = item.querySelector('span')
+      if (span) labels.push(span.textContent)
+    }
+  })
+  appState.profile.goal = labels.length > 0 ? labels.join(', ') : 'Rendir al máximo'
+}
+function pickGoalCustom(el, event) {
+  // Si el click viene del input, no togglear
+  if (event && event.target && event.target.tagName === 'INPUT') return
+  el.classList.toggle('sel')
+  if (el.classList.contains('sel')) {
+    const input = el.querySelector('.goal-custom-input')
+    if (input) setTimeout(() => input.focus(), 50)
+  }
+}
+function onGoalCustomInput(input) {
+  const item = input.closest('.goal-item')
+  if (!item) return
+  if (input.value.trim().length > 0) item.classList.add('sel')
+  else item.classList.remove('sel')
+}
+function addGoalCustom() {
+  const list = document.getElementById('goalCustomList')
+  if (!list) return
+  const div = document.createElement('div')
+  div.className = 'goal-item goal-item-custom'
+  div.setAttribute('onclick', 'pickGoalCustom(this, event)')
+  div.innerHTML = '<input type="text" class="goal-custom-input" placeholder="Otro objetivo (escribe el tuyo)..." onclick="event.stopPropagation()" oninput="onGoalCustomInput(this)"><div class="goal-check">✓</div>'
+  list.appendChild(div)
+  const input = div.querySelector('.goal-custom-input')
+  if (input) setTimeout(() => input.focus(), 50)
 }
 function collectOb4() {
   const symptoms = {}
@@ -2444,6 +3000,63 @@ function collectSleepHoursBaseline() {
   appState.profile.sleep_hours_baseline = sleepHoursBaselineVal
 }
 
+// ── Días de entrenamiento ──
+function toggleTrainingDay(el) {
+  el.classList.toggle('sel')
+  // Si el panel custom está abierto, lo refrescamos al cambiar los días
+  const custom = document.getElementById('trainingTimesCustom')
+  if (custom && custom.style.display === 'block') renderTrainingCustomTimes()
+}
+function dayShort(letter) {
+  return { L: 'Lun', M: 'Mar', X: 'Mié', J: 'Jue', V: 'Vie', S: 'Sáb', D: 'Dom' }[letter] || letter
+}
+function renderTrainingCustomTimes() {
+  const custom = document.getElementById('trainingTimesCustom')
+  const all    = document.getElementById('trainingTimeAll')
+  const sels   = Array.from(document.querySelectorAll('#trainingDaysGrid .training-day-chip.sel'))
+  // Conservar valores ya tipeados
+  const prev = {}
+  custom.querySelectorAll('.training-time-input').forEach(i => { prev[i.dataset.day] = i.value })
+  const base = all?.value || '18:00'
+  custom.innerHTML = sels.map(c => {
+    const d = c.dataset.day
+    const v = prev[d] || base
+    return `<div class="training-time-row"><span class="training-time-day-label">${dayShort(d)}</span><input type="time" class="training-time-input" data-day="${d}" value="${v}"></div>`
+  }).join('')
+}
+function toggleCustomTimes() {
+  const custom = document.getElementById('trainingTimesCustom')
+  const toggle = document.getElementById('customTimesToggle')
+  const all    = document.getElementById('trainingTimeAll')
+  const sels   = document.querySelectorAll('#trainingDaysGrid .training-day-chip.sel')
+  if (custom.style.display === 'none') {
+    if (sels.length === 0) { showToast?.('Marca al menos un día primero'); return }
+    renderTrainingCustomTimes()
+    custom.style.display = 'block'
+    toggle.textContent = '× Usar la misma hora todos los días'
+    if (all) { all.disabled = true; all.style.opacity = '0.35' }
+  } else {
+    custom.style.display = 'none'
+    custom.innerHTML = ''
+    toggle.textContent = '+ Personalizar por día'
+    if (all) { all.disabled = false; all.style.opacity = '' }
+  }
+}
+function collectTrainingDays() {
+  const sels = Array.from(document.querySelectorAll('#trainingDaysGrid .training-day-chip.sel'))
+  appState.profile.training_days = sels.map(c => c.dataset.day)
+  const custom = document.getElementById('trainingTimesCustom')
+  if (custom && custom.style.display === 'block') {
+    const times = {}
+    custom.querySelectorAll('.training-time-input').forEach(i => { if (i.value) times[i.dataset.day] = i.value })
+    appState.profile.training_times = times
+    appState.profile.training_time  = null
+  } else {
+    appState.profile.training_time  = document.getElementById('trainingTimeAll')?.value || '18:00'
+    appState.profile.training_times = null
+  }
+}
+
 // ── Integraciones ──
 function toggleIntegration(el) { el.classList.toggle('sel') }
 function collectIntegrations() {
@@ -2474,19 +3087,29 @@ function collectBaselines() {
 function showEmailForm() {
   document.getElementById('emailForm').style.display = 'block'
   document.getElementById('emailRegBtn').style.display = 'none'
+  const p2 = document.getElementById('regPassword2')
+  if (p2) p2.style.display = 'block'
 }
 function showLoginForm() {
   showEmailForm()
+  const p2 = document.getElementById('regPassword2')
+  if (p2) p2.style.display = 'none'
   const btn = document.getElementById('regBtn')
   btn.textContent = 'Iniciar sesión →'
   btn.onclick = doLogin
   document.querySelector('.ca-title').textContent = 'Bienvenido de vuelta'
   document.querySelector('.ca-sub').textContent   = 'Inicia sesión en tu cuenta.'
 }
+function goCreateAccount(mode) {
+  go('create-account')
+  if (mode === 'login') showLoginForm()
+  else showEmailForm()
+}
 
 async function doRegister() {
   const email    = document.getElementById('regEmail').value.trim()
   const password = document.getElementById('regPassword').value
+  const password2 = document.getElementById('regPassword2').value
   const errEl    = document.getElementById('regError')
   const btn      = document.getElementById('regBtn')
   if (!sb) {
@@ -2499,6 +3122,10 @@ async function doRegister() {
   }
   if (!password || password.length < 8) {
     errEl.textContent = 'La contraseña debe tener al menos 8 caracteres.'
+    errEl.style.display = 'block'; return
+  }
+  if (password !== password2) {
+    errEl.textContent = 'Las contraseñas no coinciden.'
     errEl.style.display = 'block'; return
   }
   btn.textContent = 'Creando cuenta…'; btn.disabled = true; errEl.style.display = 'none'
@@ -2519,7 +3146,27 @@ async function doRegister() {
     if (!session?.user) throw new Error('No se pudo iniciar sesión.')
     appState.userId = session.user.id
     await _saveOnboarding()
+    // Construir SIEMPRE un test inicial a partir de los baselines del onboarding,
+    // así el backend puede generar un plan personalizado desde el día 1.
+    const hasExplicitTest = appState.dailyTest && Object.keys(appState.dailyTest).length > 0
+    if (!hasExplicitTest) {
+      const p = appState.profile || {}
+      const baselineScore = p.score_baseline || 45
+      appState.dailyTest = {
+        sleepQuality:     Math.max(1, Math.min(5, Math.round(baselineScore / 20))),
+        sleepHours:       p.sleep_hours_baseline || 7,
+        stressLevel:      p.stress_baseline || 3,
+        stressPeak:       null,
+        nutritionQuality: 3,
+        mealsCount:       3,
+        sportIntensity:   3,
+        sportDuration:    30
+      }
+    }
+    try { await saveDailyTest() } catch (e) { console.error('first saveDailyTest:', e) }
     await enterApp()
+    // Polling para mostrar el plan en cuanto el backend lo escriba (~3-15s)
+    pollForDailyPlan()
   } catch (err) {
     const msg = String(err.message || err)
     errEl.textContent =
@@ -2565,24 +3212,89 @@ async function doLogin() {
 }
 
 async function _saveOnboarding() {
-  if (!appState.userId) return
-  await authFetch('/api/onboarding', {
-    method: 'POST',
-    body: JSON.stringify({
-      name:            appState.profile.name             || 'Usuario',
-      age:             appState.profile.age              || 18,
-      sex:             appState.profile.sex              || null,
-      identity:        appState.profile.identity         || 'atleta',
-      goal:            appState.profile.goal             || 'Rendir al máximo',
-      symptoms:        appState.profile.symptoms         || {},
-      agentName:       agentName,
-      wake_time:       appState.profile.wake_time        || '07:00',
-      sleep_time:      appState.profile.sleep_time       || '23:00',
-      stress_baseline: appState.profile.stress_baseline  || 3,
-      score_baseline:  appState.profile.score_baseline   || 45,
-      integrations:    appState.profile.integrations     || []
-    })
-  })
+  if (!appState.userId || !sb) return
+  const payload = {
+    name:            appState.profile.name             || 'Usuario',
+    age:             appState.profile.age              || 18,
+    sex:             appState.profile.sex              || null,
+    identity:        appState.profile.identity         || 'atleta',
+    goal:            appState.profile.goal             || 'Rendir al máximo',
+    symptoms:        appState.profile.symptoms         || {},
+    agentName:       agentName,
+    wake_time:       appState.profile.wake_time        || '07:00',
+    sleep_time:      appState.profile.sleep_time       || '23:00',
+    stress_baseline: appState.profile.stress_baseline  || 3,
+    score_baseline:  appState.profile.score_baseline   || 45,
+    integrations:    appState.profile.integrations     || [],
+    training_days:   appState.profile.training_days    || [],
+    training_time:   appState.profile.training_time    || null,
+    training_times:  appState.profile.training_times   || null
+  }
+  // SIEMPRE escribimos a Supabase (fuente de verdad). El backend Railway puede tener código viejo.
+  // Las columnas training_* pueden no existir todavía en BD — se intentan, si fallan, retry sin ellas.
+  const writeBase = {
+    id: appState.userId,
+    email: undefined, // se rellena abajo
+    name: payload.name, age: payload.age, sex: payload.sex,
+    identity: payload.identity, goal: payload.goal, symptoms: payload.symptoms,
+    agent_name: payload.agentName,
+    wake_time: payload.wake_time, sleep_time: payload.sleep_time,
+    stress_baseline: payload.stress_baseline,
+    score_baseline: payload.score_baseline,
+    integrations: payload.integrations
+  }
+  try {
+    const { data: { user } } = await sb.auth.getUser()
+    writeBase.email = user?.email
+    const writeFull = { ...writeBase,
+      training_days:  payload.training_days,
+      training_time:  payload.training_time,
+      training_times: payload.training_times
+    }
+    let { error } = await sb.from('profiles').upsert(writeFull)
+    if (error && /column .* does not exist|training_/.test(String(error.message))) {
+      // BD aún sin columnas training_* → fallback sin esos campos (los guardamos en jsonb si existe symptoms)
+      const fallback = { ...writeBase, symptoms: { ...(payload.symptoms || {}), _training: { days: payload.training_days, time: payload.training_time, times: payload.training_times } } }
+      const r2 = await sb.from('profiles').upsert(fallback)
+      if (r2.error) console.warn('Supabase profiles upsert (fallback):', r2.error.message)
+    } else if (error) {
+      console.warn('Supabase profiles upsert:', error.message)
+    }
+  } catch (e) { console.error('Supabase onboarding write:', e) }
+  // En paralelo, intentar backend para que su lógica adicional (jarvis_memory, etc) se ejecute si está actualizado
+  authFetch('/api/onboarding', { method: 'POST', body: JSON.stringify(payload), timeout: 8000 }).catch(() => {})
+}
+
+
+// ── Polling para mostrar el plan en cuanto el backend lo escriba ──
+let _planPollTimer = null
+function pollForDailyPlan(maxAttempts = 12, intervalMs = 3000) {
+  if (_planPollTimer) clearInterval(_planPollTimer)
+  let attempts = 0
+  _planPollTimer = setInterval(async () => {
+    attempts++
+    if (attempts > maxAttempts) {
+      clearInterval(_planPollTimer); _planPollTimer = null
+      // Si tras 36s no hay plan, re-intentamos disparar el endpoint del backend
+      try {
+        if (appState.dailyTest && Object.keys(appState.dailyTest).length > 0) {
+          await authFetch('/api/daily-test', { method: 'POST', body: JSON.stringify(appState.dailyTest), timeout: 8000 })
+          // Un último refresh por si esta vez sí
+          setTimeout(loadUserData, 6000)
+        }
+      } catch {}
+      return
+    }
+    try {
+      if (!sb || !appState.userId) return
+      const { data } = await sb.from('daily_tests').select('daily_plan').eq('user_id', appState.userId)
+        .order('date', { ascending: false }).limit(1).maybeSingle()
+      if (data?.daily_plan) {
+        clearInterval(_planPollTimer); _planPollTimer = null
+        await loadUserData()
+      }
+    } catch (e) { console.warn('pollForDailyPlan:', e.message) }
+  }, intervalMs)
 }
 
 // ── Entrar a la app ──
@@ -2595,25 +3307,77 @@ async function enterApp() {
 }
 
 // ── Cargar datos reales del usuario ──
+// SIEMPRE leemos de Supabase como fuente de verdad (backend Railway puede tener código viejo)
 async function loadUserData() {
+  if (!sb || !appState.userId) return
+  let profile = null, tests = [], stats = null
+
   try {
-    const res  = await authFetch('/api/user/me')
-    const data = await res.json()
-    if (data.error || !data.profile) return
-    const { profile, lastTest, tests, stats } = data
-    appState.profile = profile
-    appState.tests   = tests || []
-    appState.stats   = stats || { daysActive: 1, streak: 0, totalTests: 0 }
+    const { data: pdata, error: pErr } = await sb.from('profiles').select('*').eq('id', appState.userId).maybeSingle()
+    if (pErr) console.warn('profiles read:', pErr.message)
+    const { data: tdata, error: tErr } = await sb.from('daily_tests').select('*').eq('user_id', appState.userId).order('date', { ascending: false }).limit(30)
+    if (tErr) console.warn('daily_tests read:', tErr.message)
+    profile = pdata
+    tests = tdata || []
+    // Stats derivadas en cliente
+    let daysActive = 1
+    if (profile?.created_at) {
+      const diff = Date.now() - new Date(profile.created_at).getTime()
+      daysActive = Math.max(1, Math.floor(diff / 86400000) + 1)
+    }
+    let streak = 0
+    if (tests.length > 0) {
+      const dateSet = new Set(tests.map(t => (t.date || '').slice(0,10)))
+      const today = new Date()
+      for (let i = 0; i < 365; i++) {
+        const d = new Date(today); d.setDate(today.getDate() - i)
+        const key = d.toISOString().slice(0,10)
+        if (dateSet.has(key)) streak++
+        else if (i > 0) break
+      }
+    }
+    stats = { daysActive, streak, totalTests: tests.length }
+  } catch (e) { console.error('loadUserData Supabase:', e) }
 
-    renderHeader(profile)
-    renderAgent(profile)
-    renderDashboard(profile, lastTest)
-    renderInsights(appState.tests)
-    renderProfile(profile, appState.stats)
-    renderChatGreeting(profile)
-    flagDailyTestState(profile, lastTest)
+  if (!profile) return
 
-  } catch (err) { console.error('loadUserData:', err) }
+  appState.profile = profile
+  appState.tests   = tests
+  appState.stats   = stats || { daysActive: 1, streak: 0, totalTests: tests.length }
+  const lastTest = tests[0] || null
+
+  renderHeader(profile)
+  renderAgent(profile)
+  renderDashboard(profile, lastTest)
+  renderInsights(appState.tests)
+  renderProfile(profile, appState.stats)
+  loadTodayChat(profile)
+  flagDailyTestState(profile, lastTest)
+  maybeAutoLaunchDailyTest(profile, lastTest)
+  loadNotifications()
+  registerPushNotifications()
+  scheduleBodyBatteryRefresh()
+
+  // Si hay test pero el plan aún no se generó, lanzar polling + retry al backend.
+  const today = new Date().toISOString().slice(0, 10)
+  const testIsToday = lastTest?.date ? String(lastTest.date).slice(0, 10) === today : false
+  if (lastTest && !lastTest.daily_plan && testIsToday && !_planPollTimer) {
+    // Re-disparar generación por si la primera vez falló
+    try {
+      appState.dailyTest = {
+        sleepQuality:     lastTest.sleep_quality,
+        sleepHours:       lastTest.sleep_hours,
+        stressLevel:      lastTest.stress_level,
+        stressPeak:       lastTest.stress_peak,
+        nutritionQuality: lastTest.nutrition_quality,
+        mealsCount:       lastTest.meals_count,
+        sportIntensity:   lastTest.sport_intensity,
+        sportDuration:    lastTest.sport_duration
+      }
+      authFetch('/api/daily-test', { method: 'POST', body: JSON.stringify(appState.dailyTest), timeout: 8000 }).catch(() => {})
+    } catch {}
+    pollForDailyPlan()
+  }
 }
 
 // ── Saludo y avatar en dashboard ──
@@ -2654,7 +3418,7 @@ function renderDashboard(profile, lastTest) {
   const batteryDelta = document.getElementById('batteryDelta')
   const statSleep = document.getElementById('statSleep')
   const statStress = document.getElementById('statStress')
-  const statSport = document.getElementById('statSport')
+  const statNutri = document.getElementById('statNutri')
   const agentMsg = document.getElementById('agentMsgText')
   const planItems = document.getElementById('planItems')
 
@@ -2666,65 +3430,350 @@ function renderDashboard(profile, lastTest) {
     updateBatteryRing(0)
     if (statSleep)  statSleep.textContent = '—'
     if (statStress) statStress.textContent = '—'
-    if (statSport)  statSport.textContent = '—'
+    if (statNutri)  statNutri.textContent = '—'
     if (agentMsg)   agentMsg.textContent = `Haz tu primer test diario para que ${agentName} pueda darte recomendaciones reales.`
     if (planItems)  planItems.innerHTML = '<div class="plan-item plan-item-empty"><div class="plan-item-name" style="color:#666">Tu plan aparecerá tras tu primer test</div></div>'
     return
   }
 
-  // ESTADO LLENO
-  const battery = calcBodyBattery(lastTest)
+  // ESTADO LLENO — Body Battery se calcula con drain dinámico intra-día
+  // (baja a lo largo del día, más fuerte si HOY es día de entrenamiento).
+  const battery = calcDynamicBattery(lastTest, profile, new Date())
   if (batteryNum) batteryNum.innerHTML = `${battery}<span>%</span>`
   updateBatteryRing(battery)
   if (batteryCaption) batteryCaption.textContent = batteryCaptionFor(battery)
 
-  // Delta vs ayer si tenemos al menos 2 tests
+  // Delta de recuperación vs ayer — comparación justa base-vs-base (sin desgaste intradía):
+  // verde si hoy estás por encima de ayer, rojo si por debajo, gris si igual.
   if (batteryDelta && Array.isArray(appState.tests) && appState.tests.length >= 2) {
-    const prev = appState.tests[1]
-    const prevBattery = calcBodyBattery(prev)
-    const delta = battery - prevBattery
-    if (delta === 0) {
-      batteryDelta.style.visibility = 'hidden'
+    const recoveryToday = calcBodyBattery(lastTest)
+    const recoveryPrev  = calcBodyBattery(appState.tests[1])
+    const delta = recoveryToday - recoveryPrev
+    batteryDelta.classList.remove('up', 'down', 'flat')
+    if (delta > 0) {
+      batteryDelta.classList.add('up')
+      batteryDelta.textContent = `↑ ${delta}% vs ayer`
+    } else if (delta < 0) {
+      batteryDelta.classList.add('down')
+      batteryDelta.textContent = `↓ ${Math.abs(delta)}% vs ayer`
     } else {
-      const arrow = delta > 0 ? '↑' : '↓'
-      batteryDelta.textContent = `${arrow} ${Math.abs(delta)}% vs ayer`
-      batteryDelta.style.visibility = 'visible'
+      batteryDelta.classList.add('flat')
+      batteryDelta.textContent = `→ igual que ayer`
     }
+    batteryDelta.style.visibility = 'visible'
   } else if (batteryDelta) {
     batteryDelta.style.visibility = 'hidden'
   }
 
   if (statSleep)  statSleep.innerHTML  = `${lastTest.sleep_quality ?? '—'}`
   if (statStress) statStress.innerHTML = `${lastTest.stress_level  ?? '—'}`
-  if (statSport)  statSport.innerHTML  = `${lastTest.sport_intensity ?? '—'}`
+  if (statNutri)  statNutri.innerHTML  = `${lastTest.nutrition_quality ?? '—'}`
+
+  // Delta por stat vs día anterior (desde el 2º día). ↑ = bueno para sueño/nutrición, ↓ = bueno para estrés
+  const prevTestForDeltas = (Array.isArray(appState.tests) && appState.tests.length >= 2) ? appState.tests[1] : null
+  applyStatDelta('statSleepDelta',  lastTest.sleep_quality,     prevTestForDeltas?.sleep_quality,     'higherIsBetter')
+  applyStatDelta('statStressDelta', lastTest.stress_level,      prevTestForDeltas?.stress_level,      'lowerIsBetter')
+  applyStatDelta('statNutriDelta',  lastTest.nutrition_quality, prevTestForDeltas?.nutrition_quality, 'higherIsBetter')
 
   // Plan del día
-  const lines = (lastTest.daily_plan || '').split('\n').filter(Boolean)
-  if (lines.length === 0) {
-    if (planItems) planItems.innerHTML = '<div class="plan-item plan-item-empty"><div class="plan-item-name" style="color:#666">Tu plan se está generando…</div></div>'
-    if (agentMsg) agentMsg.textContent = 'Test registrado. Generando tu plan personalizado…'
+  // Las TARJETAS salen SIEMPRE del motor local: 100% personalizadas por las
+  // variables del test de hoy + los hábitos fijos garantizados cada día.
+  // El plan de Claude (backend) solo se usa para enriquecer el mensaje del agente.
+  const local = buildLocalPlan(profile, lastTest)
+  if (planItems) planItems.innerHTML = local.html
+
+  const serverLines = (lastTest.daily_plan || '').split('\n').filter(Boolean)
+  const msgLine     = serverLines.find(l => l.startsWith('MENSAJE DE JARVIS:'))
+  const estadoLine  = serverLines.find(l => l.startsWith('ESTADO DE HOY:'))
+  const serverMsg   = (msgLine || estadoLine || '').replace(/^[^:]+:\s*/, '').trim()
+  if (agentMsg) agentMsg.textContent = capSentences(serverMsg || local.message, 4)
+}
+
+// Recomendaciones base fijas (siempre visibles bajo el título de su tarjeta).
+const NUTRI_NOTE = 'Cena al menos 3 h antes de dormir y prioriza alimentos ricos en triptófano (pavo, huevos, lácteos, plátano, avena): mejoran tu sueño.'
+const SLEEP_NOTE = 'Reduce o bloquea la luz azul (pantallas, LED) al menos 1 h antes de dormir: favorece la melatonina.'
+const RELAX_NOTE = 'Después de entrenar, dedica unos minutos a meditación y estiramientos para relajar el sistema nervioso.'
+// Limita un texto a un máximo de frases (mensajes del agente en el dashboard).
+function capSentences(text, max) {
+  const s = String(text || '').trim()
+  const parts = s.match(/[^.!?]+[.!?]+(\s|$)/g)
+  if (!parts) return s
+  return parts.slice(0, max).join('').trim()
+}
+function planItem(title, body, eyebrow) {
+  const eb = eyebrow ? `<div class="plan-item-eyebrow">${escapeHtml(eyebrow)}</div>` : ''
+  return `<div class="plan-item" onclick="togglePlanItem(this)">${eb}<div class="plan-item-name">${escapeHtml(title)}</div><div class="plan-item-time">${escapeHtml(body)}</div><div class="plan-item-toggle"><span>Descripción</span><span class="chev"></span></div></div>`
+}
+function togglePlanItem(el) { if (el) el.classList.toggle('expanded') }
+
+// ── Delta por stat: pinta ↑/↓/→ con color según si la dirección es deseable ──
+function applyStatDelta(elId, todayVal, prevVal, direction) {
+  const el = document.getElementById(elId)
+  if (!el) return
+  el.classList.remove('up', 'down', 'flat', 'has-data')
+  if (todayVal == null || prevVal == null || Number.isNaN(todayVal) || Number.isNaN(prevVal)) {
+    // Sin día anterior → no mostramos nada; el tile queda compacto y el número centrado.
+    el.style.display = ''
+    return
+  }
+  const diff = todayVal - prevVal
+  if (diff === 0) {
+    el.classList.add('flat', 'has-data')
+    el.textContent = '→ igual que ayer'
   } else {
-    const msgLine    = lines.find(l => l.startsWith('MENSAJE DE JARVIS:'))
-    const estadoLine = lines.find(l => l.startsWith('ESTADO DE HOY:'))
-    const entreLine  = lines.find(l => l.startsWith('ENTRENAMIENTO:'))
-    const nutriLine  = lines.find(l => l.startsWith('NUTRICIÓN:'))
-    const recupLine  = lines.find(l => l.startsWith('RECUPERACIÓN:'))
-    if (agentMsg) {
-      const txt = (msgLine || estadoLine || '').replace(/^[^:]+:\s*/, '').trim()
-      agentMsg.textContent = txt || 'Tu plan personalizado está listo abajo.'
-    }
-    if (planItems) {
-      const items = []
-      if (entreLine) items.push(planItem('Entrenamiento', entreLine.replace(/^[^:]+:\s*/, '').trim()))
-      if (nutriLine) items.push(planItem('Nutrición',     nutriLine.replace(/^[^:]+:\s*/, '').trim()))
-      if (recupLine) items.push(planItem('Recuperación',  recupLine.replace(/^[^:]+:\s*/, '').trim()))
-      planItems.innerHTML = items.join('') || '<div class="plan-item plan-item-empty"><div class="plan-item-name" style="color:#666">Tu plan se está generando…</div></div>'
-    }
+    const arrow = diff > 0 ? '↑' : '↓'
+    const goodDirection = (direction === 'higherIsBetter') ? diff > 0 : diff < 0
+    el.classList.add(goodDirection ? 'up' : 'down', 'has-data')
+    el.textContent = `${arrow} ${Math.abs(diff)} vs ayer`
   }
 }
 
-function planItem(title, body) {
-  return `<div class="plan-item"><div class="plan-item-name">${title}</div><div class="plan-item-time">${escapeHtml(body)}</div></div>`
+// ── Plan local de respaldo: si Claude tarda o no responde, mostramos algo útil ya ──
+function buildLocalPlan(profile, test) {
+  const name      = (profile?.name || '').split(' ')[0] || 'tú'
+  const identity  = (profile?.identity || '').toLowerCase()
+  const goalRaw   = profile?.goal || ''
+  const firstGoal = goalRaw.split(',')[0].trim().toLowerCase() || 'rendir mejor'
+  const sleepQ    = test?.sleep_quality   || 3
+  const sleepH    = test?.sleep_hours     || 7
+  const stress    = test?.stress_level    || 3
+  const sportI    = test?.sport_intensity || 3
+  const sportDur  = test?.sport_duration  || 30
+  const battery   = calcBodyBattery(test)
+  const wake      = profile?.wake_time  || '07:00'
+  const sleep     = profile?.sleep_time || '23:00'
+
+  // Etiqueta breve del estado de recuperación (se reutiliza en explicaciones)
+  const recovLabel = battery >= 80 ? 'excelente recuperación'
+                  : battery >= 65 ? 'buena recuperación'
+                  : battery >= 45 ? 'recuperación media'
+                  : battery >= 25 ? 'recuperación baja'
+                  : 'recuperación muy baja'
+
+  // Saludo según la hora del día — tono más humano y contextual
+  const hour = new Date().getHours()
+  const greet = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches'
+
+  // ¿Cuál es la métrica que más se desvía? Esa la cito en el mensaje.
+  // Sueño bueno = >=4. Estrés bueno = <=2. Deporte bueno = >=3.
+  let highlight = null
+  if (sleepQ >= 4 && sleepH >= 7) highlight = `sueño top (${sleepQ}/5, ${sleepH}h)`
+  else if (sleepQ <= 2 || sleepH < 6) highlight = `sueño corto (${sleepQ}/5, ${sleepH}h)`
+  else if (stress >= 4) highlight = `estrés alto (${stress}/5)`
+  else if (stress <= 1) highlight = `estrés controlado (${stress}/5)`
+  else if (sportI >= 4) highlight = `entrenaste fuerte ayer (${sportI}/5)`
+  else if (sportI <= 1) highlight = `sin entreno notable ayer`
+
+  // Variaciones del mensaje — más conversacional, ${agentName} ya está en scope global
+  let message
+  if (battery >= 75) {
+    const intros = [
+      `${greet}, ${name}. ${battery}% — ${recovLabel}.`,
+      `${greet}, ${name}. Vienes con ${battery}%, batería al máximo.`,
+      `${name}, abres el día al ${battery}% — ${recovLabel}.`
+    ]
+    const middles = highlight
+      ? [` ${highlight.charAt(0).toUpperCase() + highlight.slice(1)} confirma que el cuerpo está listo.`]
+      : [` El cuerpo responde y la mente acompaña.`]
+    message = intros[Math.floor(Math.random() * intros.length)] + middles[0] +
+              ` Hoy le damos caña a "${firstGoal}" — no dejemos esta ventana sin usar.`
+  } else if (battery >= 50) {
+    const intros = [
+      `${greet}, ${name}. ${battery}% es zona estable.`,
+      `${name}, ${battery}% — ${recovLabel}, sin sorpresas.`,
+      `${greet}. ${battery}% te da margen para trabajar.`
+    ]
+    const middles = highlight
+      ? [` ${highlight.charAt(0).toUpperCase() + highlight.slice(1)} es lo que más pesa hoy.`]
+      : [` Nada que celebrar ni que alarmar — es día de oficio.`]
+    message = intros[Math.floor(Math.random() * intros.length)] + middles[0] +
+              ` Hoy empujamos "${firstGoal}" con cabeza: constancia gana al pico.`
+  } else if (battery >= 30) {
+    const intros = [
+      `${greet}, ${name}. ${battery}% pide cuidado.`,
+      `${name}, ${battery}% — el cuerpo te está mandando una señal.`,
+      `${greet}. Hoy vienes al ${battery}%, ${recovLabel}.`
+    ]
+    const middles = highlight
+      ? [` ${highlight.charAt(0).toUpperCase() + highlight.slice(1)} está detrás de este número.`]
+      : [` Algo del descanso no terminó de cerrar.`]
+    message = intros[Math.floor(Math.random() * intros.length)] + middles[0] +
+              ` Hoy producimos lo justo y recuperamos en serio — "${firstGoal}" sigue ahí mañana.`
+  } else {
+    const intros = [
+      `${greet}, ${name}. ${battery}% — el cuerpo necesita freno.`,
+      `${name}, ${battery}% es alarma suave.`,
+      `${greet}. ${battery}% y ${recovLabel}: hoy paramos a recargar.`
+    ]
+    const middles = highlight
+      ? [` ${highlight.charAt(0).toUpperCase() + highlight.slice(1)} es la pieza a arreglar primero.`]
+      : [` Insistir hoy es cavar deuda.`]
+    message = intros[Math.floor(Math.random() * intros.length)] + middles[0] +
+              ` Prioriza descanso, comida sólida y sueño temprano. "${firstGoal}" llegará en cuanto recargues.`
+  }
+
+  // Comparación con el día anterior si existe
+  const prevTest = (Array.isArray(appState.tests) && appState.tests.length >= 2) ? appState.tests[1] : null
+  if (prevTest) {
+    const prevBat = calcBodyBattery(prevTest)
+    const dBat = battery - prevBat
+    if (dBat >= 10)      message += ` Subiste ${dBat}% vs ayer — buen trabajo.`
+    else if (dBat <= -10) message += ` Bajaste ${Math.abs(dBat)}% vs ayer, hoy ajustamos.`
+  }
+
+  // ─────────────────────────────────────────
+  // FOCO DEL DÍA
+  // ─────────────────────────────────────────
+  let focoTitle, focoBody
+  if (sleepQ <= 2 || sleepH < 6) {
+    focoTitle = `Hoy toca recuperar sueño antes que producir`
+    focoBody  = `Solo dormiste ${sleepH}h con calidad ${sleepQ}/5, así que todo lo demás se subordina a llegar a la cama con el cuerpo listo. Cada decisión tiene que sumar a eso.`
+  } else if (stress >= 4) {
+    focoTitle = `Bajar carga mental (estrés ${stress}/5)`
+    focoBody  = `Estrés ${stress}/5 indica sistema nervioso saturado — hoy menos estímulos, más respiración consciente. Productividad sin descanso es deuda.`
+  } else if (battery >= 75) {
+    focoTitle = `Día de empujar fuerte hacia ${firstGoal}`
+    focoBody  = `Con ${battery}% de batería corporal puedes con la sesión dura del plan; si la dejas pasar, mañana tu cuerpo te pide otra cosa. Aprovéchalo.`
+  } else {
+    focoTitle = `Ritmo sostenido hacia ${firstGoal}`
+    focoBody  = `${battery}% te da margen pero no para heroicidades — la constancia gana al pico aislado.`
+  }
+
+  // ─────────────────────────────────────────
+  // ENTRENAMIENTO — duración + intensidad + tipo + razón
+  // ─────────────────────────────────────────
+  let entrenaTitle, entrenaBody
+  if (sportI <= 2 || stress >= 4 || battery < 40) {
+    const dur = identity === 'atleta' ? 35 : 25
+    entrenaTitle = `${dur} min de aeróbico ligero al 55-65% FC`
+    entrenaBody  = `Intensidad muy baja debido a tu ${recovLabel} de ${battery}%. Caminar a paso vivo, bici en llano o trote suave — cero series, cero máximos. Termina con 10 min de movilidad de caderas, hombros y columna dorsal. Objetivo: activar circulación y bombear nutrientes sin añadir fatiga.`
+  } else if (sportI >= 4 && sleepQ >= 4 && battery >= 70) {
+    const dur = Math.max(50, sportDur)
+    entrenaTitle = `${dur} min de entrenamiento intenso al 80-90%`
+    entrenaBody  = `Intensidad alta porque tu ${recovLabel} de ${battery}% y sueño ${sleepQ}/5 indican que el cuerpo está listo. Estructura: 10 min calentamiento progresivo, bloque principal de 4-6 series × 3 min al 90% con 2 min de descanso activo, vuelta a la calma 8 min. RPE 8-9. Hidrata 500ml antes y otros 500ml durante. Si bajas de RPE 7 en una serie, corta.`
+  } else {
+    const dur = sportDur >= 40 ? sportDur : 45
+    entrenaTitle = `${dur} min de entrenamiento moderado al 70-75%`
+    entrenaBody  = `Intensidad media-alta acorde a tu ${recovLabel} de ${battery}%. Calentamiento 8 min, bloque principal 25-30 min en zona umbral (RPE 6-7) — por ejemplo 5×1 min fuerte / 1 min suave, o cardio sostenido a ritmo conversacional difícil. Vuelta a la calma 7 min con estiramientos. Si lo aguantas bien, mañana subimos el listón.`
+  }
+
+  // ─────────────────────────────────────────
+  // NUTRICIÓN — comidas, ejemplos concretos, hidratación
+  // ─────────────────────────────────────────
+  let nutriTitle, nutriBody
+  if (stress >= 4) {
+    nutriTitle = `4 comidas pequeñas con proteína magra + 2.5L agua`
+    nutriBody  = `Con estrés ${stress}/5 lo importante es estabilizar glucosa para no añadir leña. Una comida cada 3-4h: proteína magra (huevos, pavo, salmón, lentejas) + verdura abundante + grasa buena (aguacate, frutos secos, AOVE). Evita azúcar y harinas refinadas. Cafeína solo antes de las 14:00. Con la cena: 300-400mg de magnesio glicinato y 1-2g de omega-3.`
+  } else if (sleepH < 6) {
+    nutriTitle = `Desayuno potente, cena ligera antes de las 21:00`
+    nutriBody  = `Tras ${sleepH}h de sueño tu sensibilidad a la insulina baja — cuida los picos. Desayuno: 3-4 huevos + aguacate + tostada integral o avena, café antes de las 11:00. Comida: proteína magra (pollo, pavo o pescado blanco) + arroz/quinoa + verdura. Cena ligera (crema de verduras + tortilla o pescado al horno). Nada de azúcar ni alcohol. Agua 2.5L.`
+  } else if (sportI >= 4) {
+    nutriTitle = `30-40g proteína + 1g/kg carbo dentro de 1h post-entreno`
+    nutriBody  = `Día de entrenamiento intenso: come para rendir y recuperar. 30-45 min antes del entreno, carbo simple + algo de proteína (plátano + 1 cucharada de mantequilla de cacahuete, o yogur griego + miel). En la hora siguiente al entreno: 30-40g de proteína magra (pollo, pescado, atún, huevos) + carbo complejo (arroz, batata, quinoa, pasta integral) + verdura abundante. Hidrata 3L con electrolitos si sudas mucho.`
+  } else {
+    nutriTitle = `150g pollo o pescado + huevos + verde post-entreno`
+    nutriBody  = `Después del entreno consume proteínas magras como pollo, pescado o pavo (120-150g) acompañado de huevos, verduras de hoja verde (espinaca, rúcula, kale) y un carbo complejo (arroz integral, batata o quinoa). En el resto del día prioriza color en el plato: brócoli, pimiento, zanahoria, frutos rojos. Mantente hidratado con 2-2.5L de agua a sorbos durante el día.`
+  }
+
+  // ─────────────────────────────────────────
+  // MEDITACIÓN & ESTIRAMIENTOS
+  // ─────────────────────────────────────────
+  let meditaTitle, meditaBody
+  if (stress >= 4) {
+    meditaTitle = `2 sesiones: 10 min respiración 4-7-8 + 20 min estiramiento tarde`
+    meditaBody  = `Estrés ${stress}/5 pide dos cortes. Mañana: 10 min de respiración 4-7-8 (4s inhalar por nariz, 7s mantener, 8s soltar por boca × 4 ciclos) para activar el parasimpático. A media tarde: 15-20 min combinando 5 min de meditación guiada + 10 min de estiramiento suave de cervicales, hombros y zona lumbar — sueltan tensión y preparan sueño más profundo. Paseo sin móvil 15 min después de comer.`
+  } else if (sleepQ <= 2 || battery < 40) {
+    meditaTitle = `10 min body scan al despertar + 20 min relax antes de dormir`
+    meditaBody  = `Hoy tu sistema nervioso necesita reset. Mañana: 10 min de body scan guiado al despertar (vas recorriendo el cuerpo zona por zona, soltando tensión). Antes de dormir: 15-20 min para relajar el sistema y preparar un sueño profundo — 5 min de respiración cuadrada (4-4-4-4) + 10 min de estiramientos suaves (gato-vaca, postura del niño, twist sentado, piernas en la pared). Sin pantallas en esos 20 min.`
+  } else if (battery >= 75) {
+    meditaTitle = `5 min mañana + 5 min movilidad pre-entreno + 5 min estirar`
+    meditaBody  = `5 min al arrancar el día para fijar intención: respiración consciente sentado, ojos cerrados, sin guía. Antes de la sesión fuerte, 5 min de movilidad activa (rotaciones de cadera y hombros, sentadilla profunda con pausa). Al acabar el día, 5 min de estiramiento estático para bajar pulsaciones. Ancla la atención 3 veces con un timer cada 4h.`
+  } else {
+    meditaTitle = `15-20 min para relajar el sistema nervioso (mañana + noche)`
+    meditaBody  = `Reparto: 10 min de meditación guiada por la mañana (usa una app o haz respiración nasal lenta — 6 respiraciones por minuto), pausa consciente de 2 min después de comer (cierra ojos, 10 respiraciones contadas), y 8-10 min de estiramiento ligero antes de la cama (cadera, isquios, dorsal, cervicales). Cierra el día anotando 3 cosas que hiciste bien.`
+  }
+
+  // ─────────────────────────────────────────
+  // SUEÑO — horas, fases, ventana, ritual
+  // ─────────────────────────────────────────
+  const targetHrs = (sleepQ <= 2 || sleepH < 6 || battery < 40) ? 8.5
+                  : (stress >= 4 || sportI >= 4)              ? 8
+                  : 7.5
+  const deepH = Math.round(targetHrs * 0.20 * 10) / 10
+  const remH  = Math.round(targetHrs * 0.25 * 10) / 10
+  const fmtHrs = (h) => {
+    const hh = Math.floor(h)
+    const mm = Math.round((h - hh) * 60)
+    return mm === 0 ? `${hh}h` : `${hh}h ${mm}min`
+  }
+  let suenoTitle, suenoBody
+  if (sleepQ <= 2 || sleepH < 6) {
+    suenoTitle = `Dormir ${fmtHrs(targetHrs)} (${fmtHrs(deepH)} profundo + ${fmtHrs(remH)} REM) entre ${sleep} y ${wake}`
+    suenoBody  = `Hoy necesitamos mínimo ${fmtHrs(targetHrs)} para reparar lo de los últimos días y estar mañana al 100%. Ritual: ducha caliente 90 min antes, luz tenue desde las 21:00, sin pantallas en la última hora. Magnesio glicinato 300mg con la cena, dormitorio a 18-19°C, persianas bien cerradas.`
+  } else if (stress >= 4) {
+    suenoTitle = `Dormir ${fmtHrs(targetHrs)} (${fmtHrs(deepH)} profundo + ${fmtHrs(remH)} REM) entre ${sleep} y ${wake}`
+    suenoBody  = `Esas fases limpian cortisol y consolidan memoria emocional — claves cuando estrés está en ${stress}/5. Reduce estímulos desde las 21:00, lectura en papel 20-30 min antes, habitación 18-19°C. Cero alcohol, cafeína solo antes de las 14:00, cena ligera y temprana.`
+  } else {
+    suenoTitle = `Dormir ${fmtHrs(targetHrs)} (${fmtHrs(deepH)} profundo + ${fmtHrs(remH)} REM) entre ${sleep} y ${wake}`
+    suenoBody  = `Esas dos fases recuperan músculo y consolidan aprendizaje. Mantén consistencia ±15 min, incluso fin de semana. Antes de dormir: 5-10 min de estiramiento + respiración. Despertar con luz natural si puedes; si no, lámpara de amanecer 30 min antes de la alarma.`
+  }
+
+  // ─────────────────────────────────────────
+  // HÁBITOS EXTRA
+  // ─────────────────────────────────────────
+  let extrasTitle, extrasBody
+  if (battery >= 70 && sportI >= 4) {
+    extrasTitle = `3L agua + 15 min sol matinal + foam roller post-entreno`
+    extrasBody  = `Hidratación 3L con pellizco de sal o electrolitos si sudas mucho. 10-15 min de sol directo al despertar (regula tu cortisol matinal y mejora el sueño esta noche). Movilidad de caderas, tobillos y hombros 8 min antes del entreno. Después de la sesión: foam roller 5 min en cuádriceps, glúteos y dorsal.`
+  } else if (stress >= 4 || sleepQ <= 2) {
+    extrasTitle = `10 min sol al despertar + 20 min paseo tarde + foam roller`
+    extrasBody  = `Sol matinal nada más despertarte (sin gafas de sol los primeros minutos — anclar el ritmo circadiano es lo más alto-ROI cuando duermes mal). Paseo de 20 min por la tarde sin pantallas. Foam roller 5 min en zona lumbar y dorsal al acabar el día. Si puedes, contraste agua fría-caliente en la ducha (30s × 3) para activar parasimpático.`
+  } else {
+    extrasTitle = `2-2.5L agua + 7-8k pasos + 10 min sol matinal`
+    extrasBody  = `Agua a sorbos (no de golpe). Camina pasos repartidos durante el día. Sol por la mañana para anclar el circadiano. Estira caderas, isquios y zona dorsal antes de dormir (5-7 min). Si trabajas sentado, levántate 2 min cada 50 min — pequeñas pausas suman más que un break largo.`
+  }
+
+  // ─────────────────────────────────────────
+  // Helpers: horas relativas al sleep_time del user (para luz azul + cena temprana)
+  // ─────────────────────────────────────────
+  const subHoras = (hhmm, h) => {
+    const [H, M] = String(hhmm || '23:00').split(':').map(Number)
+    let total = ((H * 60 + (M || 0)) - h * 60)
+    total = ((total % 1440) + 1440) % 1440
+    return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+  }
+  const cenaHora = subHoras(sleep, 3)
+  const corteLuz = subHoras(sleep, 1)
+
+  // ─────────────────────────────────────────
+  // Tarjetas extra dentro de cada categoría (hábitos no negociables del día).
+  // Cada una tiene eyebrow = la categoría madre, así el orden visual es coherente.
+  // ─────────────────────────────────────────
+  const cardLuzAzul = planItem(
+    `Corta la luz azul desde las ${corteLuz}`,
+    `Reduce o bloquea pantallas y LED al menos 1 h antes de dormir (hoy desde las ${corteLuz}): modo noche, luz cálida y, si puedes, gafas de bloqueo. ${sleepQ <= 2 ? `Tu sueño viene flojo (${sleepQ}/5), así que este corte es de los cambios de mayor impacto que puedes hacer hoy.` : 'La luz azul frena la melatonina; cortarla mejora la calidad y lo rápido que te duermes.'}`,
+    'Sueño'
+  )
+  const cardCenaTriptofano = planItem(
+    `Cena antes de las ${cenaHora} y prioriza triptófano`,
+    `Cierra la última comida unas 3 h antes de dormir (hoy, sobre las ${cenaHora}) y suma alimentos ricos en triptófano: pavo, huevos, lácteos, plátano, avena o frutos secos. ${stress >= 4 ? `Con estrés ${stress}/5, hoy pesa el doble: estabiliza la glucosa y baja la activación antes de la cama.` : 'Tu cuerpo lo convierte en serotonina y melatonina, así entras al sueño más rápido y más profundo.'}`,
+    'Nutrición'
+  )
+  // Orden cronológico del día:
+  //  OBJETIVO  →  ENTRENAMIENTO  →  NUTRICIÓN (post-entreno + cena)  →
+  //  RECUPERACIÓN (mente + extras + cierre)  →  SUEÑO (luz azul + dormir)
+  const html = [
+    planItem(focoTitle,    focoBody,    'Objetivo del día'),
+    planItem(entrenaTitle, entrenaBody, 'Entrenamiento'),
+    planItem(nutriTitle,   nutriBody,   'Nutrición'),
+    cardCenaTriptofano,
+    planItem(meditaTitle,  meditaBody,  'Recuperación'),
+    planItem(extrasTitle,  extrasBody,  'Recuperación'),
+    cardLuzAzul,
+    planItem(suenoTitle,   suenoBody,   'Sueño')
+  ].join('')
+
+  return { message, html }
 }
 
 function escapeHtml(s) {
@@ -2739,23 +3788,53 @@ function batteryCaptionFor(pct) {
   return 'Recuperación muy baja'
 }
 
+// ── Auto-lanzar el test diario al entrar en un día nuevo ──
+// Lógica simple: si es un día nuevo y aún no se hizo el test, lanzamos el
+// test automáticamente, sin restricción horaria. Solo una vez por día.
+function maybeAutoLaunchDailyTest(profile, lastTest) {
+  if (!profile) return
+  const today    = new Date().toISOString().slice(0, 10)
+  const testDate = lastTest?.date ? String(lastTest.date).slice(0, 10) : null
+  if (testDate === today) return                                      // ya hecho hoy
+  const createdToday = profile.created_at
+    ? String(profile.created_at).slice(0, 10) === today
+    : false
+  if (createdToday) return                                            // día del registro
+
+  const offeredKey = `daily_test_offered_${today}`
+  try { if (localStorage.getItem(offeredKey)) return } catch {}       // ya ofrecido hoy
+
+  try { localStorage.setItem(offeredKey, '1') } catch {}
+  // Pequeño delay para que el dashboard renderice primero y la transición sea natural
+  setTimeout(() => { try { goTest() } catch (e) { console.error('auto-goTest:', e) } }, 900)
+}
+
 // ── Estado del CTA del test diario según si ya se hizo hoy ──
 function flagDailyTestState(profile, lastTest) {
   const cta = document.getElementById('dailyCta')
   const title = document.getElementById('dailyCtaTitle')
   const sub = document.getElementById('dailyCtaSub')
+  const eyebrow = document.getElementById('dailyCtaEyebrow')
   if (!cta || !title || !sub) return
   const today = new Date().toISOString().slice(0, 10)
   const testDate = lastTest?.date ? String(lastTest.date).slice(0, 10) : null
   const doneToday = testDate === today
-  if (doneToday) {
-    title.textContent = 'Test de hoy completado'
-    sub.textContent = 'Volverás a hacerlo mañana. Tu plan está actualizado.'
-    cta.style.opacity = '0.7'
+  // Día del registro: ya completó el "test" via onboarding, no se le pide otro
+  const createdToday = profile?.created_at
+    ? String(profile.created_at).slice(0, 10) === today
+    : false
+  if (doneToday || createdToday) {
+    // Test ya hecho hoy → ocultamos por completo el cuadro, no mostramos "completado".
+    cta.style.display = 'none'
+    cta.onclick = null
   } else {
+    cta.style.display = ''
+    cta.classList.remove('done')
+    if (eyebrow) eyebrow.textContent = 'Registro diario'
     title.textContent = 'Test diario'
     sub.textContent = 'Registra sueño, estrés, nutrición y deporte de ayer'
-    cta.style.opacity = '1'
+    cta.style.pointerEvents = ''
+    cta.onclick = goTest
   }
 }
 
@@ -2791,10 +3870,19 @@ function renderProfile(profile, stats) {
     setText('profileBatteryAvg', '—')
   }
 
-  // Objetivo
+  // Objetivos — uno por línea con punto azul
   const goalsSec = document.getElementById('profileGoalsSection')
-  if (profile?.goal) {
-    setText('profileGoalText', profile.goal)
+  const goalsList = document.getElementById('profileGoalsList')
+  const goalsTitle = document.getElementById('profileGoalsTitle')
+  if (profile?.goal && goalsList) {
+    const goalsArr = String(profile.goal).split(',').map(g => g.trim()).filter(Boolean)
+    if (goalsTitle) goalsTitle.textContent = goalsArr.length > 1 ? 'OBJETIVOS' : 'OBJETIVO'
+    goalsList.innerHTML = goalsArr.map(g =>
+      `<div class="obj-row" style="margin-bottom:8px">
+        <div class="obj-name"><div class="obj-dot dot-blue"></div><span>${escapeHtml(g)}</span></div>
+        <div class="obj-val">En curso</div>
+      </div>`
+    ).join('')
     if (goalsSec) goalsSec.style.display = 'block'
   } else if (goalsSec) {
     goalsSec.style.display = 'none'
@@ -2811,10 +3899,13 @@ function setText(id, val) {
 }
 
 // ── Chat: saludo inicial limpio (sin burbujas demo) ──
+// IMPORTANTE: si la conversación ya tiene mensajes, NO la borramos.
+// Esto evitaba que el polling de daily plan reseteara el chat cada 3s.
 function renderChatGreeting(profile) {
   const wrap = document.getElementById('chatMessages')
   if (!wrap) return
-  wrap.innerHTML = ''
+  // Si ya hay cualquier mensaje (saludo previo o conversación), no tocar nada
+  if (wrap.children.length > 0) return
   const firstName = (profile?.name || '').split(' ')[0]
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches'
@@ -2823,6 +3914,51 @@ function renderChatGreeting(profile) {
   bubble.className = 'bubble agent'
   bubble.textContent = `${personal} ¿En qué te puedo ayudar hoy?`
   wrap.appendChild(bubble)
+}
+
+// ── Conversación diaria ──
+// Mostramos SOLO los mensajes de hoy (desde las 00:00 locales). A medianoche
+// empieza una conversación nueva. La memoria completa NO se pierde: todos los
+// mensajes siguen en chat_messages y el agente recuerda vía jarvis_memory.
+// Clave de la conversación de HOY (cambia a medianoche → conversación nueva)
+function _chatStoreKey(d) {
+  d = d || new Date()
+  const ymd = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+  return 'human_chat_' + ymd
+}
+function _chatLoadStore() {
+  try { return JSON.parse(localStorage.getItem(_chatStoreKey()) || '[]') } catch { return [] }
+}
+function _chatSaveMsg(role, content) {
+  try {
+    const arr = _chatLoadStore()
+    arr.push({ role, content })
+    localStorage.setItem(_chatStoreKey(), JSON.stringify(arr))
+    // Limpieza: borrar las conversaciones de días anteriores (solo se conserva la de hoy)
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i)
+      if (k && k.indexOf('human_chat_') === 0 && k !== _chatStoreKey()) localStorage.removeItem(k)
+    }
+  } catch (e) { console.warn('_chatSaveMsg:', e && e.message) }
+}
+
+// Conversación diaria: se muestra SOLO la de hoy (guardada en el dispositivo). A
+// medianoche arranca una conversación limpia. La memoria del agente se conserva
+// aparte (chat_messages + jarvis_memory en el backend), así no se pierde nada.
+function loadTodayChat(profile) {
+  const wrap = document.getElementById('chatMessages')
+  if (!wrap) return
+  const msgs = _chatLoadStore()
+  wrap.innerHTML = ''
+  if (!msgs.length) { renderChatGreeting(profile); return }
+  for (const m of msgs) {
+    const b = document.createElement('div')
+    b.className = 'bubble ' + (m.role === 'user' ? 'user' : 'agent')
+    if (m.role === 'user') b.textContent = m.content
+    else b.innerHTML = renderAgentText(m.content)
+    wrap.appendChild(b)
+  }
+  wrap.scrollTop = wrap.scrollHeight
 }
 
 // ── Insights ──
@@ -2839,14 +3975,9 @@ function renderInsights(tests) {
     setText('insightsEmptySub', 'Haz tu primer test diario para empezar a ver tu recuperación.')
     return
   }
-  if (total < 2) {
-    empty.style.display = 'block'
-    content.style.display = 'none'
-    setText('insightsEmptyTitle', 'Necesitas más días')
-    setText('insightsEmptySub', 'Con al menos 2 días de tests podrás ver tu evolución y picos.')
-    return
-  }
 
+  // Con 1 test (típico tras el onboarding) ya mostramos métricas del día,
+  // sólo escondemos la curva y el delta (ambos requieren histórico).
   empty.style.display = 'none'
   content.style.display = 'block'
   refreshInsights()
@@ -2858,15 +3989,38 @@ function refreshInsights() {
   const tab = document.querySelector('#insightsPeriodTabs .period-tab.active')
   const days = tab ? parseInt(tab.dataset.days || '7') : 7
 
-  // Filtrar últimos N días por fecha
-  const cutoff = Date.now() - days * 86400 * 1000
-  const filtered = tests.filter(t => {
-    const ts = t.date ? new Date(t.date).getTime() : new Date(t.created_at || 0).getTime()
-    return ts >= cutoff
-  })
-  const subset = filtered.length > 0 ? filtered : tests.slice(0, 1)
-
-  const batteries = subset.map(t => ({ pct: calcBodyBattery(t), date: t.date || t.created_at }))
+  let batteries
+  if (days === 1) {
+    // 1D: serie intra-día del test de hoy. Puntos cada 2 h desde wake hasta ahora.
+    const todayTest = tests[0]
+    const prof = appState.profile || {}
+    const wakeMin = hhmmToMin(prof.wake_time) || (7 * 60)
+    const sleepMin = hhmmToMin(prof.sleep_time) || (23 * 60)
+    const now = new Date()
+    const nowMin = now.getHours() * 60 + now.getMinutes()
+    const upperBound = Math.min(nowMin, sleepMin)
+    batteries = []
+    for (let m = wakeMin; m <= upperBound; m += 120) {
+      const fake = new Date(now); fake.setHours(Math.floor(m / 60), m % 60, 0, 0)
+      const pct = calcDynamicBattery(todayTest, prof, fake)
+      batteries.push({ pct, date: fake.toISOString() })
+    }
+    // Asegurar el último punto = "ahora"
+    if (batteries.length === 0 || batteries[batteries.length - 1].date !== now.toISOString()) {
+      batteries.push({ pct: calcDynamicBattery(todayTest, prof, now), date: now.toISOString() })
+    }
+    // El resto del refresh asume batteries en orden newest → oldest (igual que tests).
+    batteries.reverse()
+  } else {
+    // 7D / 30D / 90D / TODO: serie día a día
+    const cutoff = Date.now() - days * 86400 * 1000
+    const filtered = tests.filter(t => {
+      const ts = t.date ? new Date(t.date).getTime() : new Date(t.created_at || 0).getTime()
+      return ts >= cutoff
+    })
+    const subset = filtered.length > 0 ? filtered : tests.slice(0, 1)
+    batteries = subset.map(t => ({ pct: calcBodyBattery(t), date: t.date || t.created_at }))
+  }
   const avg = Math.round(batteries.reduce((a, b) => a + b.pct, 0) / batteries.length)
   setText('insightAvg', `${avg}%`)
 
@@ -2937,6 +4091,65 @@ function calcBodyBattery(test) {
   return Math.round(Math.min(99, Math.max(10, (s * 0.35 + e * 0.30 + n * 0.20 + d * 0.15) * 100)))
 }
 
+// Re-renderiza el dashboard cada 10 min para que el Body Battery vaya bajando con el tiempo.
+let _batteryRefreshTimer = null
+function scheduleBodyBatteryRefresh() {
+  if (_batteryRefreshTimer) return  // ya programado
+  _batteryRefreshTimer = setInterval(() => {
+    const lt = appState.tests?.[0]
+    if (!lt) return
+    renderDashboard(appState.profile, lt)
+    const insightsActive = document.getElementById('tab-insights')?.style.display !== 'none'
+    if (insightsActive) refreshInsights()
+  }, 10 * 60 * 1000) // 10 min
+}
+
+// Helpers para detectar si HOY es día de entreno + a qué hora.
+const _dayLetters = ['D','L','M','X','J','V','S']
+function todayDayLetter() { return _dayLetters[new Date().getDay()] }
+function isTrainingDay(profile, dayLetter) {
+  if (!profile) return false
+  const day = dayLetter || todayDayLetter()
+  // Compat: si el onboarding viejo no guardó training_days, comprobar symptoms._training
+  const days = profile.training_days || profile.symptoms?._training?.days || []
+  return Array.isArray(days) && days.includes(day)
+}
+function trainingTimeFor(profile, dayLetter) {
+  const day = dayLetter || todayDayLetter()
+  const times = profile?.training_times || profile?.symptoms?._training?.times || null
+  if (times && times[day]) return times[day]
+  return profile?.training_time || profile?.symptoms?._training?.time || null
+}
+function hhmmToMin(hhmm) {
+  if (!hhmm) return null
+  const [h, m] = String(hhmm).split(':').map(Number)
+  return (h || 0) * 60 + (m || 0)
+}
+
+// Body Battery dinámico intra-día.
+// base = calcBodyBattery(test). Drain natural (~25% del base) repartido entre wake y sleep.
+// Si HOY es día de entreno y ya pasó la hora del entreno: drain extra hasta -15% del base, rampa 60 min.
+function calcDynamicBattery(test, profile, now) {
+  const base = calcBodyBattery(test)
+  if (!profile || !now || !base) return base
+  const wakeMin  = hhmmToMin(profile.wake_time)  || (7 * 60)
+  const sleepMin = hhmmToMin(profile.sleep_time) || (23 * 60)
+  const nowMin   = now.getHours() * 60 + now.getMinutes()
+  if (nowMin < wakeMin) return base
+  const dayMin = sleepMin > wakeMin ? (sleepMin - wakeMin) : (16 * 60)
+  const sinceWake = nowMin - wakeMin
+  // Drain natural: lineal hasta 25% del base al llegar a sleep
+  const natural = Math.min(0.25, (sinceWake / dayMin) * 0.25) * base
+  // Drain extra por entreno
+  let extra = 0
+  const tMin = isTrainingDay(profile) ? hhmmToMin(trainingTimeFor(profile)) : null
+  if (tMin != null && nowMin >= tMin) {
+    const afterT = nowMin - tMin
+    extra = Math.min(0.15, (afterT / 60) * 0.15) * base
+  }
+  return Math.max(10, Math.round(base - natural - extra))
+}
+
 function updateBatteryRing(pct) {
   const circle = document.getElementById('batteryRingCircle')
   if (!circle) return
@@ -2946,7 +4159,7 @@ function updateBatteryRing(pct) {
 
 // ── Tabs ──
 function switchTab(tab) {
-  ;['dashboard','insights','chat','profile'].forEach(t => {
+  ;['dashboard','insights','chat','profile','notifications'].forEach(t => {
     const el  = document.getElementById('tab-' + t)
     const nav = document.getElementById('nav-' + t)
     if (el)  el.style.display = 'none'
@@ -2956,6 +4169,126 @@ function switchTab(tab) {
   if (target) target.style.display = (tab === 'chat') ? 'flex' : 'block'
   const navBtn = document.getElementById('nav-' + tab)
   if (navBtn) navBtn.classList.add('active')
+}
+
+// ════════════ NOTIFICACIONES ════════════
+const NOTIF_ICONS = { recovery:'🌙', training:'⚡', nutrition:'🍎', motivation:'🔥', engagement:'👋' }
+
+function timeAgo(ts) {
+  const d = new Date(ts), now = new Date()
+  const min = Math.floor((now - d) / 60000)
+  if (min < 1)  return 'ahora'
+  if (min < 60) return `hace ${min} min`
+  const h = Math.floor(min / 60)
+  if (h < 24)   return `hace ${h} h`
+  const days = Math.floor(h / 24)
+  if (days === 1) return 'ayer'
+  if (days < 7)   return `hace ${days} días`
+  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+}
+
+async function loadNotifications() {
+  if (!sb || !appState.userId) return
+  try {
+    const { data, error } = await sb
+      .from('notification_deliveries')
+      .select('*')
+      .eq('user_id', appState.userId)
+      .order('created_at', { ascending: false })
+      .limit(50)
+    if (error) { console.error('loadNotifications:', error); return }
+    appState.notifications = data || []
+    renderNotifications()
+    updateBellBadge()
+  } catch (e) { console.error('loadNotifications:', e) }
+}
+
+function updateBellBadge() {
+  const badge = document.getElementById('bellBadge')
+  if (!badge) return
+  const unread = (appState.notifications || []).filter(n => !n.read_at).length
+  if (unread > 0) {
+    badge.textContent = unread > 9 ? '9+' : unread
+    badge.style.display = 'block'
+  } else {
+    badge.style.display = 'none'
+  }
+}
+
+function renderNotifications() {
+  const list = document.getElementById('notifList')
+  if (!list) return
+  const items = appState.notifications || []
+  if (items.length === 0) {
+    list.innerHTML = '<div class="notif-empty">Aún no tienes notificaciones.<br>Aparecerán aquí cuando tu agente tenga algo que decirte.</div>'
+    return
+  }
+  list.innerHTML = items.map(n => {
+    const cat = n.category || 'recovery'
+    const ico = NOTIF_ICONS[cat] || '🔔'
+    const unread = !n.read_at ? ' unread' : ''
+    return `<div class="notif-card${unread}">
+      <div class="notif-ico ${cat}">${ico}</div>
+      <div class="notif-body">
+        <div class="notif-title">${escapeHtml(n.title || '')}</div>
+        <div class="notif-text">${escapeHtml(n.body || '')}</div>
+        <div class="notif-time">${timeAgo(n.created_at)}</div>
+      </div>
+    </div>`
+  }).join('')
+}
+
+async function openNotifications() {
+  switchTab('notifications')
+  await loadNotifications()
+  await markNotificationsRead()
+}
+
+async function markNotificationsRead() {
+  if (!sb || !appState.userId) return
+  const hasUnread = (appState.notifications || []).some(n => !n.read_at)
+  if (!hasUnread) return
+  try {
+    await sb.from('notification_deliveries')
+      .update({ read_at: new Date().toISOString(), status: 'read' })
+      .eq('user_id', appState.userId)
+      .is('read_at', null)
+    // Refleja en memoria y oculta el badge
+    ;(appState.notifications || []).forEach(n => { if (!n.read_at) n.read_at = new Date().toISOString() })
+    updateBellBadge()
+  } catch (e) { console.error('markNotificationsRead:', e) }
+}
+
+// ── Push nativo (Capacitor). Se activa solo en dispositivo real con el
+//    plugin @capacitor/push-notifications instalado. En web/simulador no hace nada. ──
+let _pushRegistered = false
+async function registerPushNotifications() {
+  if (_pushRegistered) return
+  const Push = window.Capacitor?.Plugins?.PushNotifications
+  if (!Push || !window.Capacitor?.isNativePlatform?.()) return  // web o simulador → salir
+  _pushRegistered = true
+  try {
+    let perm = await Push.checkPermissions()
+    if (perm.receive === 'prompt') perm = await Push.requestPermissions()
+    if (perm.receive !== 'granted') { _pushRegistered = false; return }
+    await Push.register()  // dispara 'registration' con el token APNs
+
+    Push.addListener('registration', (token) => { savePushToken(token.value) })
+    Push.addListener('registrationError', (err) => console.error('push registrationError:', err))
+    // App abierta: refresca la lista al recibir un push
+    Push.addListener('pushNotificationReceived', () => loadNotifications())
+    // El user toca el push → abre el centro de notificaciones
+    Push.addListener('pushNotificationActionPerformed', () => openNotifications())
+  } catch (e) { console.error('registerPushNotifications:', e); _pushRegistered = false }
+}
+
+async function savePushToken(token) {
+  if (!sb || !appState.userId || !token) return
+  try {
+    await sb.from('notification_prefs')
+      .upsert({ user_id: appState.userId, push_token: token }, { onConflict: 'user_id' })
+    console.log('push token guardado')
+  } catch (e) { console.error('savePushToken:', e) }
 }
 
 // ── Test diario ──
@@ -3054,25 +4387,194 @@ function collectTestData() {
 
 async function saveDailyTest() {
   const t = appState.dailyTest
-  await authFetch('/api/daily-test', {
-    method: 'POST',
-    body: JSON.stringify({ ...t })
-  })
+  if (!sb || !appState.userId) return
+  // SIEMPRE escribir a Supabase (fuente de verdad)
+  try {
+    const { error } = await sb.from('daily_tests').upsert({
+      user_id: appState.userId,
+      sleep_quality: t.sleepQuality, sleep_hours: t.sleepHours,
+      stress_level: t.stressLevel, stress_peak: t.stressPeak,
+      nutrition_quality: t.nutritionQuality, meals_count: t.mealsCount,
+      sport_intensity: t.sportIntensity, sport_duration: t.sportDuration
+    }, { onConflict: 'user_id,date' })
+    if (error) console.warn('Supabase daily_tests upsert:', error.message)
+  } catch (e) { console.error('Supabase saveDailyTest:', e) }
+  // En paralelo intentar backend (para que dispare generación del plan diario si está actualizado)
+  authFetch('/api/daily-test', { method: 'POST', body: JSON.stringify({ ...t }), timeout: 8000 }).catch(() => {})
 }
 
 // ── Chat con Jarvis ──
+// ── Render seguro de respuestas del agente con formato simple ──
+// Permite párrafos (doble salto), bullets (líneas con "- " o "• "),
+// elimina cualquier asterisco markdown. Escapa HTML primero por seguridad.
+function renderAgentText(raw) {
+  if (!raw) return ''
+  // Limpieza previa: quitar negritas/asteriscos markdown que ensucian
+  let txt = String(raw)
+    .replace(/\*\*([^*]+)\*\*/g, '$1')   // **bold** → bold
+    .replace(/__([^_]+)__/g, '$1')       // __bold__ → bold
+    .replace(/\*([^*\n]+)\*/g, '$1')     // *italic* → italic
+    .replace(/`([^`]+)`/g, '$1')         // `code` → code
+    .trim()
+
+  const escape = (s) => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
+
+  // Dividir en bloques por doble salto de línea
+  const blocks = txt.split(/\n\s*\n/).filter(b => b.trim())
+  const html = blocks.map(block => {
+    const lines = block.split('\n').map(l => l.trim()).filter(Boolean)
+    const allBullets = lines.length > 1 && lines.every(l => /^([-•*]|\d+[\.\)])\s+/.test(l))
+    if (allBullets) {
+      const items = lines.map(l => '<li>' + escape(l.replace(/^([-•*]|\d+[\.\)])\s+/, '')) + '</li>').join('')
+      return '<ul>' + items + '</ul>'
+    }
+    // Párrafo con saltos simples preservados como <br>
+    return '<p>' + lines.map(escape).join('<br>') + '</p>'
+  }).join('')
+  return html
+}
+
+// Embebe contexto del usuario en el mensaje al backend para que el modelo SIEMPRE
+// tenga datos delante, incluso si Railway corre prompt viejo.
+function buildContextualMessage(originalMsg, ctx) {
+  const p = ctx.profile || {}
+  const t = ctx.today || null
+  const name = (p.name || '').split(' ')[0] || 'el usuario'
+  const ag = (typeof agentName === 'string' && agentName) ? agentName : (appState.profile?.agent_name || 'Jarvis')
+  const profileLine = `Soy ${name}${p.age ? `, ${p.age} años` : ''}. Identidad: ${p.identity || '—'}. Objetivo: ${p.goal || '—'}. Rutina: dormir ${p.sleep_time || '23:00'}, despertar ${p.wake_time || '07:00'}.`
+  const symptomsLine = (p.symptoms && Object.keys(p.symptoms).length)
+    ? `Síntomas iniciales reportados: ${Object.entries(p.symptoms).map(([k,v]) => `${k} (${v})`).join(', ')}.`
+    : ''
+  const todayLine = t
+    ? `Estado de HOY (de mi test diario, ya hecho): Body Battery ${t.body_battery ?? '?'}%, sueño ${t.sleep_quality ?? '?'}/5 (${t.sleep_hours ?? '?'}h), estrés ${t.stress_level ?? '?'}/5${t.stress_peak ? ` (pico ${t.stress_peak})` : ''}, nutrición ${t.nutrition_quality ?? '?'}/5 (${t.meals_count ?? '?'} comidas), deporte ${t.sport_intensity ?? '?'}/5 (${t.sport_duration ?? '?'} min).`
+    : `Aún no he hecho mi primer test diario.`
+  const rules = `Tú eres ${ag}, mi agente personal de salud y rendimiento en la app Human. Responde en español, directo y amable, citando MIS números reales del estado de hoy.
+
+FORMATO obligatorio:
+- Si tienes 2+ ideas separadas, usa párrafos cortos separados por una línea en blanco.
+- Si das una lista (consejos, pasos, alimentos), usa bullets con un guion al inicio de cada línea.
+- NUNCA uses asteriscos (* o **) ni markdown de negrita.
+- Máximo ~80 palabras total. Frases cortas. Tono cálido pero sin relleno.
+
+CONTENIDO obligatorio:
+- NUNCA digas "no lo sé", "no tengo datos", "necesito datos cardíacos" — los datos los tienes arriba.
+- Si te pregunto algo de sueño, estrés o recuperación, cita los números (ej. "tu sueño 4/5 con 7h").
+- Métricas avanzadas que NO tengo (HRV, fases reales, frecuencia cardíaca): no las menciones como falta.`
+  return `[CONTEXTO MÍO — úsalo en tu respuesta]
+${profileLine}
+${symptomsLine ? symptomsLine + '\n' : ''}${todayLine}
+
+[REGLAS]
+${rules}
+
+[MI PREGUNTA]
+${originalMsg}`
+}
+
+// ── Dictado por voz ──
+// Prioridad 1: reconocimiento nativo de iOS (si el plugin está instalado).
+// Prioridad 2 (sin instalar nada): grabar audio y transcribirlo en el propio
+// dispositivo con Whisper (WASM). Así funciona aunque no exista el plugin.
+let _voiceListening = false
+let _mediaRecorder = null
+let _audioChunks = []
+let _whisper = null
+
+async function toggleVoice() {
+  const input = document.getElementById('chatInput')
+  const mic   = document.getElementById('chatMic')
+  const SR    = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SpeechRecognition
+  if (SR) return nativeVoice(SR, input, mic)
+  try {
+    if (_voiceListening && _mediaRecorder) {
+      try { _mediaRecorder.stop() } catch {}
+      _voiceListening = false
+      if (mic) mic.classList.remove('recording')
+      return
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showToast('Este dispositivo no permite grabar audio.'); return
+    }
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    _audioChunks = []
+    _mediaRecorder = new MediaRecorder(stream)
+    _mediaRecorder.ondataavailable = e => { if (e.data && e.data.size) _audioChunks.push(e.data) }
+    _mediaRecorder.onstop = async () => {
+      try { stream.getTracks().forEach(t => t.stop()) } catch {}
+      const blob = new Blob(_audioChunks, { type: (_mediaRecorder && _mediaRecorder.mimeType) || 'audio/mp4' })
+      showToast('Transcribiendo…')
+      try {
+        const text = await transcribeBlob(blob)
+        if (text) input.value = (input.value ? input.value.trim() + ' ' : '') + text
+        else showToast('No te he entendido, inténtalo otra vez.')
+      } catch (err) { console.error('transcribe:', err); showToast('No se pudo transcribir el audio.') }
+    }
+    _mediaRecorder.start()
+    _voiceListening = true
+    if (mic) mic.classList.add('recording')
+  } catch (err) {
+    console.error('voice:', err)
+    _voiceListening = false
+    if (mic) mic.classList.remove('recording')
+    showToast('No se pudo acceder al micrófono.')
+  }
+}
+
+async function nativeVoice(SR, input, mic) {
+  try {
+    if (_voiceListening) {
+      try { await SR.stop() } catch {}
+      _voiceListening = false
+      if (mic) mic.classList.remove('recording')
+      return
+    }
+    const avail = await SR.available().catch(() => null)
+    if (avail && avail.available === false) { showToast('La voz no está disponible en este dispositivo.'); return }
+    const perm = await SR.requestPermissions().catch(() => null)
+    if (perm && perm.speechRecognition && perm.speechRecognition !== 'granted') {
+      showToast('Activa el permiso de micrófono y voz en Ajustes.'); return
+    }
+    _voiceListening = true
+    if (mic) mic.classList.add('recording')
+    try { await SR.removeAllListeners() } catch {}
+    await SR.addListener('partialResults', (data) => {
+      const text = data && data.matches && data.matches[0]
+      if (text) input.value = text
+    })
+    await SR.start({ language: 'es-ES', partialResults: true, popup: false })
+    _voiceListening = false
+    if (mic) mic.classList.remove('recording')
+  } catch (e) {
+    _voiceListening = false
+    if (mic) mic.classList.remove('recording')
+    showToast('No se pudo iniciar el dictado por voz.')
+  }
+}
+
+async function transcribeBlob(blob) {
+  if (!_whisper) {
+    showToast('Preparando la voz (solo la primera vez)…')
+    const mod = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2')
+    _whisper = await mod.pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny')
+  }
+  const arrayBuffer = await blob.arrayBuffer()
+  const AC = window.AudioContext || window.webkitAudioContext
+  const ctx = new AC({ sampleRate: 16000 })
+  const decoded = await ctx.decodeAudioData(arrayBuffer)
+  const audio = decoded.getChannelData(0)
+  const out = await _whisper(audio, { language: 'spanish', task: 'transcribe', chunk_length_s: 30 })
+  return ((out && out.text) || '').trim()
+}
+
 async function sendChat() {
   const input = document.getElementById('chatInput')
   const msg   = input.value.trim()
   if (!msg) return
   const wrap  = document.getElementById('chatMessages')
 
-  const userBubble = document.createElement('div')
-  userBubble.className = 'bubble user'
-  userBubble.textContent = msg
-  wrap.appendChild(userBubble)
+  _chatSaveMsg('user', msg)          // persistir la conversación del día
   input.value = ''
-  wrap.scrollTop = wrap.scrollHeight
+  loadTodayChat(appState.profile)    // re-pintar desde el almacén de hoy
 
   const typing = document.createElement('div')
   typing.className = 'bubble agent'
@@ -3087,19 +4589,72 @@ async function sendChat() {
       typing.textContent = 'Crea tu cuenta para que pueda responderte de verdad.'
       typing.style.opacity = '1'; return
     }
+    // Guard: si appState está vacío (carga lenta de Supabase o fallo previo),
+    // intentamos cargar los datos antes de enviar el mensaje. Timeout 6s.
+    const noProfile = !appState.profile || !appState.profile.id
+    const noTests   = !Array.isArray(appState.tests) || appState.tests.length === 0
+    if (noProfile || noTests) {
+      try {
+        await Promise.race([
+          loadUserData(),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout pre-load')), 6000))
+        ])
+      } catch (e) { console.warn('chat pre-load:', e.message) }
+    }
+    // Adjuntamos el contexto actual del usuario para que el agente NUNCA diga "no tengo datos"
+    const lastTest = appState.tests?.[0] || null
+    const ctx = {
+      profile: appState.profile ? {
+        name:        appState.profile.name,
+        age:         appState.profile.age,
+        identity:    appState.profile.identity,
+        goal:        appState.profile.goal,
+        wake_time:   appState.profile.wake_time,
+        sleep_time:  appState.profile.sleep_time,
+        symptoms:    appState.profile.symptoms
+      } : null,
+      today: lastTest ? {
+        date:              lastTest.date,
+        sleep_quality:     lastTest.sleep_quality,
+        sleep_hours:       lastTest.sleep_hours,
+        stress_level:      lastTest.stress_level,
+        stress_peak:       lastTest.stress_peak,
+        nutrition_quality: lastTest.nutrition_quality,
+        meals_count:       lastTest.meals_count,
+        sport_intensity:   lastTest.sport_intensity,
+        sport_duration:    lastTest.sport_duration,
+        body_battery:      calcBodyBattery(lastTest)
+      } : null,
+      recent_count: appState.tests?.length || 0
+    }
+    // Embebemos el contexto en el propio mensaje para que el modelo lo vea
+    // SIEMPRE, aunque el backend tenga prompt antiguo o pierda system prompt.
+    const contextualMessage = buildContextualMessage(msg, ctx)
     const res = await authFetch('/api/chat', {
       method: 'POST',
-      body: JSON.stringify({ message: msg })
+      body: JSON.stringify({ message: contextualMessage, context: ctx })
     })
     const data = await res.json()
     if (data.error) throw new Error(data.error)
-    typing.textContent = data.reply || '(sin respuesta)'
-    typing.style.opacity = '1'
+    const reply = data.reply || '(sin respuesta)'
+    _chatSaveMsg('assistant', reply)   // persistir respuesta del agente
+    loadTodayChat(appState.profile)    // re-pintar (quita el "···" y muestra todo)
   } catch (err) {
-    typing.textContent = String(err.message || '').includes('expirada')
-      ? 'Tu sesión expiró. Inicia sesión.'
-      : 'Sin conexión al servidor.'
-    typing.style.opacity = '0.5'
+    console.error('sendChat error:', err)
+    const m = String(err.message || '')
+    let txt
+    if (m.includes('expirada') || m.includes('Sesión')) {
+      txt = 'Tu sesión expiró. Inicia sesión.'
+    } else if (m.includes('tardó demasiado') || m.includes('Abort')) {
+      txt = 'El servidor tardó en responder. Inténtalo de nuevo.'
+    } else if (m.includes('Failed to fetch') || m.includes('Load failed') || m.includes('NetworkError')) {
+      txt = 'Sin conexión al servidor.'
+    } else {
+      // Error real del backend (500, etc.) — lo mostramos para no quedarnos a ciegas
+      txt = `Hubo un problema: ${m}. Inténtalo de nuevo.`
+    }
+    if (typing && typing.parentNode) { typing.textContent = txt; typing.style.opacity = '0.5' }
+    else { const e = document.createElement('div'); e.className = 'bubble agent'; e.style.opacity = '0.5'; e.textContent = txt; wrap.appendChild(e) }
   }
   wrap.scrollTop = wrap.scrollHeight
 }
@@ -3167,10 +4722,90 @@ window.addEventListener('load', async () => {
     document.body.classList.add('native-mode')
   }
 
+  // ── Fallback de scroll: wheel + touchmove globales ──
+  // En Capacitor iOS + simulator, a veces el WebView no propaga wheel/touch
+  // al contenedor scrolleable. Forzamos el scroll buscando el ancestor con overflow.
+  const SCROLLABLE_PARTS = ['.tab-content', '.ob-wrap', '.test-wrap', '.chat-messages-wrap', '.scroll-content']
+  const SCROLLABLE_SELECTOR = SCROLLABLE_PARTS.join(', ')
+  function findActiveScrollable() {
+    // Selector fallback bien formado: prefijo .active a CADA parte
+    const activeSelector = SCROLLABLE_PARTS.map(p => '.screen.active ' + p).concat(
+      SCROLLABLE_PARTS.map(p => '.main-screen.active ' + p)
+    ).join(', ')
+    const candidates = document.querySelectorAll(activeSelector)
+    for (const el of candidates) {
+      // Solo el visible / con scrollHeight > clientHeight
+      if (el.offsetParent !== null && el.scrollHeight > el.clientHeight + 1) return el
+    }
+    return null
+  }
+  function findScrollable(target) {
+    let el = target
+    while (el && el !== document.body) {
+      if (el.matches && el.matches(SCROLLABLE_SELECTOR)) return el
+      el = el.parentElement
+    }
+    return findActiveScrollable()
+  }
+  const wheelHandler = (e) => {
+    const sc = findScrollable(e.target)
+    if (!sc) return
+    sc.scrollTop += e.deltaY
+    e.preventDefault()
+  }
+  document.addEventListener('wheel', wheelHandler, { passive: false })
+  window.addEventListener('wheel', wheelHandler, { passive: false })
+
+  // ── Emulador de scroll por pointer-drag ──
+  // Garantiza scroll en simulator iOS aunque el WebView no propague touchmove al container.
+  // Solo se activa cuando hay arrastre >5px en vertical. Clicks normales no se interceptan.
+  const ds = { armed: false, active: false, startY: 0, lastY: 0, container: null }
+  document.addEventListener('pointerdown', (e) => {
+    // Solo botón izquierdo / touch / pen
+    if (e.button !== 0 && e.pointerType === 'mouse') return
+    // No interferir con inputs y botones (deja que reciban su click)
+    const tag = (e.target.tagName || '').toLowerCase()
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') return
+    const sc = findScrollable(e.target)
+    if (!sc) return
+    ds.armed = true; ds.active = false
+    ds.startY = e.clientY; ds.lastY = e.clientY
+    ds.container = sc
+  }, { passive: true })
+  document.addEventListener('pointermove', (e) => {
+    if (!ds.armed) return
+    const dy = ds.lastY - e.clientY
+    // Activar scroll cuando el dedo se ha movido >5px desde el inicio
+    if (!ds.active && Math.abs(e.clientY - ds.startY) > 5) ds.active = true
+    if (ds.active) {
+      ds.container.scrollTop += dy
+      ds.lastY = e.clientY
+      e.preventDefault()
+    }
+  }, { passive: false })
+  const endDrag = () => { ds.armed = false; ds.active = false }
+  document.addEventListener('pointerup', endDrag, { passive: true })
+  document.addEventListener('pointercancel', endDrag, { passive: true })
+  document.addEventListener('pointerleave', endDrag, { passive: true })
+
   // Limpiar restos del sistema antiguo (pre-Supabase Auth)
   try { localStorage.removeItem('humanUserId') } catch {}
 
   if (!sb) return  // Sin SDK no hay nada que hacer
+
+  // ⚠️ TEMPORAL — Fuerza signOut UNA vez tras este build, para que Nikos pueda
+  // salir de la sesión actual y probar el flujo de login limpio.
+  // Quitar este bloque cuando ya no haga falta (búscalo por FORCE_SIGNOUT_FLAG).
+  const FORCE_SIGNOUT_FLAG = 'human_force_signout_2026_05_30_v1'
+  try {
+    if (!localStorage.getItem(FORCE_SIGNOUT_FLAG)) {
+      await sb.auth.signOut()
+      localStorage.setItem(FORCE_SIGNOUT_FLAG, '1')
+      console.log('[Optimus] Forced signOut once — flag set.')
+    }
+  } catch (e) {
+    console.warn('Forced signOut error:', e?.message)
+  }
 
   // Listener de cambios de auth (login en otra pestaña, expiry, signOut)
   sb.auth.onAuthStateChange((event, session) => {
