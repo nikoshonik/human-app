@@ -347,10 +347,10 @@ function buildSystemPrompt(profile, recentTests, clientCtx) {
   const jarvisMemory = profile?.jarvis_memory || ''
 
   const toneByIdentity = identity === 'founder'
-    ? 'productividad, foco mental y gestión de energía como founder'
+    ? 'recuperación, gestión de energía y foco mental como founder'
     : identity === 'atleta'
-    ? 'rendimiento físico, recuperación atlética y progresión'
-    : 'equilibrio entre rendimiento mental y físico'
+    ? 'recuperación atlética para sostener el rendimiento'
+    : 'recuperación como base del rendimiento mental y físico'
 
   const trendsBlock = buildTrendsBlock(recentTests)
   const memoryBlock = jarvisMemory
@@ -378,6 +378,7 @@ PERFIL:
 - Síntomas iniciales: ${JSON.stringify(profile?.symptoms || {})}
 ${memoryBlock}${trendsBlock}${explicitTodayBlock}
 REGLAS CRÍTICAS:
+- Tu especialidad es la RECUPERACIÓN para maximizar el rendimiento. NO prescribas entrenamiento, ejercicios, rutinas ni intensidades. Si te preguntan por entrenar, reconduce hacia cómo recuperarse mejor. El dato de deporte solo te sirve para calibrar cuánta recuperación necesita.
 - TIENES los datos del usuario arriba (Body Battery, sueño, estrés, nutrición, deporte). USALOS SIEMPRE.
 - NUNCA digas "no lo sé", "no tengo datos", "necesitaría más métricas", "datos cardíacos" o algo similar. Los datos del test diario YA TE LOS DAN arriba. Responde con esos.
 - Si te preguntan "cómo dormí", responde con los datos de sueño que tienes (calidad X/5, X horas). Si te preguntan "estoy recuperado", responde con Body Battery + sueño + estrés.
@@ -501,17 +502,18 @@ TEST DE HOY (${todayTest.date}):
 - Nutrición: ${todayTest.nutrition_quality}/5 (${todayTest.meals_count} comidas)
 - Deporte: ${todayTest.sport_intensity}/5 (${todayTest.sport_duration}min)
 
-Genera el plan personalizado de hoy para ${name}. Debe ser concreto, adaptado a cómo está hoy y a lo que sabes de él.
+Genera el plan de RECUPERACIÓN de hoy para ${name}. Concreto y adaptado a cómo está hoy.
+
+IMPORTANTE: ${agentName} es un agente de RECUPERACIÓN. NO prescribas entrenamiento, ejercicios, intensidades ni rutinas. El dato de deporte solo sirve para calibrar cuánta recuperación necesita (más carga ayer = más recuperación hoy). El fin de la recuperación es maximizar su rendimiento.
 
 Estructura exacta (usa estos títulos):
 ESTADO DE HOY: [1 frase que resuma cómo está y por qué]
-FOCO PRINCIPAL: [la prioridad del día según sus datos]
-ENTRENAMIENTO: [qué hacer o no hacer hoy, con intensidad concreta]
-NUTRICIÓN: [2-3 recomendaciones específicas para hoy. Recomienda casi siempre cenar al menos 3 h antes de dormir y priorizar alimentos ricos en triptófano (pavo, huevos, lácteos, plátano, avena, frutos secos), explicando que ambas cosas mejoran la calidad del sueño]
-RECUPERACIÓN: [lo más importante para recuperarse hoy. Incluye casi siempre reducir o bloquear la luz azul (pantallas, LED) al menos 1 h antes de dormir, explicando que favorece la melatonina y mejora la calidad del sueño. Recomienda también, normalmente después de entrenar, unos minutos de meditación y estiramientos para relajar el sistema nervioso]
-MENSAJE DE JARVIS: [1 frase motivadora y personalizada]
+FOCO PRINCIPAL: [la prioridad de RECUPERACIÓN del día según sus datos]
+NUTRICIÓN: [2-3 recomendaciones de nutrición de recuperación. Recomienda casi siempre cenar al menos 3 h antes de dormir y priorizar alimentos ricos en triptófano (pavo, huevos, lácteos, plátano, avena, frutos secos), explicando que mejoran el sueño]
+RECUPERACIÓN: [lo más importante para recuperarse hoy. Incluye casi siempre reducir o bloquear la luz azul (pantallas, LED) al menos 1 h antes de dormir (favorece la melatonina), y unos minutos de meditación/respiración y estiramientos para relajar el sistema nervioso]
+MENSAJE DE JARVIS: [1 frase motivadora y personalizada, enfocada en recuperación]
 
-Máximo 150 palabras en total. Directo, sin relleno.`
+Máximo 150 palabras en total. Directo, sin relleno. Nada de entrenamiento.`
 
   try {
     const response = await anthropic.messages.create({

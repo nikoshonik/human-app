@@ -339,16 +339,25 @@ body.native-mode .screen:has(.back-btn) .test-wrap {
   user-select: none;
 }
 .identity-card.sel { border-color: #3B82F6; background: rgba(59,130,246,0.07); }
+.identity-left { display: flex; align-items: center; gap: 14px; }
 .identity-card-name { font-size: 21px; font-weight: 600; }
 .identity-icon {
   width: 40px; height: 40px;
-  border-radius: 50%;
+  border-radius: 12px;
   background: #1a1a1a;
+  color: #cfcfcf;
   display: flex; align-items: center; justify-content: center;
   font-size: 18px;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s;
+}
+.identity-card.sel .identity-icon { background: #3B82F6; color: #fff; }
+.identity-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: transparent; flex-shrink: 0;
   transition: background 0.2s;
 }
-.identity-card.sel .identity-icon { background: #3B82F6; }
+.identity-card.sel .identity-dot { background: #3B82F6; }
 
 /* ── Goal options ── */
 .goal-list { display: flex; flex-direction: column; gap: 10px; }
@@ -566,19 +575,21 @@ body.native-mode .screen:has(.back-btn) .test-wrap {
 #splash {
   justify-content: center;
   align-items: center;
-  background: radial-gradient(ellipse 320px 280px at 50% 52%, rgba(37,99,235,0.38) 0%, transparent 70%), #000;
+  background: #000;
 }
 .splash-logo {
-  font-size: 76px;
-  font-weight: 800;
-  letter-spacing: -3px;
+  font-size: 44px;
+  font-weight: 500;
+  letter-spacing: 18px;
+  text-indent: 18px; /* compensa el tracking para mantener el centrado óptico */
+  text-transform: uppercase;
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
 }
 .splash-sub {
-  font-size: 11px;
-  letter-spacing: 3px;
-  color: rgba(255,255,255,0.4);
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  color: rgba(255,255,255,0.45);
   text-align: center;
   white-space: nowrap;
 }
@@ -721,6 +732,9 @@ body.native-mode .screen:has(.back-btn) .test-wrap {
 .divider span { font-size: 12px; color: #444; }
 .ca-login { margin-top: 18px; font-size: 15px; color: #666; text-align: center; }
 .ca-login span { color: #3B82F6; cursor: pointer; }
+.btn-social { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 20px; border-radius: 14px; border: 1px solid #222; background: #0d0d0d; color: #fff; font-size: 15px; font-weight: 500; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.btn-social:active { opacity: 0.75; }
+.btn-social svg { width: 20px; height: 20px; flex-shrink: 0; }
 .ca-legal { position: absolute; bottom: 28px; left: 24px; right: 24px; font-size: 11px; color: #333; text-align: center; line-height: 1.5; }
 
 /* ════════════ MAIN APP SHELL ════════════ */
@@ -1702,11 +1716,12 @@ body.native-mode .back-btn { position: fixed !important; }
   <!-- ═══════════ SPLASH ═══════════ -->
   <div class="screen active" id="splash">
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-      <div class="splash-logo">Human</div>
-      <div class="splash-sub">RENDIMIENTO, BASE DE TODO PROGRESO.</div>
+      <div class="splash-logo">HUMAN</div>
+      <div class="splash-sub">Creado para atletas &amp; founders</div>
     </div>
     <div class="splash-btn-wrap">
-      <button class="btn-primary" onclick="go('ob-intro')">Comenzar</button>
+      <button class="btn-primary" onclick="go('ob-intro')">Registrarse</button>
+      <button class="btn-outline" style="margin-top:12px" onclick="go('create-account');showLoginForm()">Iniciar sesión</button>
     </div>
   </div>
 
@@ -1719,7 +1734,7 @@ body.native-mode .back-btn { position: fixed !important; }
     <div class="ob-intro-body">
       <div class="ob-intro-tag">AI-POWERED HEALTH AGENT</div>
       <div class="ob-intro-title">La vida es un juego. Mejora tu personaje.</div>
-      <div class="ob-intro-sub">Tu agente personal que optimiza tu recuperación y maximiza tu rendimiento. Hecho para founders y atletas que no pueden bajar el ritmo.</div>
+      <div class="ob-intro-sub">Tu agente personal que optimiza tu recuperación y maximiza tu rendimiento.</div>
     </div>
     <div style="padding:0 28px 52px;">
       <button class="btn-primary" onclick="go('ob-name')">Empezar</button>
@@ -1757,17 +1772,26 @@ body.native-mode .back-btn { position: fixed !important; }
       <div class="ob-tag">PERSONALIZA TU AGENTE</div>
       <div class="ob-title">¿Cómo te identificas?</div>
       <div class="identity-list">
-        <div class="identity-card" onclick="pick(this,'identity')">
-          <span class="identity-card-name">Founder</span>
-          <div class="identity-icon">🏔</div>
-        </div>
         <div class="identity-card sel" onclick="pick(this,'identity')">
-          <span class="identity-card-name">Atleta</span>
-          <div class="identity-icon">⚡</div>
+          <span class="identity-left">
+            <span class="identity-icon">▲</span>
+            <span class="identity-card-name">Founder</span>
+          </span>
+          <span class="identity-dot"></span>
         </div>
         <div class="identity-card" onclick="pick(this,'identity')">
-          <span class="identity-card-name">Ambos</span>
-          <div class="identity-icon">∞</div>
+          <span class="identity-left">
+            <span class="identity-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg></span>
+            <span class="identity-card-name">Atleta</span>
+          </span>
+          <span class="identity-dot"></span>
+        </div>
+        <div class="identity-card" onclick="pick(this,'identity')">
+          <span class="identity-left">
+            <span class="identity-icon">∞</span>
+            <span class="identity-card-name">Ambos</span>
+          </span>
+          <span class="identity-dot"></span>
         </div>
       </div>
       <div class="ob-footer">
@@ -1881,7 +1905,7 @@ body.native-mode .back-btn { position: fixed !important; }
     <div class="ob-wrap" style="padding-top:90px">
       <div class="ob-tag">CONSTANCIA DE SUEÑO</div>
       <div class="ob-title">¿Cómo es tu rutina de sueño?</div>
-      <div style="font-size:13px;color:#555;margin-bottom:22px">Las horas en que habitualmente te despiertas y te acuestas.</div>
+      <div style="font-size:13px;color:#555;margin-bottom:22px">La regularidad importa más que las horas totales. Cuéntanos tu rutina actual y tu objetivo.</div>
 
       <div class="routine-section">
         <div class="routine-section-lbl">ACTUAL</div>
@@ -2073,8 +2097,7 @@ body.native-mode .back-btn { position: fixed !important; }
 
   <!-- ═══════════ LOADING ═══════════ -->
   <div class="screen" id="loading">
-    <div style="padding: 70px 24px 0; width:100%; display:flex; flex-direction:column; align-items:center;">
-      <div style="font-size: 11px; letter-spacing: 2px; color: #3B82F6; text-transform: uppercase; margin-bottom: 28px;" id="loadingLabel">ANALIZANDO TU PERFIL</div>
+    <div style="padding: 110px 24px 0; width:100%; display:flex; flex-direction:column; align-items:center;">
       <div class="analyzing-ring">
         <svg width="200" height="200" viewBox="0 0 200 200">
           <circle cx="100" cy="100" r="86" fill="none" stroke="#111" stroke-width="10"/>
@@ -2089,10 +2112,9 @@ body.native-mode .back-btn { position: fixed !important; }
         </div>
       </div>
       <div class="analyzing-steps">
-        <div class="analyzing-step" id="astep0"><div class="analyzing-step-dot"></div><span>Analizando perfil de sueño</span></div>
-        <div class="analyzing-step" id="astep1"><div class="analyzing-step-dot"></div><span>Calculando nivel de estrés base</span></div>
-        <div class="analyzing-step" id="astep2"><div class="analyzing-step-dot"></div><span>Optimizando plan personal</span></div>
-        <div class="analyzing-step" id="astep3"><div class="analyzing-step-dot"></div><span>Configurando tu agente</span></div>
+        <div class="analyzing-step" id="astep0"><div class="analyzing-step-dot"></div><span>Analizando perfil</span></div>
+        <div class="analyzing-step" id="astep1"><div class="analyzing-step-dot"></div><span>Personalizando agente</span></div>
+        <div class="analyzing-step" id="astep2"><div class="analyzing-step-dot"></div><span>Generando plan personalizado</span></div>
       </div>
     </div>
   </div>
@@ -2156,24 +2178,25 @@ body.native-mode .back-btn { position: fixed !important; }
   <div class="screen" id="paywall-social">
     <div class="ob-wrap" style="padding-top:70px">
       <div class="ob-tag">RESULTADOS REALES</div>
-      <div class="ob-title" style="margin-bottom:20px">Ellos ya usaron Human</div>
+      <div class="ob-title" style="margin-bottom:8px">Ellos ya usaron Human</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;font-size:13px;color:#9a9a9a"><span style="color:#FBBF24;letter-spacing:1px">★★★★★</span> <b style="color:#fff">4.9</b> · +12,000 reviews en App Store</div>
       <div class="social-card">
         <div class="social-stars">★★★★★</div>
-        <div class="social-quote">"En 3 semanas mejoré mi sueño un 40% y reduje el estrés significativamente. Jarvis entiende exactamente qué necesito."</div>
-        <div class="social-author">— Alejandro M., Founder · Madrid</div>
+        <div class="social-quote">"En 2 semanas dormí mejor y tomé decisiones más claras. Mi equipo lo notó antes que yo."</div>
+        <div class="social-author">— Marcos V. — Founder</div>
       </div>
       <div class="social-card">
         <div class="social-stars">★★★★★</div>
-        <div class="social-quote">"El mejor investment en salud que he hecho. Mis tiempos en competición mejoraron desde que empecé a optimizar mi recuperación."</div>
-        <div class="social-author">— Laura G., Atleta amateur · Barcelona</div>
+        <div class="social-quote">"Nunca entendí por qué me recuperaba lento. Human lo detectó en 3 días."</div>
+        <div class="social-author">— Daniela R. — Atleta</div>
       </div>
       <div class="social-card">
         <div class="social-stars">★★★★★</div>
-        <div class="social-quote">"Pensé que era otro app de salud genérica. Me equivoqué. Se adapta a mi rutina y me da exactamente lo que necesito cada día."</div>
-        <div class="social-author">— Pablo R., CEO · Valencia</div>
+        <div class="social-quote">"Pasé de funcionar al 60% a estar en mi mejor versión. Ojalá lo hubiera tenido antes."</div>
+        <div class="social-author">— Carlos M. — CEO</div>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="go('paywall-promise')">Continuar →</button>
+        <button class="btn-primary" onclick="go('paywall-promise')">Quiero resultados como estos</button>
       </div>
     </div>
   </div>
@@ -2187,19 +2210,15 @@ body.native-mode .back-btn { position: fixed !important; }
       <div class="promise-list">
         <div class="promise-item">
           <div class="promise-check">✓</div>
-          <div class="promise-text">Haré el test diario cada mañana para que mi agente tenga datos reales</div>
+          <div class="promise-text">Escuchar los datos de mi cuerpo</div>
         </div>
         <div class="promise-item">
           <div class="promise-check">✓</div>
-          <div class="promise-text">Seguiré el plan que mi agente me recomiende, incluso cuando no me apetezca</div>
+          <div class="promise-text">Cumplir con mi plan personalizado</div>
         </div>
         <div class="promise-item">
           <div class="promise-check">✓</div>
-          <div class="promise-text">Priorizaré mi recuperación como base de todo mi rendimiento</div>
-        </div>
-        <div class="promise-item">
-          <div class="promise-check">✓</div>
-          <div class="promise-text">Seré constante durante al menos 21 días para ver resultados reales</div>
+          <div class="promise-text">Priorizar mi recuperación y rendimiento</div>
         </div>
       </div>
       <div class="ob-footer">
@@ -2210,39 +2229,29 @@ body.native-mode .back-btn { position: fixed !important; }
 
   <!-- ═══════════ PAYWALL: FEATURES + PRECIOS ═══════════ -->
   <div class="screen" id="paywall-features">
-    <div class="ob-wrap" style="padding-top:70px">
-      <div class="ob-tag">TU PLATAFORMA</div>
-      <div class="ob-title" style="margin-bottom:20px">Optimiza tu rendimiento y maximiza tu perfil</div>
-      <div class="feature-row">
-        <div class="feature-emoji">🧠</div>
-        <div><div class="feature-title">IA que aprende de ti</div><div class="feature-desc">Recomendaciones adaptadas a tus datos reales cada día</div></div>
+    <div class="ob-wrap" style="padding-top:56px">
+      <div class="ob-title" style="font-size:24px;line-height:1.18;margin-bottom:10px">Optimiza tu <span style="color:#3B82F6">recuperación</span> y maximiza tu <span style="color:#3B82F6">rendimiento</span></div>
+      <div style="font-size:13px;color:#777;margin-bottom:18px;line-height:1.4">Accede a todo lo que Human tiene para ti y desbloquea tu mejor versión.</div>
+      <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:12px;background:#0d0d0d;border-radius:12px;border-left:3px solid #3B82F6;padding:12px 14px"><span style="width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">✓</span><span style="font-size:14px;font-weight:600">Agente personalizado y disponible 24/7</span></div>
+        <div style="display:flex;align-items:center;gap:12px;background:#0d0d0d;border-radius:12px;border-left:3px solid #3B82F6;padding:12px 14px"><span style="width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">✓</span><span style="font-size:14px;font-weight:600">Análisis biométrico</span></div>
+        <div style="display:flex;align-items:center;gap:12px;background:#0d0d0d;border-radius:12px;border-left:3px solid #3B82F6;padding:12px 14px"><span style="width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">✓</span><span style="font-size:14px;font-weight:600">Plan personalizado de optimización</span></div>
+        <div style="display:flex;align-items:center;gap:12px;background:#0d0d0d;border-radius:12px;border-left:3px solid #3B82F6;padding:12px 14px"><span style="width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">✓</span><span style="font-size:14px;font-weight:600">Seguimiento y progreso constante</span></div>
       </div>
-      <div class="feature-row">
-        <div class="feature-emoji">📊</div>
-        <div><div class="feature-title">Body Battery en tiempo real</div><div class="feature-desc">Métricas de recuperación basadas en tu test diario y biometría</div></div>
+      <div style="position:relative;background:#3B82F6;border-radius:16px;padding:16px 18px;margin:14px 0 10px">
+        <div style="position:absolute;top:-10px;right:14px;background:#1a1a1a;color:#fff;font-size:10px;padding:4px 10px;border-radius:999px">Más popular</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><div style="font-weight:800;color:#fff"><span style="font-size:22px">Anual</span> <span style="font-size:16px">2.50€ / mes</span></div><div style="font-size:13px;color:#dbe7ff;margin-top:3px">29.99€ / año</div></div>
+          <div style="text-align:right;font-size:11px;color:#fff;font-weight:600;line-height:1.3">¡Oferta temporal!<br>Ahorra +70%</div>
+        </div>
       </div>
-      <div class="feature-row">
-        <div class="feature-emoji">🌙</div>
-        <div><div class="feature-title">Test diario inteligente</div><div class="feature-desc">A tu hora de despertar, para capturar los datos frescos del día</div></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:#0d0d0d;border:1px solid #1c1c1c;border-radius:16px;padding:16px 18px;margin-bottom:20px">
+        <div><div style="font-size:20px;font-weight:700">Mensual</div><div style="font-size:13px;color:#777;margin-top:3px">9.99€ / mes</div></div>
+        <div style="display:flex;align-items:center;gap:12px;color:#777;font-size:13px">119.99€ / año <span style="width:20px;height:20px;border-radius:50%;border:2px solid #3a3a3a;display:inline-block"></span></div>
       </div>
-      <div class="feature-row">
-        <div class="feature-emoji">⚡</div>
-        <div><div class="feature-title">Plan del día dinámico</div><div class="feature-desc">Entrenamiento, nutrición y descanso ajustados a tu recuperación</div></div>
-      </div>
-      <div class="price-card featured">
-        <div class="price-badge">MÁS POPULAR</div>
-        <div class="price-period">ANUAL</div>
-        <div class="price-amount">2,50€ <span>/ mes</span></div>
-        <div class="price-note" style="font-size:13px;color:#888;margin-top:6px">Facturado anualmente como 29,99€ · Cancela cuando quieras</div>
-      </div>
-      <div class="price-card standard">
-        <div class="price-period">MENSUAL</div>
-        <div class="price-amount">9,99€ <span>/ mes</span></div>
-      </div>
-      <div class="ob-footer" style="padding-top:10px">
-        <button class="btn-primary" onclick="go('welcome')">Empezar ahora →</button>
-        <div style="text-align:center;font-size:12px;color:#333;margin-top:12px">7 días de prueba gratis · Sin tarjeta de crédito</div>
-      </div>
+      <button class="btn-primary" onclick="go('welcome')" style="background:#fff;color:#000">Comenzar ahora</button>
+      <div style="text-align:center;font-size:12px;color:#666;margin-top:12px">7 días gratis · Cancela cuando quieras</div>
+      <div style="text-align:center;font-size:11px;color:#444;margin-top:6px">Restaurar compra · Términos · Privacidad</div>
     </div>
   </div>
 
@@ -2273,6 +2282,18 @@ body.native-mode .back-btn { position: fixed !important; }
       <div class="ca-title">Crea tu cuenta</div>
       <div class="ca-sub">Empieza gratis. Sin tarjeta de crédito.</div>
       <div class="ca-btns">
+        <!-- Botones sociales (Apple + Google) -->
+        <div id="socialBtns" style="width:100%;display:flex;flex-direction:column;gap:10px">
+          <button class="btn-social" onclick="doSocialAuth('apple')">
+            <svg viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            Continuar con Apple
+          </button>
+          <button class="btn-social" onclick="doSocialAuth('google')">
+            <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Continuar con Google
+          </button>
+          <div class="divider"><span>o continúa con email</span></div>
+        </div>
         <div id="emailForm" style="display:none;width:100%">
           <input class="field-input" id="regEmail" type="email" autocomplete="email" inputmode="email" placeholder="tu@email.com" style="margin-bottom:10px">
           <input class="field-input" id="regPassword" type="password" autocomplete="new-password" placeholder="Contraseña (mín. 8 caracteres)">
@@ -2557,16 +2578,10 @@ body.native-mode .back-btn { position: fixed !important; }
       </div>
       <div class="scale-labels"><span>Muy mal</span><span>Mal</span><span>Regular</span><span>Bien</span><span>Muy bien</span></div>
       <div class="test-q-label">HORAS DORMIDAS</div>
-      <div class="big-display" id="sleepHoursDisp">7<span class="unit">h</span></div>
-      <div class="hours-grid">
-        <div class="pill-btn" onclick="pickHours(this,'4h')">4h</div>
-        <div class="pill-btn" onclick="pickHours(this,'5h')">5h</div>
-        <div class="pill-btn" onclick="pickHours(this,'6h')">6h</div>
-        <div class="pill-btn sel" onclick="pickHours(this,'7h')">7h</div>
-        <div class="pill-btn" onclick="pickHours(this,'8h')">8h</div>
-        <div class="pill-btn" onclick="pickHours(this,'9h')">9h</div>
-        <div class="pill-btn" onclick="pickHours(this,'10h')">10h</div>
-        <div class="pill-btn" onclick="pickHours(this,'11h')">11h</div>
+      <div class="big-picker-wrap">
+        <button class="big-picker-btn" onclick="adjustSleepHours(-1)">−</button>
+        <div class="big-display" id="sleepHoursDisp" style="margin:0">7<span class="unit">h</span></div>
+        <button class="big-picker-btn" onclick="adjustSleepHours(1)">+</button>
       </div>
       <div class="ob-footer">
         <button class="btn-primary" onclick="go('test-stress')">Siguiente</button>
@@ -2579,7 +2594,7 @@ body.native-mode .back-btn { position: fixed !important; }
     <button class="back-btn" onclick="go('test-sleep')">‹</button>
     <div class="test-wrap" style="padding-top:70px">
       <div class="test-top">
-        <span class="test-label" style="color:#F59E0B">ESTRÉS</span>
+        <span class="test-label">ESTRÉS</span>
         <span class="test-skip" onclick="go('test-nutrition')">Saltar</span>
       </div>
       <div class="test-prog-bar"><div class="test-prog-fill" style="width:50%"></div></div>
@@ -2610,7 +2625,7 @@ body.native-mode .back-btn { position: fixed !important; }
     <button class="back-btn" onclick="go('test-stress')">‹</button>
     <div class="test-wrap" style="padding-top:70px">
       <div class="test-top">
-        <span class="test-label" style="color:#34D399">NUTRICIÓN</span>
+        <span class="test-label">NUTRICIÓN</span>
         <span class="test-skip" onclick="go('test-sport')">Saltar</span>
       </div>
       <div class="test-prog-bar"><div class="test-prog-fill" style="width:75%"></div></div>
@@ -2625,13 +2640,13 @@ body.native-mode .back-btn { position: fixed !important; }
       </div>
       <div class="scale-labels"><span>Muy mal</span><span>Mal</span><span>Normal</span><span>Bien</span><span>Perfecto</span></div>
       <div class="test-q-label" style="margin-top:4px">COMIDAS AL DÍA</div>
-      <div class="meals-num" id="mealsNum">3</div>
-      <div class="meals-sub">comidas</div>
-      <div class="counter-row">
-        <div class="counter-btn" onclick="pickMeals(this,1)">1</div>
-        <div class="counter-btn" onclick="pickMeals(this,2)">2</div>
-        <div class="counter-btn sel" onclick="pickMeals(this,3)">3</div>
-        <div class="counter-btn" onclick="pickMeals(this,4)">4</div>
+      <div class="big-picker-wrap">
+        <button class="big-picker-btn" onclick="adjustMeals(-1)">−</button>
+        <div style="text-align:center">
+          <div class="meals-num" id="mealsNum">3</div>
+          <div class="meals-sub" style="margin-bottom:0">comidas</div>
+        </div>
+        <button class="big-picker-btn" onclick="adjustMeals(1)">+</button>
       </div>
       <div class="ob-footer">
         <button class="btn-primary" onclick="go('test-sport')">Siguiente</button>
@@ -2644,7 +2659,7 @@ body.native-mode .back-btn { position: fixed !important; }
     <button class="back-btn" onclick="go('test-nutrition')">‹</button>
     <div class="test-wrap" style="padding-top:70px">
       <div class="test-top">
-        <span class="test-label" style="color:#A78BFA">DEPORTE</span>
+        <span class="test-label">DEPORTE</span>
         <span class="test-skip" onclick="finishTest()">Saltar</span>
       </div>
       <div class="test-prog-bar"><div class="test-prog-fill" style="width:100%"></div></div>
@@ -2659,14 +2674,10 @@ body.native-mode .back-btn { position: fixed !important; }
       </div>
       <div class="scale-labels"><span>Nada</span><span>Suave</span><span>Moderado</span><span>Intenso</span><span>Máximo</span></div>
       <div class="test-q-label" style="margin-top:4px">DURACIÓN</div>
-      <div class="big-display" id="durDisp">45<span class="unit">min</span></div>
-      <div class="dur-grid">
-        <div class="pill-btn" onclick="pickDur(this,0)">0</div>
-        <div class="pill-btn" onclick="pickDur(this,30)">30</div>
-        <div class="pill-btn sel" onclick="pickDur(this,45)">45</div>
-        <div class="pill-btn" onclick="pickDur(this,60)">60</div>
-        <div class="pill-btn" onclick="pickDur(this,75)">75</div>
-        <div class="pill-btn" onclick="pickDur(this,90)">90</div>
+      <div class="big-picker-wrap">
+        <button class="big-picker-btn" onclick="adjustDur(-15)">−</button>
+        <div class="big-display" id="durDisp" style="margin:0">45<span class="unit">min</span></div>
+        <button class="big-picker-btn" onclick="adjustDur(15)">+</button>
       </div>
       <div class="ob-footer">
         <button class="btn-primary" onclick="finishTestOrOb()">Finalizar test</button>
@@ -2829,7 +2840,7 @@ function startLoading() {
   const targetScore = Math.min(99, (appState.profile.score_baseline || 45) + 35)
   const numEl  = document.getElementById('analyzeNum')
   const circle = document.getElementById('loadCircle')
-  const steps  = ['astep0','astep1','astep2','astep3'].map(id => document.getElementById(id))
+  const steps  = ['astep0','astep1','astep2'].map(id => document.getElementById(id))
   const fullDash = 540
 
   // Reset
@@ -2838,7 +2849,7 @@ function startLoading() {
   if (circle) circle.setAttribute('stroke-dashoffset', fullDash)
 
   // Activate steps sequentially
-  const stepTimes = [300, 900, 1500, 2100]
+  const stepTimes = [300, 1100, 1900]
   stepTimes.forEach((t, i) => {
     setTimeout(() => {
       steps.forEach((s, si) => {
@@ -3089,18 +3100,48 @@ function showEmailForm() {
   document.getElementById('emailRegBtn').style.display = 'none'
   const p2 = document.getElementById('regPassword2')
   if (p2) p2.style.display = 'block'
+  // En modo registro, restaurar barra de progreso
+  const prog = document.querySelector('#create-account .ca-progress')
+  if (prog) prog.style.display = 'flex'
+}
+function doSocialAuth(provider) {
+  // Apple y Google Sign-In — próximamente
+  const msg = provider === 'apple' ? 'Sign in con Apple próximamente' : 'Sign in con Google próximamente'
+  // Mostrar toast simple
+  let toast = document.createElement('div')
+  toast.textContent = msg
+  toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;z-index:9999;border:1px solid #333'
+  document.body.appendChild(toast)
+  setTimeout(() => toast.remove(), 2500)
 }
 function showLoginForm() {
-  showEmailForm()
+  // Mostrar botones sociales
+  const socialBtns = document.getElementById('socialBtns')
+  if (socialBtns) socialBtns.style.display = 'flex'
+  // Mostrar email form directamente (sin el botón intermedio)
+  const emailForm = document.getElementById('emailForm')
+  if (emailForm) emailForm.style.display = 'block'
+  const emailRegBtn = document.getElementById('emailRegBtn')
+  if (emailRegBtn) emailRegBtn.style.display = 'none'
+  // Ocultar confirmar contraseña
   const p2 = document.getElementById('regPassword2')
   if (p2) p2.style.display = 'none'
+  // Ajustar botón y textos
   const btn = document.getElementById('regBtn')
   btn.textContent = 'Iniciar sesión →'
   btn.onclick = doLogin
   document.querySelector('.ca-title').textContent = 'Bienvenido de vuelta'
   document.querySelector('.ca-sub').textContent   = 'Inicia sesión en tu cuenta.'
+  // Ocultar la barra de progreso (no aplica en login)
+  const prog = document.querySelector('#create-account .ca-progress')
+  if (prog) prog.style.display = 'none'
 }
 function goCreateAccount(mode) {
+  // Reset estado antes de mostrar
+  const socialBtns = document.getElementById('socialBtns')
+  if (socialBtns) socialBtns.style.display = mode === 'login' ? 'flex' : 'none'
+  document.querySelector('.ca-title').textContent = mode === 'login' ? 'Bienvenido de vuelta' : 'Crea tu cuenta'
+  document.querySelector('.ca-sub').textContent = mode === 'login' ? 'Inicia sesión en tu cuenta.' : 'Empieza gratis. Sin tarjeta de crédito.'
   go('create-account')
   if (mode === 'login') showLoginForm()
   else showEmailForm()
@@ -3486,7 +3527,7 @@ function renderDashboard(profile, lastTest) {
   const msgLine     = serverLines.find(l => l.startsWith('MENSAJE DE JARVIS:'))
   const estadoLine  = serverLines.find(l => l.startsWith('ESTADO DE HOY:'))
   const serverMsg   = (msgLine || estadoLine || '').replace(/^[^:]+:\s*/, '').trim()
-  if (agentMsg) agentMsg.textContent = capSentences(serverMsg || local.message, 4)
+  if (agentMsg) agentMsg.textContent = capSentences(serverMsg || local.message, 3)
 }
 
 // Recomendaciones base fijas (siempre visibles bajo el título de su tarjeta).
@@ -3494,11 +3535,17 @@ const NUTRI_NOTE = 'Cena al menos 3 h antes de dormir y prioriza alimentos ricos
 const SLEEP_NOTE = 'Reduce o bloquea la luz azul (pantallas, LED) al menos 1 h antes de dormir: favorece la melatonina.'
 const RELAX_NOTE = 'Después de entrenar, dedica unos minutos a meditación y estiramientos para relajar el sistema nervioso.'
 // Limita un texto a un máximo de frases (mensajes del agente en el dashboard).
+// Robusto: no rompe decimales/ratios (7.5h, 1.6g) y tiene tope de longitud.
 function capSentences(text, max) {
-  const s = String(text || '').trim()
-  const parts = s.match(/[^.!?]+[.!?]+(\s|$)/g)
-  if (!parts) return s
-  return parts.slice(0, max).join('').trim()
+  var s = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!s) return s;
+  // Protege puntos internos de numeros (7.5, 1.6) para no cortar ahi.
+  s = s.replace(/(\d)\.(\d)/g, '$1__DOT__$2');
+  var parts = s.match(/[^.!?]+[.!?]+(\s|$)/g) || [s];
+  var out = parts.slice(0, max).join('').replace(/__DOT__/g, '.').trim();
+  // Backstop de longitud (~3-4 l\u00edneas en m\u00f3vil) por si llega una frase muy larga.
+  if (out.length > 170) out = out.slice(0, 167).replace(/\s+\S*$/, '') + '\u2026';
+  return out;
 }
 function planItem(title, body, eyebrow) {
   const eb = eyebrow ? `<div class="plan-item-eyebrow">${escapeHtml(eyebrow)}</div>` : ''
@@ -3554,72 +3601,25 @@ function buildLocalPlan(profile, test) {
   const hour = new Date().getHours()
   const greet = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches'
 
-  // ¿Cuál es la métrica que más se desvía? Esa la cito en el mensaje.
-  // Sueño bueno = >=4. Estrés bueno = <=2. Deporte bueno = >=3.
+  // Highlight de recuperación: el dato que más pesa hoy (breve, sin paréntesis anidados).
   let highlight = null
-  if (sleepQ >= 4 && sleepH >= 7) highlight = `sueño top (${sleepQ}/5, ${sleepH}h)`
-  else if (sleepQ <= 2 || sleepH < 6) highlight = `sueño corto (${sleepQ}/5, ${sleepH}h)`
-  else if (stress >= 4) highlight = `estrés alto (${stress}/5)`
-  else if (stress <= 1) highlight = `estrés controlado (${stress}/5)`
-  else if (sportI >= 4) highlight = `entrenaste fuerte ayer (${sportI}/5)`
-  else if (sportI <= 1) highlight = `sin entreno notable ayer`
+  if (sleepQ >= 4 && sleepH >= 7) highlight = `sueño top ${sleepQ}/5`
+  else if (sleepQ <= 2 || sleepH < 6) highlight = `sueño corto ${sleepH}h`
+  else if (stress >= 4) highlight = `estrés alto ${stress}/5`
+  else if (stress <= 1) highlight = `estrés bajo`
+  else if (sportI >= 4) highlight = `cargaste fuerte ayer`
 
-  // Variaciones del mensaje — más conversacional, ${agentName} ya está en scope global
-  let message
-  if (battery >= 75) {
-    const intros = [
-      `${greet}, ${name}. ${battery}% — ${recovLabel}.`,
-      `${greet}, ${name}. Vienes con ${battery}%, batería al máximo.`,
-      `${name}, abres el día al ${battery}% — ${recovLabel}.`
-    ]
-    const middles = highlight
-      ? [` ${highlight.charAt(0).toUpperCase() + highlight.slice(1)} confirma que el cuerpo está listo.`]
-      : [` El cuerpo responde y la mente acompaña.`]
-    message = intros[Math.floor(Math.random() * intros.length)] + middles[0] +
-              ` Hoy le damos caña a "${firstGoal}" — no dejemos esta ventana sin usar.`
-  } else if (battery >= 50) {
-    const intros = [
-      `${greet}, ${name}. ${battery}% es zona estable.`,
-      `${name}, ${battery}% — ${recovLabel}, sin sorpresas.`,
-      `${greet}. ${battery}% te da margen para trabajar.`
-    ]
-    const middles = highlight
-      ? [` ${highlight.charAt(0).toUpperCase() + highlight.slice(1)} es lo que más pesa hoy.`]
-      : [` Nada que celebrar ni que alarmar — es día de oficio.`]
-    message = intros[Math.floor(Math.random() * intros.length)] + middles[0] +
-              ` Hoy empujamos "${firstGoal}" con cabeza: constancia gana al pico.`
-  } else if (battery >= 30) {
-    const intros = [
-      `${greet}, ${name}. ${battery}% pide cuidado.`,
-      `${name}, ${battery}% — el cuerpo te está mandando una señal.`,
-      `${greet}. Hoy vienes al ${battery}%, ${recovLabel}.`
-    ]
-    const middles = highlight
-      ? [` ${highlight.charAt(0).toUpperCase() + highlight.slice(1)} está detrás de este número.`]
-      : [` Algo del descanso no terminó de cerrar.`]
-    message = intros[Math.floor(Math.random() * intros.length)] + middles[0] +
-              ` Hoy producimos lo justo y recuperamos en serio — "${firstGoal}" sigue ahí mañana.`
-  } else {
-    const intros = [
-      `${greet}, ${name}. ${battery}% — el cuerpo necesita freno.`,
-      `${name}, ${battery}% es alarma suave.`,
-      `${greet}. ${battery}% y ${recovLabel}: hoy paramos a recargar.`
-    ]
-    const middles = highlight
-      ? [` ${highlight.charAt(0).toUpperCase() + highlight.slice(1)} es la pieza a arreglar primero.`]
-      : [` Insistir hoy es cavar deuda.`]
-    message = intros[Math.floor(Math.random() * intros.length)] + middles[0] +
-              ` Prioriza descanso, comida sólida y sueño temprano. "${firstGoal}" llegará en cuanto recargues.`
-  }
+  // Mensaje del agente: CORTO a propósito (2 frases, ~3 líneas máx). Estado + foco de recuperación.
+  const estado = `${greet} ${name}, ${battery}% — ${recovLabel}${highlight ? `, ${highlight}` : ''}.`
+  let foco
+  if (battery >= 75)      foco = `Hoy sostén la recuperación: los hábitos de abajo te mantienen arriba.`
+  else if (battery >= 50) foco = `Hoy recupera con cabeza y subes a zona óptima.`
+  else if (battery >= 30) foco = `Hoy toca recuperar en serio: prioriza los hábitos de abajo.`
+  else                    foco = `Hoy freno total: descanso, comida de recuperación y sueño temprano.`
+  let message = `${estado} ${foco}`
 
-  // Comparación con el día anterior si existe
-  const prevTest = (Array.isArray(appState.tests) && appState.tests.length >= 2) ? appState.tests[1] : null
-  if (prevTest) {
-    const prevBat = calcBodyBattery(prevTest)
-    const dBat = battery - prevBat
-    if (dBat >= 10)      message += ` Subiste ${dBat}% vs ayer — buen trabajo.`
-    else if (dBat <= -10) message += ` Bajaste ${Math.abs(dBat)}% vs ayer, hoy ajustamos.`
-  }
+  // (La comparación con ayer NO se añade al mensaje: ya se muestra en color bajo el % ,
+  //  y evita que el mensaje del agente pase de 3-4 frases.)
 
   // ─────────────────────────────────────────
   // FOCO DEL DÍA
@@ -3632,33 +3632,18 @@ function buildLocalPlan(profile, test) {
     focoTitle = `Bajar carga mental (estrés ${stress}/5)`
     focoBody  = `Estrés ${stress}/5 indica sistema nervioso saturado — hoy menos estímulos, más respiración consciente. Productividad sin descanso es deuda.`
   } else if (battery >= 75) {
-    focoTitle = `Día de empujar fuerte hacia ${firstGoal}`
-    focoBody  = `Con ${battery}% de batería corporal puedes con la sesión dura del plan; si la dejas pasar, mañana tu cuerpo te pide otra cosa. Aprovéchalo.`
+    focoTitle = `Sostén tu recuperación en verde`
+    focoBody  = `Con ${battery}% estás bien recuperado — hoy el objetivo no es exprimirte, es mantenerlo. Cumple los hábitos de abajo para llegar mañana igual de arriba: la recuperación sostenida es lo que de verdad sube tu rendimiento en "${firstGoal}".`
   } else {
-    focoTitle = `Ritmo sostenido hacia ${firstGoal}`
-    focoBody  = `${battery}% te da margen pero no para heroicidades — la constancia gana al pico aislado.`
+    focoTitle = `Recuperación constante hacia ${firstGoal}`
+    focoBody  = `${battery}% te da margen, pero la recuperación se gana cada día — la constancia en los hábitos de abajo es lo que te sube de zona. Sin atajos ni heroicidades.`
   }
 
-  // ─────────────────────────────────────────
-  // ENTRENAMIENTO — duración + intensidad + tipo + razón
-  // ─────────────────────────────────────────
-  let entrenaTitle, entrenaBody
-  if (sportI <= 2 || stress >= 4 || battery < 40) {
-    const dur = identity === 'atleta' ? 35 : 25
-    entrenaTitle = `${dur} min de aeróbico ligero al 55-65% FC`
-    entrenaBody  = `Intensidad muy baja debido a tu ${recovLabel} de ${battery}%. Caminar a paso vivo, bici en llano o trote suave — cero series, cero máximos. Termina con 10 min de movilidad de caderas, hombros y columna dorsal. Objetivo: activar circulación y bombear nutrientes sin añadir fatiga.`
-  } else if (sportI >= 4 && sleepQ >= 4 && battery >= 70) {
-    const dur = Math.max(50, sportDur)
-    entrenaTitle = `${dur} min de entrenamiento intenso al 80-90%`
-    entrenaBody  = `Intensidad alta porque tu ${recovLabel} de ${battery}% y sueño ${sleepQ}/5 indican que el cuerpo está listo. Estructura: 10 min calentamiento progresivo, bloque principal de 4-6 series × 3 min al 90% con 2 min de descanso activo, vuelta a la calma 8 min. RPE 8-9. Hidrata 500ml antes y otros 500ml durante. Si bajas de RPE 7 en una serie, corta.`
-  } else {
-    const dur = sportDur >= 40 ? sportDur : 45
-    entrenaTitle = `${dur} min de entrenamiento moderado al 70-75%`
-    entrenaBody  = `Intensidad media-alta acorde a tu ${recovLabel} de ${battery}%. Calentamiento 8 min, bloque principal 25-30 min en zona umbral (RPE 6-7) — por ejemplo 5×1 min fuerte / 1 min suave, o cardio sostenido a ritmo conversacional difícil. Vuelta a la calma 7 min con estiramientos. Si lo aguantas bien, mañana subimos el listón.`
-  }
+  // (Plan SOLO de recuperación: no se prescribe entrenamiento. El dato de
+  //  entreno del test se usa únicamente para calibrar cuánta recuperación hace falta.)
 
   // ─────────────────────────────────────────
-  // NUTRICIÓN — comidas, ejemplos concretos, hidratación
+  // NUTRICIÓN DE RECUPERACIÓN — reparación, antiinflamación, hidratación
   // ─────────────────────────────────────────
   let nutriTitle, nutriBody
   if (stress >= 4) {
@@ -3668,11 +3653,11 @@ function buildLocalPlan(profile, test) {
     nutriTitle = `Desayuno potente, cena ligera antes de las 21:00`
     nutriBody  = `Tras ${sleepH}h de sueño tu sensibilidad a la insulina baja — cuida los picos. Desayuno: 3-4 huevos + aguacate + tostada integral o avena, café antes de las 11:00. Comida: proteína magra (pollo, pavo o pescado blanco) + arroz/quinoa + verdura. Cena ligera (crema de verduras + tortilla o pescado al horno). Nada de azúcar ni alcohol. Agua 2.5L.`
   } else if (sportI >= 4) {
-    nutriTitle = `30-40g proteína + 1g/kg carbo dentro de 1h post-entreno`
-    nutriBody  = `Día de entrenamiento intenso: come para rendir y recuperar. 30-45 min antes del entreno, carbo simple + algo de proteína (plátano + 1 cucharada de mantequilla de cacahuete, o yogur griego + miel). En la hora siguiente al entreno: 30-40g de proteína magra (pollo, pescado, atún, huevos) + carbo complejo (arroz, batata, quinoa, pasta integral) + verdura abundante. Hidrata 3L con electrolitos si sudas mucho.`
+    nutriTitle = `Proteína para reparar + antiinflamatorios (cargaste fuerte)`
+    nutriBody  = `Tu deporte de ayer (${sportI}/5) dejó microdaño muscular — hoy la comida es para repararlo. Reparte 1.6-2g de proteína por kg a lo largo del día (huevos, pollo, pescado azul, lácteos, legumbres). Suma antiinflamatorios: omega-3 (1-2g) o pescado graso, frutos rojos, cúrcuma, verdura de hoja verde y AOVE. Hidrata 2.5-3L con algo de sal/electrolitos. Evita alcohol y ultraprocesados: frenan la reparación.`
   } else {
-    nutriTitle = `150g pollo o pescado + huevos + verde post-entreno`
-    nutriBody  = `Después del entreno consume proteínas magras como pollo, pescado o pavo (120-150g) acompañado de huevos, verduras de hoja verde (espinaca, rúcula, kale) y un carbo complejo (arroz integral, batata o quinoa). En el resto del día prioriza color en el plato: brócoli, pimiento, zanahoria, frutos rojos. Mantente hidratado con 2-2.5L de agua a sorbos durante el día.`
+    nutriTitle = `Proteína magra + verdura de color + buena hidratación`
+    nutriBody  = `Base de recuperación de cada día: proteína magra en cada comida (120-150g de pollo, pescado, pavo o huevos) para reparar tejido, y mucho color en el plato (espinaca, rúcula, brócoli, pimiento, zanahoria, frutos rojos) por sus antioxidantes. Acompaña con un carbo de calidad (arroz integral, batata, quinoa). Agua 2-2.5L a sorbos durante el día. Cuanto más limpia la comida, mejor recuperas.`
   }
 
   // ─────────────────────────────────────────
@@ -3686,8 +3671,8 @@ function buildLocalPlan(profile, test) {
     meditaTitle = `10 min body scan al despertar + 20 min relax antes de dormir`
     meditaBody  = `Hoy tu sistema nervioso necesita reset. Mañana: 10 min de body scan guiado al despertar (vas recorriendo el cuerpo zona por zona, soltando tensión). Antes de dormir: 15-20 min para relajar el sistema y preparar un sueño profundo — 5 min de respiración cuadrada (4-4-4-4) + 10 min de estiramientos suaves (gato-vaca, postura del niño, twist sentado, piernas en la pared). Sin pantallas en esos 20 min.`
   } else if (battery >= 75) {
-    meditaTitle = `5 min mañana + 5 min movilidad pre-entreno + 5 min estirar`
-    meditaBody  = `5 min al arrancar el día para fijar intención: respiración consciente sentado, ojos cerrados, sin guía. Antes de la sesión fuerte, 5 min de movilidad activa (rotaciones de cadera y hombros, sentadilla profunda con pausa). Al acabar el día, 5 min de estiramiento estático para bajar pulsaciones. Ancla la atención 3 veces con un timer cada 4h.`
+    meditaTitle = `5 min de respiración al despertar + 10 min de movilidad suave`
+    meditaBody  = `Estás recuperado, así que basta con mantenimiento: 5 min al arrancar el día de respiración consciente (sentado, ojos cerrados) para fijar el tono del sistema nervioso. Y 10 min de movilidad y estiramiento suave (caderas, hombros, columna) repartidos en el día para que la recuperación no se estanque. Ancla 3 pausas conscientes con un timer.`
   } else {
     meditaTitle = `15-20 min para relajar el sistema nervioso (mañana + noche)`
     meditaBody  = `Reparto: 10 min de meditación guiada por la mañana (usa una app o haz respiración nasal lenta — 6 respiraciones por minuto), pausa consciente de 2 min después de comer (cierra ojos, 10 respiraciones contadas), y 8-10 min de estiramiento ligero antes de la cama (cadera, isquios, dorsal, cervicales). Cierra el día anotando 3 cosas que hiciste bien.`
@@ -3723,8 +3708,8 @@ function buildLocalPlan(profile, test) {
   // ─────────────────────────────────────────
   let extrasTitle, extrasBody
   if (battery >= 70 && sportI >= 4) {
-    extrasTitle = `3L agua + 15 min sol matinal + foam roller post-entreno`
-    extrasBody  = `Hidratación 3L con pellizco de sal o electrolitos si sudas mucho. 10-15 min de sol directo al despertar (regula tu cortisol matinal y mejora el sueño esta noche). Movilidad de caderas, tobillos y hombros 8 min antes del entreno. Después de la sesión: foam roller 5 min en cuádriceps, glúteos y dorsal.`
+    extrasTitle = `Sol matinal + hidratación + foam roller de descarga`
+    extrasBody  = `Cargaste fuerte ayer, así que hoy toca descargar. 10-15 min de sol directo al despertar (regula el cortisol matinal y mejora el sueño de esta noche). Hidratación 3L con un pellizco de sal o electrolitos. Y 8-10 min de foam roller suave en cuádriceps, glúteos, dorsal y gemelos para bajar tensión muscular y mejorar el riego — sin buscar dolor, solo soltar.`
   } else if (stress >= 4 || sleepQ <= 2) {
     extrasTitle = `10 min sol al despertar + 20 min paseo tarde + foam roller`
     extrasBody  = `Sol matinal nada más despertarte (sin gafas de sol los primeros minutos — anclar el ritmo circadiano es lo más alto-ROI cuando duermes mal). Paseo de 20 min por la tarde sin pantallas. Foam roller 5 min en zona lumbar y dorsal al acabar el día. Si puedes, contraste agua fría-caliente en la ducha (30s × 3) para activar parasimpático.`
@@ -3744,10 +3729,10 @@ function buildLocalPlan(profile, test) {
   }
   const cenaHora = subHoras(sleep, 3)
   const corteLuz = subHoras(sleep, 1)
+  const corteCafeina = subHoras(sleep, 8)
 
   // ─────────────────────────────────────────
-  // Tarjetas extra dentro de cada categoría (hábitos no negociables del día).
-  // Cada una tiene eyebrow = la categoría madre, así el orden visual es coherente.
+  // Tarjetas extra de recuperación (hábitos del día). Eyebrow = categoría madre.
   // ─────────────────────────────────────────
   const cardLuzAzul = planItem(
     `Corta la luz azul desde las ${corteLuz}`,
@@ -3759,16 +3744,31 @@ function buildLocalPlan(profile, test) {
     `Cierra la última comida unas 3 h antes de dormir (hoy, sobre las ${cenaHora}) y suma alimentos ricos en triptófano: pavo, huevos, lácteos, plátano, avena o frutos secos. ${stress >= 4 ? `Con estrés ${stress}/5, hoy pesa el doble: estabiliza la glucosa y baja la activación antes de la cama.` : 'Tu cuerpo lo convierte en serotonina y melatonina, así entras al sueño más rápido y más profundo.'}`,
     'Nutrición'
   )
-  // Orden cronológico del día:
-  //  OBJETIVO  →  ENTRENAMIENTO  →  NUTRICIÓN (post-entreno + cena)  →
-  //  RECUPERACIÓN (mente + extras + cierre)  →  SUEÑO (luz azul + dormir)
+  const cardCafeina = planItem(
+    `Última cafeína antes de las ${corteCafeina}`,
+    `La cafeína tiene vida media de ~6 h y fragmenta el sueño profundo aunque te duermas igual. Córtala hoy a partir de las ${corteCafeina} (café, té, mate, refrescos) para proteger la fase que más repara. ${sleepQ <= 2 ? `Con tu sueño en ${sleepQ}/5, es de los cambios de mayor impacto que puedes hacer.` : 'Es de los hábitos de recuperación con mejor relación esfuerzo/beneficio.'}`,
+    'Sueño'
+  )
+  // Siesta/NSDR: SOLO si hay deuda real de recuperación (no es relleno; aparece solo si de verdad ayuda).
+  let cardSiesta = ''
+  if (battery < 45 || sleepH < 6.5 || sleepQ <= 2) {
+    cardSiesta = planItem(
+      `Siesta de 20 min o NSDR a primera hora de la tarde`,
+      `Hoy arrastras deuda de recuperación (${recovLabel}, ${battery}%, sueño ${sleepH}h · ${sleepQ}/5). Una siesta de máximo 20 min (pon alarma, para no entrar en sueño profundo) o 20 min de NSDR / yoga nidra tumbado bajan el cortisol y pagan parte de esa deuda sin estropear el sueño de esta noche. Hazlo antes de las 16:00.`,
+      'Recuperación'
+    )
+  }
+  // Orden CRONOLÓGICO real (por hora del día), siempre coherente, sin saltos de tiempo:
+  //  mañana → día → tarde (siesta, corte cafeína ~${corteCafeina}) → noche (cena ${cenaHora},
+  //  luz azul ${corteLuz}, dormir). Así nunca aparece una hora más tarde antes que una más temprana.
   const html = [
     planItem(focoTitle,    focoBody,    'Objetivo del día'),
-    planItem(entrenaTitle, entrenaBody, 'Entrenamiento'),
-    planItem(nutriTitle,   nutriBody,   'Nutrición'),
-    cardCenaTriptofano,
     planItem(meditaTitle,  meditaBody,  'Recuperación'),
     planItem(extrasTitle,  extrasBody,  'Recuperación'),
+    planItem(nutriTitle,   nutriBody,   'Nutrición'),
+    cardSiesta,
+    cardCafeina,
+    cardCenaTriptofano,
     cardLuzAzul,
     planItem(suenoTitle,   suenoBody,   'Sueño')
   ].join('')
@@ -4370,9 +4370,9 @@ function collectTestData() {
   const nutrSel   = document.querySelector('#test-nutrition .scale-row .scale-btn.sel')
   const sportSel  = document.querySelector('#test-sport .scale-row .scale-btn.sel')
   const timeSel   = document.querySelector('#test-stress .time-card.sel span:last-child')
-  const sleepHoursSel = document.querySelector('#test-sleep .hours-grid .pill-btn.sel')
-  const mealsSel = document.querySelector('#test-nutrition .counter-row .counter-btn.sel')
-  const durSel = document.querySelector('#test-sport .dur-grid .pill-btn.sel')
+  const sleepHoursSel = document.getElementById('sleepHoursDisp')
+  const mealsSel = document.getElementById('mealsNum')
+  const durSel = document.getElementById('durDisp')
   appState.dailyTest = {
     sleepQuality:     sleepSel       ? parseInt(sleepSel.textContent)              : null,
     sleepHours:       sleepHoursSel  ? parseInt(sleepHoursSel.textContent)         : null,
@@ -4701,10 +4701,23 @@ function pickTime(el) {
   el.closest('.time-row').querySelectorAll('.time-card').forEach(c => c.classList.remove('sel'))
   el.classList.add('sel')
 }
-function pickMeals(el, n) {
-  el.closest('.counter-row').querySelectorAll('.counter-btn').forEach(b => b.classList.remove('sel'))
-  el.classList.add('sel')
-  document.getElementById('mealsNum').textContent = n
+function adjustMeals(delta) {
+  const el = document.getElementById('mealsNum')
+  let v = parseInt(el.textContent) || 0
+  v = Math.max(1, Math.min(8, v + delta))
+  el.textContent = v
+}
+function adjustSleepHours(delta) {
+  const el = document.getElementById('sleepHoursDisp')
+  let v = parseInt(el.textContent) || 0
+  v = Math.max(0, Math.min(14, v + delta))
+  el.innerHTML = v + '<span class="unit">h</span>'
+}
+function adjustDur(delta) {
+  const el = document.getElementById('durDisp')
+  let v = parseInt(el.textContent) || 0
+  v = Math.max(0, Math.min(240, v + delta))
+  el.innerHTML = v + '<span class="unit">min</span>'
 }
 function pickDur(el, val) {
   el.closest('.dur-grid').querySelectorAll('.pill-btn').forEach(b => b.classList.remove('sel'))
