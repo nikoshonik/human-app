@@ -505,18 +505,6 @@ body.native-mode .screen:has(.back-btn) .test-wrap {
 .time-picker-btn:active { background: #1e1e1e; color: white; }
 .time-val { font-size: 52px; font-weight: 800; letter-spacing: -2px; min-width: 140px; text-align: center; }
 
-/* ════════════ INTEGRATION CARDS ════════════ */
-.integrations-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-.integration-card {
-  padding: 18px 14px; background: #0d0d0d; border: 1.5px solid #1e1e1e;
-  border-radius: 14px; text-align: center; cursor: pointer;
-  transition: all 0.2s; user-select: none;
-}
-.integration-card.sel { border-color: #3B82F6; background: rgba(59,130,246,0.08); }
-.integration-icon { font-size: 28px; margin-bottom: 7px; }
-.integration-name { font-size: 13px; color: #666; }
-.integration-card.sel .integration-name { color: #3B82F6; }
-
 /* ════════════ BIG PICKER ════════════ */
 .big-picker-wrap { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 16px 0 28px; }
 .big-picker-btn {
@@ -587,7 +575,7 @@ body.native-mode .screen:has(.back-btn) .test-wrap {
   margin-bottom: 16px;
 }
 .splash-sub {
-  font-size: 13px;
+  font-size: 16px;
   letter-spacing: 0.3px;
   color: rgba(255,255,255,0.45);
   text-align: center;
@@ -1276,21 +1264,6 @@ body.native-mode .chat-messages-wrap {
 .obj-val { font-size: 14px; color: #666; }
 .obj-val.green { color: #34D399; }
 
-.device-row { display: flex; gap: 10px; }
-.device-card {
-  flex: 1;
-  background: #0d0d0d;
-  border: 1px solid #111;
-  border-radius: 13px;
-  padding: 12px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.device-info-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
-.device-sync { font-size: 11px; color: #34D399; }
-.device-icon-lg { font-size: 22px; }
-
 /* ════════════ DAILY TEST ════════════ */
 .test-wrap {
   position: absolute;
@@ -1508,8 +1481,6 @@ body.native-mode .ob-intro-header {
 @media screen and (max-width: 375px) {
   .ob-title        { font-size: 24px; }
   .ob-intro-title  { font-size: 30px; }
-  .integrations-grid { gap: 8px; }
-  .integration-card  { padding: 14px 10px; }
   .stats-row       { gap: 8px; padding: 0 14px 14px; }
   .stat-tile       { padding: 11px 10px; }
   .stat-tile-val   { font-size: 20px; }
@@ -1619,6 +1590,26 @@ body.native-mode .screen {
 .account-btn-danger { color: #ef4444; }
 .account-btn-danger:active { background: #1a0a0a; }
 
+/* ── Suscripción (perfil) ── */
+.sub-card { background:#0d0d0d; border:1px solid #1c1c1c; border-radius:14px; padding:14px 16px; margin-bottom:10px; }
+.sub-plan-row { display:flex; align-items:center; justify-content:space-between; }
+.sub-plan-name { font-size:16px; font-weight:700; }
+.sub-plan-status { font-size:12px; color:#888; margin-top:3px; line-height:1.35; }
+
+/* ── Modales (cambiar plan / cancelar) ── */
+.hmodal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.72); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); display:none; align-items:flex-end; justify-content:center; z-index:2000; }
+.hmodal-overlay.open { display:flex; }
+.hmodal-card { background:#101012; border:1px solid #222; border-radius:22px 22px 0 0; width:100%; max-width:440px; padding:26px 22px calc(26px + env(safe-area-inset-bottom)); animation:hmodalUp .22s ease; }
+@keyframes hmodalUp { from { transform:translateY(40px); opacity:0 } to { transform:translateY(0); opacity:1 } }
+.hmodal-title { font-size:21px; font-weight:700; margin-bottom:6px; }
+.hmodal-sub { font-size:14px; color:#888; margin-bottom:18px; line-height:1.4; }
+.reason-btn, .planopt-btn { width:100%; text-align:left; background:#0d0d0d; border:1px solid #1c1c1c; border-radius:12px; padding:14px 16px; margin-bottom:9px; color:#fff; font-size:14px; cursor:pointer; transition:border-color .15s, background .15s; -webkit-tap-highlight-color:transparent; }
+.reason-btn.sel, .planopt-btn.sel { border-color:#3B82F6; background:#0f1830; }
+.planopt-btn { display:flex; align-items:center; justify-content:space-between; }
+.planopt-tag { font-size:11px; color:#3B82F6; font-weight:600; }
+.hmodal-comment { width:100%; box-sizing:border-box; background:#0d0d0d; border:1px solid #1c1c1c; border-radius:12px; padding:12px 14px; color:#fff; font-size:14px; resize:none; min-height:64px; margin:4px 0 14px; font-family:inherit; }
+.btn-text { width:100%; background:none; border:none; color:#888; font-size:14px; padding:12px; cursor:pointer; margin-top:4px; }
+
 /* ═══════════════════════════════════════════════════════════════════
    SCROLL OVERRIDE — REFACTOR DEFINITIVO
    Quita position:absolute + overflow:hidden de TODOS los containers
@@ -1717,7 +1708,7 @@ body.native-mode .back-btn { position: fixed !important; }
   <div class="screen active" id="splash">
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
       <div class="splash-logo">HUMAN</div>
-      <div class="splash-sub">Creado para atletas &amp; founders</div>
+      <div class="splash-sub">Creado para atletas</div>
     </div>
     <div class="splash-btn-wrap">
       <button class="btn-primary" onclick="go('ob-intro')">Registrarse</button>
@@ -1774,22 +1765,22 @@ body.native-mode .back-btn { position: fixed !important; }
       <div class="identity-list">
         <div class="identity-card sel" onclick="pick(this,'identity')">
           <span class="identity-left">
-            <span class="identity-icon">▲</span>
-            <span class="identity-card-name">Founder</span>
+            <span class="identity-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></span>
+            <span class="identity-card-name">Atleta profesional</span>
           </span>
           <span class="identity-dot"></span>
         </div>
         <div class="identity-card" onclick="pick(this,'identity')">
           <span class="identity-left">
-            <span class="identity-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg></span>
-            <span class="identity-card-name">Atleta</span>
+            <span class="identity-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg></span>
+            <span class="identity-card-name">Atleta amateur</span>
           </span>
           <span class="identity-dot"></span>
         </div>
         <div class="identity-card" onclick="pick(this,'identity')">
           <span class="identity-left">
-            <span class="identity-icon">∞</span>
-            <span class="identity-card-name">Ambos</span>
+            <span class="identity-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg></span>
+            <span class="identity-card-name">Entusiasta del fitness</span>
           </span>
           <span class="identity-dot"></span>
         </div>
@@ -2008,46 +1999,7 @@ body.native-mode .back-btn { position: fixed !important; }
       <div id="trainingTimesCustom" style="display:none;margin-top:14px"></div>
 
       <div class="ob-footer">
-        <button class="btn-primary" onclick="collectTrainingDays(); go('ob-integrations')">Continuar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════ OB: INTEGRACIONES ═══════════ -->
-  <div class="screen" id="ob-integrations">
-    <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:72%"></div></div>
-    <button class="back-btn" onclick="go('ob-training-days')">‹</button>
-    <div class="ob-wrap" style="padding-top:90px">
-      <div class="ob-tag">CONECTA TUS DATOS</div>
-      <div class="ob-title">¿Qué dispositivos usas?</div>
-      <div class="integrations-grid">
-        <div class="integration-card" onclick="toggleIntegration(this)">
-          <div class="integration-icon">⌚</div>
-          <div class="integration-name">Apple Watch</div>
-        </div>
-        <div class="integration-card" onclick="toggleIntegration(this)">
-          <div class="integration-icon">📡</div>
-          <div class="integration-name">Garmin</div>
-        </div>
-        <div class="integration-card" onclick="toggleIntegration(this)">
-          <div class="integration-icon">💍</div>
-          <div class="integration-name">Oura Ring</div>
-        </div>
-        <div class="integration-card" onclick="toggleIntegration(this)">
-          <div class="integration-icon">💪</div>
-          <div class="integration-name">Whoop</div>
-        </div>
-        <div class="integration-card" onclick="toggleIntegration(this)">
-          <div class="integration-icon">❤️</div>
-          <div class="integration-name">Apple Health</div>
-        </div>
-        <div class="integration-card" onclick="toggleIntegration(this)">
-          <div class="integration-icon">🏃</div>
-          <div class="integration-name">Ninguno</div>
-        </div>
-      </div>
-      <div class="ob-footer">
-        <button class="btn-primary" onclick="collectIntegrations(); go('ob-stress-baseline')">Continuar</button>
+        <button class="btn-primary" onclick="collectTrainingDays(); go('ob-stress-baseline')">Continuar</button>
       </div>
     </div>
   </div>
@@ -2055,7 +2007,7 @@ body.native-mode .back-btn { position: fixed !important; }
   <!-- ═══════════ OB: BASELINE ESTRÉS ═══════════ -->
   <div class="screen" id="ob-stress-baseline">
     <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:80%"></div></div>
-    <button class="back-btn" onclick="go('ob-integrations')">‹</button>
+    <button class="back-btn" onclick="go('ob-training-days')">‹</button>
     <div class="ob-wrap" style="padding-top:90px">
       <div class="ob-tag">BASELINE</div>
       <div class="ob-title">¿Cuál suele ser tu nivel de estrés?</div>
@@ -2129,7 +2081,7 @@ body.native-mode .back-btn { position: fixed !important; }
         <div class="pain-card-red">
           <div class="pain-x-icon">✕</div>
           <div>
-            <div class="pain-card-title">Cerebro en survival, no en founder mode</div>
+            <div class="pain-card-title">Cuerpo en modo supervivencia, no en rendimiento</div>
             <div class="pain-card-sub">Sin foco = decisiones costosas.</div>
           </div>
         </div>
@@ -2183,7 +2135,7 @@ body.native-mode .back-btn { position: fixed !important; }
       <div class="social-card">
         <div class="social-stars">★★★★★</div>
         <div class="social-quote">"En 2 semanas dormí mejor y tomé decisiones más claras. Mi equipo lo notó antes que yo."</div>
-        <div class="social-author">— Marcos V. — Founder</div>
+        <div class="social-author">— Marcos V. — Atleta</div>
       </div>
       <div class="social-card">
         <div class="social-stars">★★★★★</div>
@@ -2193,7 +2145,7 @@ body.native-mode .back-btn { position: fixed !important; }
       <div class="social-card">
         <div class="social-stars">★★★★★</div>
         <div class="social-quote">"Pasé de funcionar al 60% a estar en mi mejor versión. Ojalá lo hubiera tenido antes."</div>
-        <div class="social-author">— Carlos M. — CEO</div>
+        <div class="social-author">— Carlos M. — Atleta</div>
       </div>
       <div class="ob-footer">
         <button class="btn-primary" onclick="go('paywall-promise')">Quiero resultados como estos</button>
@@ -2229,6 +2181,7 @@ body.native-mode .back-btn { position: fixed !important; }
 
   <!-- ═══════════ PAYWALL: FEATURES + PRECIOS ═══════════ -->
   <div class="screen" id="paywall-features">
+    <button onclick="showDownsell()" aria-label="Cerrar" style="position:absolute;top:50px;right:18px;background:none;border:none;color:#555;font-size:24px;line-height:1;cursor:pointer;z-index:10;padding:6px">✕</button>
     <div class="ob-wrap" style="padding-top:56px">
       <div class="ob-title" style="font-size:24px;line-height:1.18;margin-bottom:10px">Optimiza tu <span style="color:#3B82F6">recuperación</span> y maximiza tu <span style="color:#3B82F6">rendimiento</span></div>
       <div style="font-size:13px;color:#777;margin-bottom:18px;line-height:1.4">Accede a todo lo que Human tiene para ti y desbloquea tu mejor versión.</div>
@@ -2238,20 +2191,42 @@ body.native-mode .back-btn { position: fixed !important; }
         <div style="display:flex;align-items:center;gap:12px;background:#0d0d0d;border-radius:12px;border-left:3px solid #3B82F6;padding:12px 14px"><span style="width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">✓</span><span style="font-size:14px;font-weight:600">Plan personalizado de optimización</span></div>
         <div style="display:flex;align-items:center;gap:12px;background:#0d0d0d;border-radius:12px;border-left:3px solid #3B82F6;padding:12px 14px"><span style="width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">✓</span><span style="font-size:14px;font-weight:600">Seguimiento y progreso constante</span></div>
       </div>
-      <div style="position:relative;background:#3B82F6;border-radius:16px;padding:16px 18px;margin:14px 0 10px">
+      <div id="planAnnual" onclick="selectPlan('annual')" style="position:relative;background:#3B82F6;border-radius:16px;padding:16px 18px;margin:14px 0 10px;cursor:pointer;transition:opacity .2s">
         <div style="position:absolute;top:-10px;right:14px;background:#1a1a1a;color:#fff;font-size:10px;padding:4px 10px;border-radius:999px">Más popular</div>
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div><div style="font-weight:800;color:#fff"><span style="font-size:22px">Anual</span> <span style="font-size:16px">2.50€ / mes</span></div><div style="font-size:13px;color:#dbe7ff;margin-top:3px">29.99€ / año</div></div>
           <div style="text-align:right;font-size:11px;color:#fff;font-weight:600;line-height:1.3">¡Oferta temporal!<br>Ahorra +70%</div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;background:#0d0d0d;border:1px solid #1c1c1c;border-radius:16px;padding:16px 18px;margin-bottom:20px">
+      <div id="planMonthly" onclick="selectPlan('monthly')" style="display:flex;align-items:center;justify-content:space-between;background:#0d0d0d;border:1px solid #1c1c1c;border-radius:16px;padding:16px 18px;margin-bottom:20px;cursor:pointer;opacity:0.5;transition:opacity .2s">
         <div><div style="font-size:20px;font-weight:700">Mensual</div><div style="font-size:13px;color:#777;margin-top:3px">9.99€ / mes</div></div>
         <div style="display:flex;align-items:center;gap:12px;color:#777;font-size:13px">119.99€ / año <span style="width:20px;height:20px;border-radius:50%;border:2px solid #3a3a3a;display:inline-block"></span></div>
       </div>
-      <button class="btn-primary" onclick="go('welcome')" style="background:#fff;color:#000">Comenzar ahora</button>
+      <button class="btn-primary" id="paywallCTA" onclick="startPurchase()" style="background:#fff;color:#000">Comenzar ahora</button>
       <div style="text-align:center;font-size:12px;color:#666;margin-top:12px">7 días gratis · Cancela cuando quieras</div>
-      <div style="text-align:center;font-size:11px;color:#444;margin-top:6px">Restaurar compra · Términos · Privacidad</div>
+      <div style="text-align:center;font-size:11px;color:#444;margin-top:6px"><span onclick="restorePurchases()" style="cursor:pointer">Restaurar compra</span> · <span onclick="openLegal(LEGAL_TERMS_URL)" style="cursor:pointer;text-decoration:underline">Términos</span> · <span onclick="openLegal(LEGAL_PRIVACY_URL)" style="cursor:pointer;text-decoration:underline">Privacidad</span></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ PAYWALL: DOWNSELL (al cerrar el paywall principal) ═══════════ -->
+  <div class="screen" id="paywall-downsell">
+    <div class="ob-wrap" style="padding-top:64px">
+      <div class="ob-tag" style="color:#3B82F6">ESPERA</div>
+      <div class="ob-title" style="font-size:23px;line-height:1.18;margin-bottom:8px">Una última oferta antes de irte</div>
+      <div style="font-size:13px;color:#777;margin-bottom:20px;line-height:1.4">No queremos que el precio te frene. Empieza a optimizar tu recuperación hoy por mucho menos.</div>
+      <div id="dsMonthly" onclick="selectDownsellPlan('monthly')" style="position:relative;background:#3B82F6;border-radius:16px;padding:16px 18px;margin:6px 0 10px;cursor:pointer;transition:opacity .2s">
+        <div style="position:absolute;top:-10px;right:14px;background:#1a1a1a;color:#fff;font-size:10px;padding:4px 10px;border-radius:999px">Oferta exclusiva</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><div style="font-weight:800;color:#fff"><span style="font-size:22px">Mensual</span> <span style="font-size:16px">4.99€ / mes</span></div><div style="font-size:13px;color:#dbe7ff;margin-top:3px"><s style="opacity:.7">9.99€</s> · 50% de descuento</div></div>
+        </div>
+      </div>
+      <div id="dsAnnual" onclick="selectDownsellPlan('annual')" style="display:flex;align-items:center;justify-content:space-between;background:#0d0d0d;border:1px solid #1c1c1c;border-radius:16px;padding:16px 18px;margin-bottom:20px;cursor:pointer;opacity:0.5;transition:opacity .2s">
+        <div><div style="font-size:20px;font-weight:700">Anual</div><div style="font-size:13px;color:#777;margin-top:3px">29.99€ / año · 2.50€/mes</div></div>
+        <span style="width:20px;height:20px;border-radius:50%;border:2px solid #3a3a3a;display:inline-block"></span>
+      </div>
+      <button class="btn-primary" id="downsellCTA" onclick="startDownsellPurchase()" style="background:#fff;color:#000">Aprovechar oferta</button>
+      <div style="text-align:center;font-size:12px;color:#666;margin-top:12px">7 días gratis · Cancela cuando quieras</div>
+      <div style="text-align:center;font-size:11px;color:#444;margin-top:10px"><span onclick="go('splash')" style="cursor:pointer">No, gracias</span> · <span onclick="restorePurchases()" style="cursor:pointer">Restaurar compra</span></div>
     </div>
   </div>
 
@@ -2270,6 +2245,7 @@ body.native-mode .back-btn { position: fixed !important; }
 
   <!-- ═══════════ CREAR CUENTA ═══════════ -->
   <div class="screen" id="create-account">
+    <button id="caBackBtn" onclick="go('splash')" style="display:none;position:absolute;top:54px;left:20px;background:none;border:none;color:#fff;font-size:22px;cursor:pointer;z-index:10;padding:8px;">←</button>
     <div style="padding: 58px 24px 0;">
       <div class="ca-progress">
         <div class="ca-prog-seg on"></div>
@@ -2280,7 +2256,7 @@ body.native-mode .back-btn { position: fixed !important; }
     </div>
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px 80px;">
       <div class="ca-title">Crea tu cuenta</div>
-      <div class="ca-sub">Empieza gratis. Sin tarjeta de crédito.</div>
+      <div class="ca-sub">Crea tu cuenta para guardar tu progreso.</div>
       <div class="ca-btns">
         <!-- Botones sociales (Apple + Google) -->
         <div id="socialBtns" style="width:100%;display:flex;flex-direction:column;gap:10px">
@@ -2305,7 +2281,7 @@ body.native-mode .back-btn { position: fixed !important; }
       </div>
       <div class="ca-login">¿Ya tienes cuenta? <span onclick="showLoginForm()">Iniciar sesión</span></div>
     </div>
-    <div class="ca-legal">Al crear la cuenta, aceptas los Términos de uso y la Política de privacidad de Human.</div>
+    <div class="ca-legal">Al crear la cuenta, aceptas los <span onclick="openLegal(LEGAL_TERMS_URL)" style="text-decoration:underline;cursor:pointer">Términos de uso</span> y la <span onclick="openLegal(LEGAL_PRIVACY_URL)" style="text-decoration:underline;cursor:pointer">Política de privacidad</span> de Human.</div>
   </div>
 
   <!-- ═══════════ MAIN APP ═══════════ -->
@@ -2507,6 +2483,27 @@ body.native-mode .back-btn { position: fixed !important; }
         <div class="profile-section-title" id="profileGoalsTitle">OBJETIVOS</div>
         <div id="profileGoalsList"></div>
       </div>
+      <div class="profile-section" id="profileSubSection">
+        <div class="profile-section-title">SUSCRIPCIÓN</div>
+        <div class="sub-card">
+          <div class="sub-plan-row">
+            <div>
+              <div class="sub-plan-name" id="subPlanName">—</div>
+              <div class="sub-plan-status" id="subPlanStatus"></div>
+            </div>
+            <span class="pill pill-blue" id="subPlanBadge" style="display:none">PREMIUM</span>
+          </div>
+        </div>
+        <button class="account-btn" onclick="openChangePlan()">
+          <span>Cambiar de plan</span>
+          <span style="opacity:0.5">›</span>
+        </button>
+        <button class="account-btn account-btn-danger" onclick="openCancelFlow()">
+          <span>Cancelar suscripción</span>
+          <span style="opacity:0.5">›</span>
+        </button>
+      </div>
+
       <div class="profile-section">
         <div class="profile-section-title">CUENTA</div>
         <button class="account-btn" onclick="doLogout()">
@@ -2553,10 +2550,46 @@ body.native-mode .back-btn { position: fixed !important; }
       </button>
       <button class="nav-btn" id="nav-chat" onclick="switchTab('chat')">
         <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-        <span>Chat</span>
+        <span>Agente</span>
       </button>
     </div>
   </div><!-- /main-app -->
+
+  <!-- ═══════════ MODAL: CAMBIAR DE PLAN ═══════════ -->
+  <div class="hmodal-overlay" id="changePlanModal">
+    <div class="hmodal-card">
+      <div class="hmodal-title">Cambiar de plan</div>
+      <div class="hmodal-sub">Elige el plan que mejor se adapte a ti. El cambio lo gestiona Apple y se aplica según tu ciclo de facturación.</div>
+      <button class="planopt-btn" id="planOptAnnual" onclick="selectChangePlan(this, PRODUCT_ANNUAL)">
+        <div><div style="font-weight:700">Anual</div><div style="font-size:12px;color:#888;margin-top:2px">29,99€ / año · 2,50€/mes</div></div>
+        <span class="planopt-tag" id="planTagAnnual"></span>
+      </button>
+      <button class="planopt-btn" id="planOptMonthly" onclick="selectChangePlan(this, PRODUCT_MONTHLY)">
+        <div><div style="font-weight:700">Mensual</div><div style="font-size:12px;color:#888;margin-top:2px">9,99€ / mes</div></div>
+        <span class="planopt-tag" id="planTagMonthly"></span>
+      </button>
+      <button class="btn-primary" style="margin-top:8px" onclick="confirmChangePlan()">Confirmar cambio</button>
+      <button class="btn-text" onclick="closeChangePlan()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- ═══════════ MODAL: CANCELAR SUSCRIPCIÓN (retención) ═══════════ -->
+  <div class="hmodal-overlay" id="cancelModal">
+    <div class="hmodal-card">
+      <div class="hmodal-title">¿Por qué te vas?</div>
+      <div class="hmodal-sub">Tu opinión nos ayuda a mejorar Human. Cuéntanos el motivo antes de continuar.</div>
+      <div id="cancelReasons">
+        <button class="reason-btn" onclick="selectCancelReason(this,'precio')">Es demasiado caro</button>
+        <button class="reason-btn" onclick="selectCancelReason(this,'poco_uso')">No la uso lo suficiente</button>
+        <button class="reason-btn" onclick="selectCancelReason(this,'faltan_funciones')">Le faltan funciones que necesito</button>
+        <button class="reason-btn" onclick="selectCancelReason(this,'no_resultados')">No veo los resultados que esperaba</button>
+        <button class="reason-btn" onclick="selectCancelReason(this,'otro')">Otro motivo</button>
+      </div>
+      <textarea class="hmodal-comment" id="cancelComment" placeholder="Cuéntanos más (opcional)"></textarea>
+      <button class="btn-primary" onclick="confirmCancel()">Continuar con la cancelación</button>
+      <button class="btn-text" onclick="closeCancelModal()">Mejor me quedo</button>
+    </div>
+  </div>
 
   <!-- ═══════════ TEST DIARIO: SUEÑO ═══════════ -->
   <div class="screen" id="test-sleep">
@@ -2580,7 +2613,10 @@ body.native-mode .back-btn { position: fixed !important; }
       <div class="test-q-label">HORAS DORMIDAS</div>
       <div class="big-picker-wrap">
         <button class="big-picker-btn" onclick="adjustSleepHours(-1)">−</button>
-        <div class="big-display" id="sleepHoursDisp" style="margin:0">7<span class="unit">h</span></div>
+        <div style="text-align:center">
+          <div class="meals-num" id="sleepHoursDisp">7</div>
+          <div class="meals-sub" style="margin-bottom:0">horas</div>
+        </div>
         <button class="big-picker-btn" onclick="adjustSleepHours(1)">+</button>
       </div>
       <div class="ob-footer">
@@ -2607,7 +2643,7 @@ body.native-mode .back-btn { position: fixed !important; }
         <div class="scale-btn" onclick="pickScale(this)">4</div>
         <div class="scale-btn" onclick="pickScale(this)">5</div>
       </div>
-      <div class="scale-labels"><span>Muy bajo</span><span>Bajo</span><span>Normal</span><span>Alto</span><span>Muy alto</span></div>
+      <div class="scale-labels"><span>Muy bajo</span><span>Bajo</span><span>Medio</span><span>Alto</span><span>Muy alto</span></div>
       <div class="test-q-label" style="margin-top:4px">¿CUÁNDO FUE PEOR?</div>
       <div class="time-row">
         <div class="time-card" onclick="pickTime(this)"><span class="icon">🌅</span><span>Mañana</span></div>
@@ -2672,11 +2708,14 @@ body.native-mode .back-btn { position: fixed !important; }
         <div class="scale-btn" onclick="pickScale(this)">4</div>
         <div class="scale-btn" onclick="pickScale(this)">5</div>
       </div>
-      <div class="scale-labels"><span>Nada</span><span>Suave</span><span>Moderado</span><span>Intenso</span><span>Máximo</span></div>
+      <div class="scale-labels"><span>Nada</span><span>Ligero</span><span>Moderado</span><span>Intenso</span><span>Máximo</span></div>
       <div class="test-q-label" style="margin-top:4px">DURACIÓN</div>
       <div class="big-picker-wrap">
         <button class="big-picker-btn" onclick="adjustDur(-15)">−</button>
-        <div class="big-display" id="durDisp" style="margin:0">45<span class="unit">min</span></div>
+        <div style="text-align:center">
+          <div class="meals-num" id="durDisp">45</div>
+          <div class="meals-sub" style="margin-bottom:0">min</div>
+        </div>
         <button class="big-picker-btn" onclick="adjustDur(15)">+</button>
       </div>
       <div class="ob-footer">
@@ -2700,7 +2739,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 let sb = null
 if (window.supabase && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('__')) {
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' }
   })
 } else {
   console.warn('⚠️ Supabase SDK no inicializado: falta ANON_KEY o SDK no cargó')
@@ -3068,15 +3107,6 @@ function collectTrainingDays() {
   }
 }
 
-// ── Integraciones ──
-function toggleIntegration(el) { el.classList.toggle('sel') }
-function collectIntegrations() {
-  const sel = []
-  document.querySelectorAll('#ob-integrations .integration-card.sel .integration-name')
-    .forEach(n => sel.push(n.textContent))
-  appState.profile.integrations = sel
-}
-
 // ── Baselines ──
 let stressBaselineVal = 3
 let scoreBaselineVal  = 45
@@ -3100,19 +3130,44 @@ function showEmailForm() {
   document.getElementById('emailRegBtn').style.display = 'none'
   const p2 = document.getElementById('regPassword2')
   if (p2) p2.style.display = 'block'
-  // En modo registro, restaurar barra de progreso
+  // En modo registro, restaurar barra de progreso y ocultar back btn
   const prog = document.querySelector('#create-account .ca-progress')
   if (prog) prog.style.display = 'flex'
+  const backBtn = document.getElementById('caBackBtn')
+  if (backBtn) backBtn.style.display = 'none'
+  // Restaurar link inferior
+  const loginLink = document.querySelector('.ca-login')
+  if (loginLink) loginLink.innerHTML = '¿Ya tienes cuenta? <span onclick="showLoginForm()">Iniciar sesión</span>'
 }
-function doSocialAuth(provider) {
-  // Apple y Google Sign-In — próximamente
-  const msg = provider === 'apple' ? 'Sign in con Apple próximamente' : 'Sign in con Google próximamente'
-  // Mostrar toast simple
-  let toast = document.createElement('div')
-  toast.textContent = msg
-  toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;z-index:9999;border:1px solid #333'
-  document.body.appendChild(toast)
-  setTimeout(() => toast.remove(), 2500)
+async function doSocialAuth(provider) {
+  // Login con Apple / Google vía Supabase OAuth (PKCE).
+  // Requiere tener el proveedor habilitado en Supabase (ver checklist de config).
+  if (!sb) { showToast('Auth no disponible. Falta configurar Supabase.'); return }
+  const label = provider === 'apple' ? 'Apple' : 'Google'
+  try {
+    const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())
+    if (isNative) {
+      // Nativo iOS: abrir navegador del sistema y volver por deep link (humanapp://auth-callback)
+      const { data, error } = await sb.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: 'humanapp://auth-callback', skipBrowserRedirect: true }
+      })
+      if (error) throw error
+      const Browser = window.Capacitor?.Plugins?.Browser
+      if (Browser && data?.url)      await Browser.open({ url: data.url })
+      else if (data?.url)            window.location.href = data.url
+    } else {
+      // Web / simulador: redirección estándar de vuelta a la propia página
+      const { error } = await sb.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: window.location.origin + window.location.pathname }
+      })
+      if (error) throw error
+    }
+  } catch (err) {
+    console.error('OAuth ' + provider + ':', err)
+    showToast('No se pudo iniciar sesión con ' + label + '. Inténtalo de nuevo.')
+  }
 }
 function showLoginForm() {
   // Mostrar botones sociales
@@ -3135,13 +3190,19 @@ function showLoginForm() {
   // Ocultar la barra de progreso (no aplica en login)
   const prog = document.querySelector('#create-account .ca-progress')
   if (prog) prog.style.display = 'none'
+  // Mostrar botón de atrás
+  const backBtn = document.getElementById('caBackBtn')
+  if (backBtn) backBtn.style.display = 'block'
+  // Cambiar link inferior a "Registrarse"
+  const loginLink = document.querySelector('.ca-login')
+  if (loginLink) loginLink.innerHTML = '¿No tienes cuenta? <span onclick="go(\'ob-intro\')">Regístrate gratis</span>'
 }
 function goCreateAccount(mode) {
   // Reset estado antes de mostrar
   const socialBtns = document.getElementById('socialBtns')
   if (socialBtns) socialBtns.style.display = mode === 'login' ? 'flex' : 'none'
   document.querySelector('.ca-title').textContent = mode === 'login' ? 'Bienvenido de vuelta' : 'Crea tu cuenta'
-  document.querySelector('.ca-sub').textContent = mode === 'login' ? 'Inicia sesión en tu cuenta.' : 'Empieza gratis. Sin tarjeta de crédito.'
+  document.querySelector('.ca-sub').textContent = mode === 'login' ? 'Inicia sesión en tu cuenta.' : 'Crea tu cuenta para guardar tu progreso.'
   go('create-account')
   if (mode === 'login') showLoginForm()
   else showEmailForm()
@@ -3266,7 +3327,6 @@ async function _saveOnboarding() {
     sleep_time:      appState.profile.sleep_time       || '23:00',
     stress_baseline: appState.profile.stress_baseline  || 3,
     score_baseline:  appState.profile.score_baseline   || 45,
-    integrations:    appState.profile.integrations     || [],
     training_days:   appState.profile.training_days    || [],
     training_time:   appState.profile.training_time    || null,
     training_times:  appState.profile.training_times   || null
@@ -3281,8 +3341,7 @@ async function _saveOnboarding() {
     agent_name: payload.agentName,
     wake_time: payload.wake_time, sleep_time: payload.sleep_time,
     stress_baseline: payload.stress_baseline,
-    score_baseline: payload.score_baseline,
-    integrations: payload.integrations
+    score_baseline: payload.score_baseline
   }
   try {
     const { data: { user } } = await sb.auth.getUser()
@@ -3340,6 +3399,11 @@ function pollForDailyPlan(maxAttempts = 12, intervalMs = 3000) {
 
 // ── Entrar a la app ──
 async function enterApp() {
+  // GATE — Paywall obligatorio: sin suscripción activa (ni trial), no hay acceso a la app.
+  if (!(await hasActivePremium())) {
+    go('paywall-features')
+    return
+  }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
   document.getElementById('main-app').classList.add('active')
   document.getElementById('chatAgentName').textContent = agentName
@@ -3590,6 +3654,17 @@ function buildLocalPlan(profile, test) {
   const wake      = profile?.wake_time  || '07:00'
   const sleep     = profile?.sleep_time || '23:00'
 
+  // Helpers: horas relativas al sleep_time del user (cena 3h antes, luz azul 1h antes, cafeína 8h antes)
+  const subHoras = (hhmm, h) => {
+    const [H, M] = String(hhmm || '23:00').split(':').map(Number)
+    let total = ((H * 60 + (M || 0)) - h * 60)
+    total = ((total % 1440) + 1440) % 1440
+    return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+  }
+  const cenaHora = subHoras(sleep, 3)
+  const corteLuz = subHoras(sleep, 1)
+  const corteCafeina = subHoras(sleep, 8)
+
   // Etiqueta breve del estado de recuperación (se reutiliza en explicaciones)
   const recovLabel = battery >= 80 ? 'excelente recuperación'
                   : battery >= 65 ? 'buena recuperación'
@@ -3647,16 +3722,16 @@ function buildLocalPlan(profile, test) {
   // ─────────────────────────────────────────
   let nutriTitle, nutriBody
   if (stress >= 4) {
-    nutriTitle = `4 comidas pequeñas con proteína magra + 2.5L agua`
+    nutriTitle = `4 comidas pequeñas con proteína magra + 2.5 L de agua`
     nutriBody  = `Con estrés ${stress}/5 lo importante es estabilizar glucosa para no añadir leña. Una comida cada 3-4h: proteína magra (huevos, pavo, salmón, lentejas) + verdura abundante + grasa buena (aguacate, frutos secos, AOVE). Evita azúcar y harinas refinadas. Cafeína solo antes de las 14:00. Con la cena: 300-400mg de magnesio glicinato y 1-2g de omega-3.`
   } else if (sleepH < 6) {
-    nutriTitle = `Desayuno potente, cena ligera antes de las 21:00`
+    nutriTitle = `Desayuno potente, cena ligera antes de las ${cenaHora}`
     nutriBody  = `Tras ${sleepH}h de sueño tu sensibilidad a la insulina baja — cuida los picos. Desayuno: 3-4 huevos + aguacate + tostada integral o avena, café antes de las 11:00. Comida: proteína magra (pollo, pavo o pescado blanco) + arroz/quinoa + verdura. Cena ligera (crema de verduras + tortilla o pescado al horno). Nada de azúcar ni alcohol. Agua 2.5L.`
   } else if (sportI >= 4) {
-    nutriTitle = `Proteína para reparar + antiinflamatorios (cargaste fuerte)`
+    nutriTitle = `Proteína para reparar + alimentos antiinflamatorios`
     nutriBody  = `Tu deporte de ayer (${sportI}/5) dejó microdaño muscular — hoy la comida es para repararlo. Reparte 1.6-2g de proteína por kg a lo largo del día (huevos, pollo, pescado azul, lácteos, legumbres). Suma antiinflamatorios: omega-3 (1-2g) o pescado graso, frutos rojos, cúrcuma, verdura de hoja verde y AOVE. Hidrata 2.5-3L con algo de sal/electrolitos. Evita alcohol y ultraprocesados: frenan la reparación.`
   } else {
-    nutriTitle = `Proteína magra + verdura de color + buena hidratación`
+    nutriTitle = `Proteína magra + verdura variada + buena hidratación`
     nutriBody  = `Base de recuperación de cada día: proteína magra en cada comida (120-150g de pollo, pescado, pavo o huevos) para reparar tejido, y mucho color en el plato (espinaca, rúcula, brócoli, pimiento, zanahoria, frutos rojos) por sus antioxidantes. Acompaña con un carbo de calidad (arroz integral, batata, quinoa). Agua 2-2.5L a sorbos durante el día. Cuanto más limpia la comida, mejor recuperas.`
   }
 
@@ -3665,17 +3740,17 @@ function buildLocalPlan(profile, test) {
   // ─────────────────────────────────────────
   let meditaTitle, meditaBody
   if (stress >= 4) {
-    meditaTitle = `2 sesiones: 10 min respiración 4-7-8 + 20 min estiramiento tarde`
+    meditaTitle = `2 sesiones: 10 min de respiración 4-7-8 + 20 min de estiramiento por la tarde`
     meditaBody  = `Estrés ${stress}/5 pide dos cortes. Mañana: 10 min de respiración 4-7-8 (4s inhalar por nariz, 7s mantener, 8s soltar por boca × 4 ciclos) para activar el parasimpático. A media tarde: 15-20 min combinando 5 min de meditación guiada + 10 min de estiramiento suave de cervicales, hombros y zona lumbar — sueltan tensión y preparan sueño más profundo. Paseo sin móvil 15 min después de comer.`
   } else if (sleepQ <= 2 || battery < 40) {
-    meditaTitle = `10 min body scan al despertar + 20 min relax antes de dormir`
+    meditaTitle = `10 min de body scan al despertar + 20 min de relajación antes de dormir`
     meditaBody  = `Hoy tu sistema nervioso necesita reset. Mañana: 10 min de body scan guiado al despertar (vas recorriendo el cuerpo zona por zona, soltando tensión). Antes de dormir: 15-20 min para relajar el sistema y preparar un sueño profundo — 5 min de respiración cuadrada (4-4-4-4) + 10 min de estiramientos suaves (gato-vaca, postura del niño, twist sentado, piernas en la pared). Sin pantallas en esos 20 min.`
   } else if (battery >= 75) {
     meditaTitle = `5 min de respiración al despertar + 10 min de movilidad suave`
     meditaBody  = `Estás recuperado, así que basta con mantenimiento: 5 min al arrancar el día de respiración consciente (sentado, ojos cerrados) para fijar el tono del sistema nervioso. Y 10 min de movilidad y estiramiento suave (caderas, hombros, columna) repartidos en el día para que la recuperación no se estanque. Ancla 3 pausas conscientes con un timer.`
   } else {
-    meditaTitle = `15-20 min para relajar el sistema nervioso (mañana + noche)`
-    meditaBody  = `Reparto: 10 min de meditación guiada por la mañana (usa una app o haz respiración nasal lenta — 6 respiraciones por minuto), pausa consciente de 2 min después de comer (cierra ojos, 10 respiraciones contadas), y 8-10 min de estiramiento ligero antes de la cama (cadera, isquios, dorsal, cervicales). Cierra el día anotando 3 cosas que hiciste bien.`
+    meditaTitle = `10-15 min de ejercicios de respiración (mañana + noche)`
+    meditaBody  = `Tu sistema nervioso tiene dos modos: el simpático (acelera: estrés y alerta) y el parasimpático (frena: calma y recuperación). La respiración es el mando más directo para pasar del primero al segundo, y la clave es que la exhalación sea más larga que la inhalación. Mañana: 5-7 min de respiración nasal lenta (6 respiraciones por minuto) para bajar el simpático y arrancar el día sin sobreactivación. Noche: 5-8 min de 4-7-8 (4s inhalar por nariz, 7s mantener, 8s soltar por boca); esa exhalación larga activa el parasimpático y te mete en modo sueño. Hazlo siempre a la misma hora, sentado y sin móvil.`
   }
 
   // ─────────────────────────────────────────
@@ -3708,34 +3783,21 @@ function buildLocalPlan(profile, test) {
   // ─────────────────────────────────────────
   let extrasTitle, extrasBody
   if (battery >= 70 && sportI >= 4) {
-    extrasTitle = `Sol matinal + hidratación + foam roller de descarga`
-    extrasBody  = `Cargaste fuerte ayer, así que hoy toca descargar. 10-15 min de sol directo al despertar (regula el cortisol matinal y mejora el sueño de esta noche). Hidratación 3L con un pellizco de sal o electrolitos. Y 8-10 min de foam roller suave en cuádriceps, glúteos, dorsal y gemelos para bajar tensión muscular y mejorar el riego — sin buscar dolor, solo soltar.`
+    extrasTitle = `Hidratación con electrolitos + foam roller de descarga`
+    extrasBody  = `Cargaste fuerte ayer, así que hoy toca descargar. Hidratación 3L con un pellizco de sal o electrolitos. Y 8-10 min de foam roller suave en cuádriceps, glúteos, dorsal y gemelos para bajar tensión muscular y mejorar el riego — sin buscar dolor, solo soltar.`
   } else if (stress >= 4 || sleepQ <= 2) {
-    extrasTitle = `10 min sol al despertar + 20 min paseo tarde + foam roller`
-    extrasBody  = `Sol matinal nada más despertarte (sin gafas de sol los primeros minutos — anclar el ritmo circadiano es lo más alto-ROI cuando duermes mal). Paseo de 20 min por la tarde sin pantallas. Foam roller 5 min en zona lumbar y dorsal al acabar el día. Si puedes, contraste agua fría-caliente en la ducha (30s × 3) para activar parasimpático.`
+    extrasTitle = `20 min de paseo por la tarde + foam roller + contraste frío-calor`
+    extrasBody  = `Paseo de 20 min por la tarde sin pantallas. Foam roller 5 min en zona lumbar y dorsal al acabar el día. Si puedes, contraste agua fría-caliente en la ducha (30s × 3) para activar parasimpático.`
   } else {
-    extrasTitle = `2-2.5L agua + 7-8k pasos + 10 min sol matinal`
-    extrasBody  = `Agua a sorbos (no de golpe). Camina pasos repartidos durante el día. Sol por la mañana para anclar el circadiano. Estira caderas, isquios y zona dorsal antes de dormir (5-7 min). Si trabajas sentado, levántate 2 min cada 50 min — pequeñas pausas suman más que un break largo.`
+    extrasTitle = `2-2.5 L de agua + 7-8k pasos + pausas activas`
+    extrasBody  = `Agua a sorbos (no de golpe). Camina pasos repartidos durante el día. Estira caderas, isquios y zona dorsal antes de dormir (5-7 min). Si trabajas sentado, levántate 2 min cada 50 min — pequeñas pausas suman más que un break largo.`
   }
-
-  // ─────────────────────────────────────────
-  // Helpers: horas relativas al sleep_time del user (para luz azul + cena temprana)
-  // ─────────────────────────────────────────
-  const subHoras = (hhmm, h) => {
-    const [H, M] = String(hhmm || '23:00').split(':').map(Number)
-    let total = ((H * 60 + (M || 0)) - h * 60)
-    total = ((total % 1440) + 1440) % 1440
-    return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
-  }
-  const cenaHora = subHoras(sleep, 3)
-  const corteLuz = subHoras(sleep, 1)
-  const corteCafeina = subHoras(sleep, 8)
 
   // ─────────────────────────────────────────
   // Tarjetas extra de recuperación (hábitos del día). Eyebrow = categoría madre.
   // ─────────────────────────────────────────
   const cardLuzAzul = planItem(
-    `Corta la luz azul desde las ${corteLuz}`,
+    `Nada de luz azul a partir de las ${corteLuz}`,
     `Reduce o bloquea pantallas y LED al menos 1 h antes de dormir (hoy desde las ${corteLuz}): modo noche, luz cálida y, si puedes, gafas de bloqueo. ${sleepQ <= 2 ? `Tu sueño viene flojo (${sleepQ}/5), así que este corte es de los cambios de mayor impacto que puedes hacer hoy.` : 'La luz azul frena la melatonina; cortarla mejora la calidad y lo rápido que te duermes.'}`,
     'Sueño'
   )
@@ -3745,9 +3807,22 @@ function buildLocalPlan(profile, test) {
     'Nutrición'
   )
   const cardCafeina = planItem(
-    `Última cafeína antes de las ${corteCafeina}`,
+    `Nada de cafeína después de las ${corteCafeina}`,
     `La cafeína tiene vida media de ~6 h y fragmenta el sueño profundo aunque te duermas igual. Córtala hoy a partir de las ${corteCafeina} (café, té, mate, refrescos) para proteger la fase que más repara. ${sleepQ <= 2 ? `Con tu sueño en ${sleepQ}/5, es de los cambios de mayor impacto que puedes hacer.` : 'Es de los hábitos de recuperación con mejor relación esfuerzo/beneficio.'}`,
     'Sueño'
+  )
+  // ─────────────────────────────────────────
+  // RITMO CIRCADIANO — luz solar al amanecer y al atardecer (2 hábitos separados)
+  // ─────────────────────────────────────────
+  const cardLuzAmanecer = planItem(
+    `Exposición al sol del amanecer: 10 min al despertar`,
+    `Sal al exterior (balcón o calle, no a través del cristal) en los primeros 30-60 min tras despertarte — hoy desde las ${wake} — y sin gafas de sol los primeros minutos. Esa luz dispara el pulso de cortisol matinal, ancla tu reloj biológico y pone en marcha el temporizador de melatonina para esta noche. ${sleepQ <= 2 ? `Con tu sueño en ${sleepQ}/5, es la palanca número uno para resetear el ciclo.` : 'Funciona incluso nublado: fuera hay 10-50× más lux que en cualquier interior.'}`,
+    'Ritmo circadiano'
+  )
+  const cardLuzAtardecer = planItem(
+    `Exposición al sol del atardecer: 10 min con el sol bajo`,
+    `Vuelve a salir a última hora de luz, cuando el sol esté cerca del horizonte. Esa luz cálida de ángulo bajo le señala al cerebro que el día termina: adelanta la liberación de melatonina y reduce la sensibilidad de la retina a la luz artificial de la noche (las pantallas te penalizan menos). ${stress >= 4 ? `Con estrés ${stress}/5, úsalo como corte parasimpático: 10 min de paseo lento sin móvil mirando al horizonte.` : 'Ideal combinarlo con un paseo corto sin móvil — ver amanecer y atardecer el mismo día es el ancla circadiana más potente que existe.'}`,
+    'Ritmo circadiano'
   )
   // Siesta/NSDR: SOLO si hay deuda real de recuperación (no es relleno; aparece solo si de verdad ayuda).
   let cardSiesta = ''
@@ -3759,15 +3834,18 @@ function buildLocalPlan(profile, test) {
     )
   }
   // Orden CRONOLÓGICO real (por hora del día), siempre coherente, sin saltos de tiempo:
-  //  mañana → día → tarde (siesta, corte cafeína ~${corteCafeina}) → noche (cena ${cenaHora},
-  //  luz azul ${corteLuz}, dormir). Así nunca aparece una hora más tarde antes que una más temprana.
+  //  amanecer (luz solar) → mañana → día → tarde (siesta, corte cafeína ~${corteCafeina}) →
+  //  atardecer (luz solar) → noche (cena ${cenaHora}, luz azul ${corteLuz}, dormir).
+  //  Así nunca aparece una hora más tarde antes que una más temprana.
   const html = [
     planItem(focoTitle,    focoBody,    'Objetivo del día'),
+    cardLuzAmanecer,
     planItem(meditaTitle,  meditaBody,  'Recuperación'),
     planItem(extrasTitle,  extrasBody,  'Recuperación'),
     planItem(nutriTitle,   nutriBody,   'Nutrición'),
     cardSiesta,
     cardCafeina,
+    cardLuzAtardecer,
     cardCenaTriptofano,
     cardLuzAzul,
     planItem(suenoTitle,   suenoBody,   'Sueño')
@@ -3891,6 +3969,9 @@ function renderProfile(profile, stats) {
   // Rutina
   setText('profileWakeTime', profile?.wake_time || '—')
   setText('profileSleepTime', profile?.sleep_time || '—')
+
+  // Suscripción (async, lee RevenueCat)
+  renderSubscription()
 }
 
 function setText(id, val) {
@@ -4688,10 +4769,6 @@ function pickPeriod(el) {
   el.closest('.period-tabs').querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'))
   el.classList.add('active')
 }
-function pickScale(el) {
-  el.closest('.scale-row').querySelectorAll('.scale-btn').forEach(b => b.classList.remove('sel'))
-  el.classList.add('sel')
-}
 function pickHours(el, val) {
   el.closest('.hours-grid').querySelectorAll('.pill-btn').forEach(b => b.classList.remove('sel'))
   el.classList.add('sel')
@@ -4699,6 +4776,10 @@ function pickHours(el, val) {
 }
 function pickTime(el) {
   el.closest('.time-row').querySelectorAll('.time-card').forEach(c => c.classList.remove('sel'))
+  el.classList.add('sel')
+}
+function pickScale(el) {
+  el.closest('.scale-row').querySelectorAll('.scale-btn').forEach(b => b.classList.remove('sel'))
   el.classList.add('sel')
 }
 function adjustMeals(delta) {
@@ -4711,13 +4792,13 @@ function adjustSleepHours(delta) {
   const el = document.getElementById('sleepHoursDisp')
   let v = parseInt(el.textContent) || 0
   v = Math.max(0, Math.min(14, v + delta))
-  el.innerHTML = v + '<span class="unit">h</span>'
+  el.textContent = v
 }
 function adjustDur(delta) {
   const el = document.getElementById('durDisp')
   let v = parseInt(el.textContent) || 0
   v = Math.max(0, Math.min(240, v + delta))
-  el.innerHTML = v + '<span class="unit">min</span>'
+  el.textContent = v
 }
 function pickDur(el, val) {
   el.closest('.dur-grid').querySelectorAll('.pill-btn').forEach(b => b.classList.remove('sel'))
@@ -4826,8 +4907,30 @@ window.addEventListener('load', async () => {
       appState.userId = null
       appState.profile = {}
       appState.tests = []
+    } else if (event === 'SIGNED_IN' && session?.user && !appState.userId) {
+      // Login completado (incluye retorno de OAuth Apple/Google)
+      appState.userId = session.user.id
+      enterApp()
     }
   })
+
+  // Retorno de OAuth en nativo (deep link humanapp://auth-callback)
+  try {
+    const AppPlugin = window.Capacitor?.Plugins?.App
+    if (AppPlugin && AppPlugin.addListener) {
+      AppPlugin.addListener('appUrlOpen', async ({ url }) => {
+        try {
+          if (!url || !url.includes('auth-callback')) return
+          try { await window.Capacitor?.Plugins?.Browser?.close() } catch {}
+          const { data, error } = await sb.auth.exchangeCodeForSession(url)
+          if (!error && data?.session?.user && !appState.userId) {
+            appState.userId = data.session.user.id
+            await enterApp()
+          }
+        } catch (e) { console.error('appUrlOpen OAuth:', e) }
+      })
+    }
+  } catch (e) { /* noop */ }
 
   // Auto-login si hay sesión persistida
   try {
@@ -4841,6 +4944,296 @@ window.addEventListener('load', async () => {
     console.warn('getSession error:', err.message)
   }
 })
+
+// ─────────────────────────────────────────────
+// ── PAYWALL — RevenueCat + StoreKit 2 ──
+// ─────────────────────────────────────────────
+
+// IDs de producto (configurar en App Store Connect + RevenueCat)
+const RC_API_KEY       = 'appl_mxmUwodTeHbAxCivvkpUirABaYl'   // API key pública iOS de RevenueCat (proyecto Human)
+const PRODUCT_ANNUAL          = 'com.nikoshonik.humanapp.premium.yearly'    // ID del producto anual (29,99€) en App Store Connect
+const PRODUCT_MONTHLY         = 'com.nikoshonik.humanapp.premium.monthly'   // ID del producto mensual (9,99€) en App Store Connect
+const PRODUCT_MONTHLY_DOWNSELL = 'com.nikoshonik.humanapp.premium.downsell' // ID del downsell mensual (4,99€) en App Store Connect
+
+let selectedPlan = 'annual'   // plan seleccionado por defecto en el paywall principal
+let downsellPlan = 'monthly'  // plan seleccionado por defecto en el downsell (4,99€)
+
+// Inicializar RevenueCat al arrancar (solo en dispositivo nativo)
+async function initRevenueCat() {
+  try {
+    const { Purchases } = window.Capacitor?.Plugins || {}
+    if (!Purchases || !window.Capacitor?.isNativePlatform?.()) return
+    await Purchases.configure({ apiKey: RC_API_KEY })
+    console.log('[RC] RevenueCat inicializado')
+  } catch (e) {
+    console.warn('[RC] Error al inicializar:', e)
+  }
+}
+
+// ── Gate de acceso: paywall obligatorio ──
+// Devuelve true si el usuario tiene el entitlement "premium" activo (incluye trial de 7 días).
+// En web/simulador (sin StoreKit) devuelve true para no bloquear el testing.
+// Ante error nativo devuelve false → se muestra el paywall (puede restaurar compra).
+async function hasActivePremium() {
+  const { Purchases } = window.Capacitor?.Plugins || {}
+  if (!Purchases || !window.Capacitor?.isNativePlatform?.()) return true
+  try {
+    const { customerInfo } = await Purchases.getCustomerInfo()
+    return !!customerInfo?.entitlements?.active?.premium
+  } catch (e) {
+    console.warn('[RC] hasActivePremium error:', e)
+    return false
+  }
+}
+
+// Selección visual de plan
+function selectPlan(plan) {
+  selectedPlan = plan
+  const annualEl  = document.getElementById('planAnnual')
+  const monthlyEl = document.getElementById('planMonthly')
+  if (!annualEl || !monthlyEl) return
+  if (plan === 'annual') {
+    annualEl.style.opacity  = '1'
+    monthlyEl.style.opacity = '0.5'
+  } else {
+    annualEl.style.opacity  = '0.5'
+    monthlyEl.style.opacity = '1'
+  }
+}
+
+// Lanzar compra
+async function startPurchase() {
+  const btn = document.getElementById('paywallCTA')
+  if (btn) { btn.textContent = 'Procesando…'; btn.disabled = true }
+
+  try {
+    const { Purchases } = window.Capacitor?.Plugins || {}
+
+    // Modo web/simulador: saltar paywall directamente
+    if (!Purchases || !window.Capacitor?.isNativePlatform?.()) {
+      console.warn('[RC] Modo web/simulador — saltando paywall')
+      go('welcome')
+      return
+    }
+
+    const productId = selectedPlan === 'annual' ? PRODUCT_ANNUAL : PRODUCT_MONTHLY
+    const { customerInfo } = await Purchases.purchaseStoreProduct({ productIdentifier: productId })
+
+    if (customerInfo?.entitlements?.active?.premium) {
+      go('welcome')
+    } else {
+      alert('La compra no se pudo completar. Inténtalo de nuevo.')
+    }
+  } catch (e) {
+    if (e?.code !== 'PURCHASE_CANCELLED') {
+      alert('Error en la compra: ' + (e?.message || e))
+    }
+  } finally {
+    if (btn) { btn.textContent = 'Comenzar ahora'; btn.disabled = false }
+  }
+}
+
+// ── Downsell: se muestra al cerrar el paywall principal ──
+function showDownsell() {
+  selectDownsellPlan('monthly')
+  go('paywall-downsell')
+}
+
+function selectDownsellPlan(plan) {
+  downsellPlan = plan
+  const m = document.getElementById('dsMonthly')
+  const a = document.getElementById('dsAnnual')
+  if (!m || !a) return
+  m.style.opacity = plan === 'monthly' ? '1' : '0.5'
+  a.style.opacity = plan === 'annual'  ? '1' : '0.5'
+}
+
+async function startDownsellPurchase() {
+  const btn = document.getElementById('downsellCTA')
+  if (btn) { btn.textContent = 'Procesando…'; btn.disabled = true }
+  try {
+    const { Purchases } = window.Capacitor?.Plugins || {}
+    // Modo web/simulador: saltar compra directamente
+    if (!Purchases || !window.Capacitor?.isNativePlatform?.()) {
+      console.warn('[RC] Modo web/simulador — saltando downsell')
+      go('welcome')
+      return
+    }
+    const productId = downsellPlan === 'annual' ? PRODUCT_ANNUAL : PRODUCT_MONTHLY_DOWNSELL
+    const { customerInfo } = await Purchases.purchaseStoreProduct({ productIdentifier: productId })
+    if (customerInfo?.entitlements?.active?.premium) {
+      go('welcome')
+    } else {
+      alert('La compra no se pudo completar. Inténtalo de nuevo.')
+    }
+  } catch (e) {
+    if (e?.code !== 'PURCHASE_CANCELLED') alert('Error en la compra: ' + (e?.message || e))
+  } finally {
+    if (btn) { btn.textContent = 'Aprovechar oferta'; btn.disabled = false }
+  }
+}
+
+// Restaurar compras
+async function restorePurchases() {
+  try {
+    const { Purchases } = window.Capacitor?.Plugins || {}
+    if (!Purchases || !window.Capacitor?.isNativePlatform?.()) {
+      alert('La restauración solo funciona en el dispositivo.')
+      return
+    }
+    const { customerInfo } = await Purchases.restorePurchases()
+    if (customerInfo?.entitlements?.active?.premium) {
+      go('welcome')
+    } else {
+      alert('No se encontró ninguna compra activa.')
+    }
+  } catch (e) {
+    alert('Error al restaurar: ' + (e?.message || e))
+  }
+}
+
+// ─────────────────────────────────────────────
+// ── GESTIÓN DE SUSCRIPCIÓN (perfil) ──
+// ─────────────────────────────────────────────
+let _currentPlanId   = null
+let _changePlanTarget = null
+let _cancelReason     = null
+
+// Mostrar el plan activo del usuario en el perfil
+async function renderSubscription() {
+  const nameEl   = document.getElementById('subPlanName')
+  if (!nameEl) return
+  const statusEl = document.getElementById('subPlanStatus')
+  const badgeEl  = document.getElementById('subPlanBadge')
+  const { Purchases } = window.Capacitor?.Plugins || {}
+  // Web/simulador: sin StoreKit no hay datos reales de compra
+  if (!Purchases || !window.Capacitor?.isNativePlatform?.()) {
+    nameEl.textContent = 'Plan Premium'
+    if (statusEl) statusEl.textContent = 'Vista previa — datos reales solo en el dispositivo'
+    if (badgeEl) badgeEl.style.display = 'inline-block'
+    return
+  }
+  try {
+    const { customerInfo } = await Purchases.getCustomerInfo()
+    const ent = customerInfo?.entitlements?.active?.premium
+    if (!ent) {
+      nameEl.textContent = 'Sin suscripción activa'
+      if (statusEl) statusEl.textContent = ''
+      if (badgeEl) badgeEl.style.display = 'none'
+      _currentPlanId = null
+      return
+    }
+    _currentPlanId = ent.productIdentifier || null
+    let planName = 'Premium'
+    if (_currentPlanId === PRODUCT_ANNUAL)               planName = 'Plan Anual'
+    else if (_currentPlanId === PRODUCT_MONTHLY)          planName = 'Plan Mensual'
+    else if (_currentPlanId === PRODUCT_MONTHLY_DOWNSELL) planName = 'Plan Mensual (oferta)'
+    nameEl.textContent = planName
+    if (badgeEl) badgeEl.style.display = 'inline-block'
+    if (statusEl) {
+      const isTrial = ent.periodType && String(ent.periodType).toUpperCase() !== 'NORMAL'
+      const exp = ent.expirationDate ? new Date(ent.expirationDate) : null
+      const expStr = exp ? exp.toLocaleDateString('es-ES', { day:'numeric', month:'long', year:'numeric' }) : ''
+      if (isTrial) {
+        statusEl.textContent = expStr ? `Prueba gratuita · ${ent.willRenew ? 'pasa a pago el' : 'termina el'} ${expStr}` : 'Prueba gratuita activa'
+      } else if (expStr) {
+        statusEl.textContent = `${ent.willRenew ? 'Se renueva el' : 'Acceso hasta el'} ${expStr}`
+      } else {
+        statusEl.textContent = 'Suscripción activa'
+      }
+    }
+  } catch (e) {
+    console.warn('[RC] renderSubscription:', e)
+    nameEl.textContent = 'No se pudo cargar el plan'
+    if (statusEl) statusEl.textContent = 'Reintenta más tarde'
+  }
+}
+
+// ── Cambiar de plan ──
+function openChangePlan() {
+  _changePlanTarget = null
+  ;['planOptAnnual','planOptMonthly'].forEach(id => document.getElementById(id)?.classList.remove('sel'))
+  const tagA = document.getElementById('planTagAnnual')
+  const tagM = document.getElementById('planTagMonthly')
+  if (tagA) tagA.textContent = (_currentPlanId === PRODUCT_ANNUAL)  ? 'Plan actual' : ''
+  if (tagM) tagM.textContent = (_currentPlanId === PRODUCT_MONTHLY) ? 'Plan actual' : ''
+  document.getElementById('changePlanModal')?.classList.add('open')
+}
+function selectChangePlan(el, productId) {
+  _changePlanTarget = productId
+  ;['planOptAnnual','planOptMonthly'].forEach(id => document.getElementById(id)?.classList.remove('sel'))
+  el.classList.add('sel')
+}
+function closeChangePlan() { document.getElementById('changePlanModal')?.classList.remove('open') }
+async function confirmChangePlan() {
+  if (!_changePlanTarget) { showToast('Elige un plan'); return }
+  if (_changePlanTarget === _currentPlanId) { showToast('Ya tienes este plan'); return }
+  const { Purchases } = window.Capacitor?.Plugins || {}
+  if (!Purchases || !window.Capacitor?.isNativePlatform?.()) { showToast('Solo disponible en el dispositivo'); closeChangePlan(); return }
+  try {
+    const { customerInfo } = await Purchases.purchaseStoreProduct({ productIdentifier: _changePlanTarget })
+    if (customerInfo?.entitlements?.active?.premium) {
+      showToast('✓ Plan actualizado')
+      closeChangePlan()
+      renderSubscription()
+    }
+  } catch (e) {
+    if (e?.code !== 'PURCHASE_CANCELLED') alert('No se pudo cambiar de plan: ' + (e?.message || e))
+  }
+}
+
+// ── Cancelar suscripción (encuesta de retención → gestión de Apple) ──
+function openCancelFlow() {
+  _cancelReason = null
+  document.querySelectorAll('#cancelReasons .reason-btn').forEach(b => b.classList.remove('sel'))
+  const c = document.getElementById('cancelComment'); if (c) c.value = ''
+  document.getElementById('cancelModal')?.classList.add('open')
+}
+function selectCancelReason(el, reason) {
+  _cancelReason = reason
+  document.querySelectorAll('#cancelReasons .reason-btn').forEach(b => b.classList.remove('sel'))
+  el.classList.add('sel')
+}
+function closeCancelModal() { document.getElementById('cancelModal')?.classList.remove('open') }
+async function confirmCancel() {
+  const comment = (document.getElementById('cancelComment')?.value || '').trim()
+  // Guardar el motivo (best-effort; nunca bloquea la cancelación)
+  try {
+    if (sb && appState.userId && (_cancelReason || comment)) {
+      await sb.from('cancellation_feedback').insert({
+        user_id: appState.userId,
+        reason:  _cancelReason || null,
+        comment: comment || null,
+        plan:    _currentPlanId || null
+      })
+    }
+  } catch (e) { console.warn('cancel feedback save:', e?.message) }
+  closeCancelModal()
+  await openManageSubscriptions()
+}
+// Apple no permite cancelar por API: se redirige a la gestión de suscripciones del sistema
+async function openManageSubscriptions() {
+  const url = 'https://apps.apple.com/account/subscriptions'
+  try {
+    const Browser = window.Capacitor?.Plugins?.Browser
+    if (Browser?.open) { await Browser.open({ url }); return }
+  } catch (e) { /* fallback */ }
+  window.open(url, '_blank')
+}
+
+// ── Enlaces legales (Términos / Privacidad) ──
+const LEGAL_TERMS_URL   = 'https://human-app-backend-production.up.railway.app/terminos'
+const LEGAL_PRIVACY_URL = 'https://human-app-backend-production.up.railway.app/privacidad'
+function openLegal(url) {
+  try {
+    const Browser = window.Capacitor?.Plugins?.Browser
+    if (Browser?.open) { Browser.open({ url }); return }
+  } catch (e) { /* fallback */ }
+  window.open(url, '_blank')
+}
+
+// Llamar initRevenueCat al cargar
+window.addEventListener('load', () => { initRevenueCat() }, { once: false })
 </script>
 </body>
 </html>
