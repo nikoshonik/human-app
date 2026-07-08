@@ -20,8 +20,9 @@
 //    APNS_PRODUCTION     → 'true' en producción (build de App Store / TestFlight)
 // ════════════════════════════════════════════════════════════════
 
-const { createClient } = require('@supabase/supabase-js');
-const apn = require('@parse/node-apn');
+// El backend usa ES modules ("type":"module" en package.json) → import, no require.
+import { createClient } from '@supabase/supabase-js';
+import apn from '@parse/node-apn';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
