@@ -1,7 +1,8 @@
 // ════════════════════════════════════════════════════════════════
 //  Human App — Sender de Push (APNs)
-//  Coge las notificaciones con status='pending' y push_token del user,
-//  las envía a su iPhone vía APNs y marca status='sent'.
+//  Coge las notificaciones push con push_sent_at NULL y push_token del user,
+//  las envía a su iPhone vía APNs y marca push_sent_at (NO toca 'status',
+//  que pertenece al ciclo de vida de la campanita in-app: leída/no leída).
 //
 //  Se ejecuta DESPUÉS del worker. Sugerencia en Railway: mismo cron,
 //  un par de minutos después de notificationsWorker.js, o encadenado.
@@ -46,16 +47,20 @@ const apnProvider = new apn.Provider({
 });
 
 async function run() {
-  // 1. Notificaciones pendientes de enviar
+  // 1. Notificaciones push AÚN NO ENVIADAS por APNs.
+  //    Se rastrea con push_sent_at (NO con status), para que el push se dispare
+  //    aunque el usuario ya haya marcado la notificación como leída en la campanita
+  //    in-app. Antes competían por 'status' y la in-app ganaba la carrera → 0 push.
+  const now = () => new Date().toISOString();
   const { data: pending, error } = await supabase
     .from('notification_deliveries')
     .select('*')
-    .eq('status', 'pending')
     .eq('channel', 'push')
+    .is('push_sent_at', null)
     .order('created_at', { ascending: true })
     .limit(500);
 
-  if (error) { console.error('[push] error leyendo pending:', error); process.exit(1); }
+  if (error) { console.error('[push] error leyendo pendientes:', error); process.exit(1); }
   if (!pending?.length) { console.log('[push] nada que enviar'); return; }
 
   // 2. Tokens de los users implicados
@@ -76,9 +81,9 @@ async function run() {
   for (const n of pending) {
     const token = tokenByUser[n.user_id];
     if (!token) {
-      // El user no tiene push activado / sin token → marcar como skipped
+      // Sin token → marcar push_sent_at para no reprocesar (NO se toca status).
       await supabase.from('notification_deliveries')
-        .update({ status: 'skipped' }).eq('id', n.id);
+        .update({ push_sent_at: now() }).eq('id', n.id);
       skipped++;
       continue;
     }
@@ -93,14 +98,15 @@ async function run() {
     try {
       const res = await apnProvider.send(note, token);
       if (res.sent.length) {
+        // Marcamos push_sent_at + sent_at, sin tocar status (lo gestiona la in-app).
         await supabase.from('notification_deliveries')
-          .update({ status: 'sent', sent_at: new Date().toISOString() })
+          .update({ push_sent_at: now(), sent_at: now() })
           .eq('id', n.id);
         sent++;
       } else {
         const reason = res.failed?.[0]?.response?.reason || 'unknown';
         await supabase.from('notification_deliveries')
-          .update({ status: 'failed', payload: { ...(n.payload||{}), apns_error: reason } })
+          .update({ push_sent_at: now(), payload: { ...(n.payload||{}), apns_error: reason } })
           .eq('id', n.id);
         failed++;
         // Token inválido → limpiarlo para no reintentar siempre
@@ -110,6 +116,7 @@ async function run() {
         }
       }
     } catch (e) {
+      // Error transitorio (red/APNs) → NO marcamos push_sent_at para reintentar luego.
       console.error('[push] error enviando', n.id, e?.message);
       failed++;
     }
