@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Human App">
+<meta name="apple-mobile-web-app-title" content="Human">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#000000">
-<title>Human App</title>
+<title>Human</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
@@ -168,6 +168,14 @@ body.native-mode .chat-input-row {
   transition: opacity 0.15s;
 }
 .btn-primary:active { opacity: 0.8; transform: scale(0.98); }
+/* Estado bloqueado: hasta que el usuario no responde el paso del onboarding */
+.btn-primary:disabled {
+  background: #1c2740;
+  color: #5a6b85;
+  cursor: not-allowed;
+  opacity: 1;
+}
+.btn-primary:disabled:active { transform: none; opacity: 1; }
 
 .btn-outline {
   width: 100%;
@@ -584,6 +592,14 @@ body.native-mode .screen:has(.back-btn) .test-wrap {
 .splash-btn-wrap {
   position: absolute;
   bottom: 52px; left: 24px; right: 24px;
+  transition: opacity .35s ease;
+}
+/* Gate de arranque: mientras se comprueba la sesión persistida, el splash
+   muestra solo el logo (sin botones). Si hay sesión → enterApp() directo y
+   los botones no llegan a verse. Si no hay sesión → revealSplashButtons(). */
+#splash.boot-checking .splash-btn-wrap {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ════════════ LOADING / ANALYZING ════════════ */
@@ -787,8 +803,68 @@ body.native-mode .screen:has(.back-btn) .test-wrap {
   background: #3B82F6;
   display: flex; align-items: center; justify-content: center;
   font-size: 17px; font-weight: 700;
+  overflow: hidden;
 }
 .dash-actions { display: flex; align-items: center; gap: 12px; }
+
+/* ── Racha diaria (chip en dashboard) ── */
+.streak-chip {
+  height: 42px;
+  padding: 0 13px 0 10px;
+  border-radius: 21px;
+  background: #0d0d0d;
+  border: 1px solid #1a1a1a;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.streak-chip.on { display: flex; }
+.streak-chip svg { width: 17px; height: 17px; fill: none; stroke: #3B82F6; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.streak-chip span { font-size: 15px; font-weight: 700; color: #fff; }
+
+/* ── Racha: pantalla de celebración post-test ── */
+#streak-screen {
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  text-align: center;
+  padding: 0 24px;
+}
+#streak-screen .ob-footer { width: 100%; padding-bottom: 40px; }
+.streak-flame {
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  background: rgba(59,130,246,0.10);
+  border: 1.5px solid rgba(59,130,246,0.3);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 22px;
+  box-shadow: 0 0 40px rgba(59,130,246,0.35);
+}
+.streak-flame svg { width: 44px; height: 44px; fill: none; stroke: #3B82F6; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.streak-plus {
+  font-size: 17px; font-weight: 700; color: #60A5FA;
+  letter-spacing: 0.3px;
+  margin-bottom: 14px;
+  opacity: 0;
+}
+.streak-total {
+  font-size: 84px; font-weight: 800; letter-spacing: -3px;
+  line-height: 1; color: #fff;
+  margin-bottom: 6px;
+}
+.streak-sub {
+  font-size: 15px; color: #888;
+  text-transform: uppercase; letter-spacing: 2px; font-weight: 600;
+  margin-bottom: 26px;
+}
+.streak-msg { font-size: 14px; color: #666; line-height: 1.5; max-width: 260px; margin: 0 auto; }
+#streak-screen.anim .streak-flame { animation: streakPop .55s cubic-bezier(.34,1.56,.64,1) both; }
+#streak-screen.anim .streak-plus { animation: streakRise .5s ease .35s both; }
+#streak-screen.anim .streak-total { animation: streakPop .5s cubic-bezier(.34,1.56,.64,1) .2s both; }
+@keyframes streakPop { 0% { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes streakRise { 0% { transform: translateY(10px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
 
 /* ════════════ CAMPANA + NOTIFICACIONES ════════════ */
 .bell-btn {
@@ -909,7 +985,50 @@ body.native-mode .screen:has(.back-btn) .test-wrap {
   margin-bottom: 7px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  position: relative;
 }
+/* ── Check de hábito completado ── */
+.habit-check {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 40px; height: 40px;             /* zona táctil generosa */
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.habit-check .hc-circle {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid #3a3a3a;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .18s ease;
+}
+.habit-check svg {
+  width: 13px; height: 13px;
+  fill: none; stroke: #fff; stroke-width: 2.6;
+  stroke-linecap: round; stroke-linejoin: round;
+  opacity: 0; transform: scale(.6);
+  transition: opacity .18s ease, transform .22s cubic-bezier(.34,1.56,.64,1);
+}
+.habit-check:active .hc-circle { transform: scale(.88); }
+.plan-item.done .habit-check .hc-circle {
+  background: #3B82F6;
+  border-color: #3B82F6;
+  box-shadow: 0 0 14px rgba(59,130,246,.5);
+}
+.plan-item.done .habit-check svg { opacity: 1; transform: scale(1); }
+.plan-item.done .plan-item-name {
+  color: #777;
+  text-decoration: line-through;
+  text-decoration-color: rgba(255,255,255,.3);
+}
+.plan-item.done .plan-item-eyebrow { color: #2a5aa8; }
+.plan-item.done { opacity: .6; }
+.plan-item.has-check .plan-item-name { padding-right: 40px; }
+.plan-item.has-check .plan-item-eyebrow { padding-right: 40px; }
 .plan-item-eyebrow {
   font-size: 9.5px;
   font-weight: 700;
@@ -1222,7 +1341,22 @@ body.native-mode .chat-messages-wrap {
   display: flex; align-items: center; justify-content: center;
   font-size: 38px; font-weight: 700;
   margin-bottom: 14px;
+  overflow: hidden;
+  cursor: pointer;
 }
+/* Foto de perfil del usuario (avatar_url) — cae a la inicial si no hay foto */
+.profile-av img, .dash-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
+.profile-av-box { position: relative; margin-bottom: 14px; }
+.profile-av-box .profile-av { margin-bottom: 0; }
+.profile-av-edit {
+  position: absolute; right: -6px; bottom: -6px;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: #1a1a1a; border: 2px solid #000;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.profile-av-edit svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .profile-uname { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 8px; }
 .profile-badges { display: flex; gap: 8px; margin-top: 12px; }
 .pill {
@@ -1285,7 +1419,7 @@ body.native-mode .chat-messages-wrap {
 .test-skip { font-size: 14px; color: #555; cursor: pointer; }
 .test-prog-bar { height: 3px; background: #111; border-radius: 2px; margin-bottom: 32px; }
 .test-prog-fill { height: 100%; background: #3B82F6; border-radius: 2px; transition: width 0.4s; }
-.test-q-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.test-q-label { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
 .test-question { font-size: 27px; font-weight: 700; line-height: 1.2; margin-bottom: 24px; letter-spacing: -0.3px; }
 
 /* Scale buttons */
@@ -1296,7 +1430,7 @@ body.native-mode .chat-messages-wrap {
   background: #0d0d0d;
   border: 1.5px solid #1a1a1a;
   border-radius: 13px;
-  color: #555;
+  color: #9a9a9a;
   font-size: 18px;
   font-weight: 700;
   cursor: pointer;
@@ -1305,7 +1439,9 @@ body.native-mode .chat-messages-wrap {
   user-select: none;
 }
 .scale-btn.sel { background: #3B82F6; border-color: #3B82F6; color: white; }
-.scale-labels { display: grid; grid-template-columns: repeat(5, 1fr); font-size: 10px; color: #444; margin-bottom: 24px; text-align: center; }
+.scale-labels { display: grid; grid-template-columns: repeat(5, 1fr); font-size: 12px; font-weight: 600; color: #b5b5b5; letter-spacing: -0.1px; margin-bottom: 24px; text-align: center; }
+.scale-labels span { transition: color .15s ease; }
+.scale-labels span.sel { color: #fff; }
 
 /* Hours big display */
 .big-display {
@@ -1327,7 +1463,7 @@ body.native-mode .chat-messages-wrap {
   background: #0d0d0d;
   border: 1.5px solid #1a1a1a;
   border-radius: 11px;
-  color: #555;
+  color: #9a9a9a;
   font-size: 14px;
   cursor: pointer;
   text-align: center;
@@ -1344,14 +1480,22 @@ body.native-mode .chat-messages-wrap {
   background: #0d0d0d;
   border: 1.5px solid #1a1a1a;
   border-radius: 13px;
-  color: #555;
+  color: #9a9a9a;
   cursor: pointer;
   display: flex; flex-direction: column; align-items: center; gap: 7px;
   font-size: 13px;
+  font-weight: 500;
   transition: all 0.2s;
   user-select: none;
 }
-.time-card .icon { font-size: 24px; }
+/* Iconos monocromos (heredan el color del texto: gris → blanco al seleccionar) */
+.time-card .icon { display: flex; align-items: center; justify-content: center; height: 26px; }
+.time-card .icon svg {
+  width: 24px; height: 24px;
+  fill: none; stroke: currentColor; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round;
+  transition: stroke 0.2s;
+}
 .time-card.sel { background: rgba(59,130,246,0.12); border-color: #3B82F6; color: white; }
 
 /* Meals counter */
@@ -1362,7 +1506,7 @@ body.native-mode .chat-messages-wrap {
   letter-spacing: -3px;
   margin-bottom: 4px;
 }
-.meals-sub { font-size: 14px; color: #555; text-align: center; margin-bottom: 20px; }
+.meals-sub { font-size: 14px; font-weight: 500; color: #b5b5b5; text-align: center; margin-bottom: 20px; }
 .counter-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 24px; }
 .counter-btn {
   width: 54px; height: 54px;
@@ -1601,7 +1745,7 @@ body.native-mode .screen {
 .hmodal-overlay.open { display:flex; }
 .hmodal-card { background:#101012; border:1px solid #222; border-radius:22px 22px 0 0; width:100%; max-width:440px; padding:26px 22px calc(26px + env(safe-area-inset-bottom)); animation:hmodalUp .22s ease; }
 @keyframes hmodalUp { from { transform:translateY(40px); opacity:0 } to { transform:translateY(0); opacity:1 } }
-.hmodal-title { font-size:21px; font-weight:700; margin-bottom:6px; }
+.hmodal-title { font-size:21px; font-weight:700; margin-bottom:6px; color:#fff; }
 .hmodal-sub { font-size:14px; color:#888; margin-bottom:18px; line-height:1.4; }
 .reason-btn, .planopt-btn { width:100%; text-align:left; background:#0d0d0d; border:1px solid #1c1c1c; border-radius:12px; padding:14px 16px; margin-bottom:9px; color:#fff; font-size:14px; cursor:pointer; transition:border-color .15s, background .15s; -webkit-tap-highlight-color:transparent; }
 .reason-btn.sel, .planopt-btn.sel { border-color:#3B82F6; background:#0f1830; }
@@ -1611,83 +1755,57 @@ body.native-mode .screen {
 .btn-text { width:100%; background:none; border:none; color:#888; font-size:14px; padding:12px; cursor:pointer; margin-top:4px; }
 
 /* ═══════════════════════════════════════════════════════════════════
-   SCROLL OVERRIDE — REFACTOR DEFINITIVO
-   Quita position:absolute + overflow:hidden de TODOS los containers
-   para que el WebView haga scroll nativo del documento.
-   La nav y el chat input pasan a position:fixed (flotan sobre scroll).
+   SCROLL FIX v2 — BODY BLOQUEADO + SCROLL INTERNO POR PANTALLA
+   El documento NUNCA scrollea: body fijado a 100dvh, overflow hidden.
+   El scroll vive DENTRO de cada contenedor que lo necesita
+   (.tab-content, .ob-wrap, .test-wrap, .chat-messages-wrap) con
+   overscroll-behavior:none → sin rebote ni hueco negro al tirar.
+   Las pantallas fijas (splash, onboarding, login, test) cuadran
+   exactas al alto del viewport en cualquier dispositivo (inset: 0).
    ═══════════════════════════════════════════════════════════════════ */
 html, body { overflow-x: hidden; }
 html { height: 100%; }
 body.native-mode {
+  position: fixed;
+  inset: 0;
+  width: 100%;
   height: 100dvh !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden !important;
   display: block !important;
 }
 body.native-mode .phone {
-  height: auto !important;
-  min-height: 100%;
   width: 100% !important;
-  overflow: visible !important;
-  display: block !important;
+  height: 100% !important;
+  overflow: hidden !important;
 }
-.screen {
-  position: static !important;
-  inset: auto !important;
-  overflow: visible !important;
-  min-height: 100dvh;
+/* Sin rebote vertical en los scrollers internos: al tirar más allá
+   del contenido no se mueve nada (elimina el hueco negro de Inicio) */
+.tab-content, .ob-wrap, .test-wrap, .scroll-content, .chat-messages-wrap {
+  overscroll-behavior-y: none;
 }
-.screen:not(.active) { display: none !important; }
-.screen.active        { display: flex !important; flex-direction: column; }
-.main-screen {
-  position: static !important;
-  inset: auto !important;
-  overflow: visible !important;
-  min-height: 100dvh;
+
+/* ── TECLADO (plugin @capacitor/keyboard, resize "native") ────
+   Al abrir el teclado el WebView SE ENCOGE (no se levanta la ventana):
+   el layout absoluto se readapta solo y la conversación sigue visible.
+   Con kb-open: nav oculta y el input del chat baja a pegarse al teclado. */
+body.kb-open .bottom-nav { display: none; }
+body.native-mode.kb-open .chat-input-row {
+  bottom: 8px !important;
 }
-.main-screen:not(.active) { display: none !important; }
-.main-screen.active        { display: flex !important; flex-direction: column; }
-.tab-content {
-  position: static !important;
-  inset: auto !important;
-  overflow: visible !important;
-  height: auto !important;
-  padding-bottom: 110px !important;  /* deja sitio para la nav fixed */
+body.native-mode.kb-open .chat-messages-wrap {
+  bottom: 86px !important;
 }
-body.native-mode .tab-content {
-  padding-bottom: calc(80px + max(env(safe-area-inset-bottom, 0px), 4px)) !important;
-  padding-top: max(calc(env(safe-area-inset-top, 0px) + 20px), 64px) !important;
+/* Formularios (login/onboarding): margen extra para el input enfocado */
+body.kb-open .ob-wrap,
+body.kb-open .test-wrap,
+body.kb-open .scroll-content {
+  padding-bottom: 40px !important;
 }
-.ob-wrap, .test-wrap {
-  position: static !important;
-  inset: auto !important;
-  overflow: visible !important;
-  min-height: 100dvh;
-  height: auto !important;
+/* Pantallas sin scroller interno (p. ej. crear cuenta): scroll temporal
+   mientras el teclado está abierto para poder ver el input enfocado */
+body.kb-open .screen.active:not(.main-screen) {
+  overflow-y: auto !important;
 }
-.chat-messages-wrap {
-  position: static !important;
-  inset: auto !important;
-  overflow: visible !important;
-  height: auto !important;
-  flex: 1 1 auto;
-  padding-bottom: 180px !important; /* nav + input fijos */
-}
-.bottom-nav {
-  position: fixed !important;
-  bottom: 0; left: 0; right: 0;
-  z-index: 100;
-}
-.chat-input-row {
-  position: fixed !important;
-  z-index: 99;
-}
-body.native-mode .chat-input-row {
-  bottom: calc(max(env(safe-area-inset-bottom, 0px), 4px) + 60px) !important;
-}
-/* Status bar y back-btn deben estar fixed para no scrollear con el contenido */
-body.native-mode .back-btn { position: fixed !important; }
 </style>
 <!-- Supabase JS SDK v2 — auth real desde el cliente -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -1705,7 +1823,7 @@ body.native-mode .back-btn { position: fixed !important; }
   </div>
 
   <!-- ═══════════ SPLASH ═══════════ -->
-  <div class="screen active" id="splash">
+  <div class="screen active boot-checking" id="splash">
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
       <div class="splash-logo">HUMAN</div>
       <div class="splash-sub">Creado para atletas</div>
@@ -1736,13 +1854,14 @@ body.native-mode .back-btn { position: fixed !important; }
   <!-- ═══════════ OB: NOMBRE ═══════════ -->
   <div class="screen" id="ob-name">
     <div style="height:3px;background:#111"><div class="ob-progress-fill" style="width:20%"></div></div>
-    <div class="ob-wrap">
+    <button class="back-btn" onclick="go('ob-intro')">‹</button>
+    <div class="ob-wrap" style="padding-top:90px">
       <div class="ob-tag">UN POCO SOBRE TI</div>
       <div class="ob-title">¿Cómo te llamas?</div>
       <div class="field-label">Nombre</div>
-      <input class="field-input" id="inputName" type="text" placeholder="Tu nombre" value="">
+      <input class="field-input" id="inputName" type="text" placeholder="Tu nombre" value="" oninput="revalidateActiveOb()">
       <div class="field-label">Edad</div>
-      <input class="field-input" id="inputAge" type="number" placeholder="Tu edad" value="" style="margin-bottom:18px">
+      <input class="field-input" id="inputAge" type="number" placeholder="Tu edad" value="" style="margin-bottom:18px" oninput="revalidateActiveOb()">
       <div class="field-label">Sexo</div>
       <div class="radio-list">
         <div class="radio-item" onclick="pick(this,'radio')"><span>Hombre</span><div class="radio-dot"></div></div>
@@ -1750,7 +1869,7 @@ body.native-mode .back-btn { position: fixed !important; }
         <div class="radio-item" onclick="pick(this,'radio')"><span>Prefiero no decir</span><div class="radio-dot"></div></div>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="collectOb1(); go('ob-identity')">Continuar</button>
+        <button class="btn-primary" id="obNameBtn" disabled onclick="collectOb1(); go('ob-identity')">Continuar</button>
       </div>
     </div>
   </div>
@@ -1763,7 +1882,7 @@ body.native-mode .back-btn { position: fixed !important; }
       <div class="ob-tag">PERSONALIZA TU AGENTE</div>
       <div class="ob-title">¿Cómo te identificas?</div>
       <div class="identity-list">
-        <div class="identity-card sel" onclick="pick(this,'identity')">
+        <div class="identity-card" onclick="pick(this,'identity')">
           <span class="identity-left">
             <span class="identity-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></span>
             <span class="identity-card-name">Atleta profesional</span>
@@ -1786,7 +1905,7 @@ body.native-mode .back-btn { position: fixed !important; }
         </div>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="collectOb2(); go('ob-goal')">Continuar</button>
+        <button class="btn-primary" id="obIdentityBtn" disabled onclick="collectOb2(); go('ob-goal')">Continuar</button>
       </div>
     </div>
   </div>
@@ -1800,7 +1919,7 @@ body.native-mode .back-btn { position: fixed !important; }
       <div class="ob-title">¿Cuál es tu objetivo ahora?</div>
       <div class="goal-list">
         <div class="goal-item" onclick="pick(this,'goal')"><span>Maximizar mi rendimiento</span><div class="goal-check">✓</div></div>
-        <div class="goal-item sel" onclick="pick(this,'goal')"><span>Recuperarme más rápido</span><div class="goal-check">✓</div></div>
+        <div class="goal-item" onclick="pick(this,'goal')"><span>Recuperarme más rápido</span><div class="goal-check">✓</div></div>
         <div class="goal-item" onclick="pick(this,'goal')"><span>Dormir mejor y más profundo</span><div class="goal-check">✓</div></div>
         <div class="goal-item" onclick="pick(this,'goal')"><span>Aumentar mi energía diaria</span><div class="goal-check">✓</div></div>
         <div class="goal-item" onclick="pick(this,'goal')"><span>Aumentar mi bienestar general</span><div class="goal-check">✓</div></div>
@@ -1813,7 +1932,7 @@ body.native-mode .back-btn { position: fixed !important; }
         <button type="button" class="goal-add-btn" onclick="addGoalCustom()">+ Añadir otro objetivo</button>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="collectOb3(); go('ob-symptoms')">Continuar</button>
+        <button class="btn-primary" id="obGoalBtn" disabled onclick="collectOb3(); go('ob-symptoms')">Continuar</button>
       </div>
     </div>
   </div>
@@ -1829,7 +1948,7 @@ body.native-mode .back-btn { position: fixed !important; }
         <div class="symptom-name">Dificultad de dormir profunda</div>
         <div class="freq-row">
           <div class="freq-btn" onclick="pickFreq(this)">Nunca</div>
-          <div class="freq-btn sel" onclick="pickFreq(this)">A veces</div>
+          <div class="freq-btn" onclick="pickFreq(this)">A veces</div>
           <div class="freq-btn" onclick="pickFreq(this)">Siempre</div>
         </div>
       </div>
@@ -1838,14 +1957,14 @@ body.native-mode .back-btn { position: fixed !important; }
         <div class="freq-row">
           <div class="freq-btn" onclick="pickFreq(this)">Nunca</div>
           <div class="freq-btn" onclick="pickFreq(this)">A veces</div>
-          <div class="freq-btn sel" onclick="pickFreq(this)">Siempre</div>
+          <div class="freq-btn" onclick="pickFreq(this)">Siempre</div>
         </div>
       </div>
       <div class="symptom-block">
         <div class="symptom-name">Estrés constante / ansiedad</div>
         <div class="freq-row">
           <div class="freq-btn" onclick="pickFreq(this)">Nunca</div>
-          <div class="freq-btn sel" onclick="pickFreq(this)">A veces</div>
+          <div class="freq-btn" onclick="pickFreq(this)">A veces</div>
           <div class="freq-btn" onclick="pickFreq(this)">Siempre</div>
         </div>
       </div>
@@ -1853,12 +1972,12 @@ body.native-mode .back-btn { position: fixed !important; }
         <div class="symptom-name">Mala alimentación</div>
         <div class="freq-row">
           <div class="freq-btn" onclick="pickFreq(this)">Nunca</div>
-          <div class="freq-btn sel" onclick="pickFreq(this)">A veces</div>
+          <div class="freq-btn" onclick="pickFreq(this)">A veces</div>
           <div class="freq-btn" onclick="pickFreq(this)">Siempre</div>
         </div>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="collectOb4(); go('ob-sleep-routine')">Continuar</button>
+        <button class="btn-primary" id="obSymptomsBtn" disabled onclick="collectOb4(); go('ob-sleep-routine')">Continuar</button>
       </div>
     </div>
   </div>
@@ -1874,7 +1993,7 @@ body.native-mode .back-btn { position: fixed !important; }
         <strong id="agentName">Jarvis</strong> está a tu disposición para ayudarte a crear más contexto y conseguir los mejores resultados de salud y rendimiento.
       </div>
       <div class="agent-grid">
-        <div class="agent-card sel" onclick="pickAgent(this,'Jarvis')">Jarvis</div>
+        <div class="agent-card" onclick="pickAgent(this,'Jarvis')">Jarvis</div>
         <div class="agent-card" onclick="pickAgent(this,'Max')">Max</div>
         <div class="agent-card" onclick="pickAgent(this,'Sam')">Sam</div>
         <div class="agent-card" onclick="pickAgent(this,'Nino')">Nino</div>
@@ -1884,7 +2003,7 @@ body.native-mode .back-btn { position: fixed !important; }
         <input class="field-input" id="agentCustomName" type="text" placeholder="Nombre personalizado..." oninput="onCustomAgentName(this.value)" style="margin-bottom:0">
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" id="agentBtn" onclick="startLoading()">Continuar con Jarvis</button>
+        <button class="btn-primary" id="agentBtn" disabled onclick="startLoading()">Continuar</button>
       </div>
     </div>
   </div>
@@ -1955,20 +2074,20 @@ body.native-mode .back-btn { position: fixed !important; }
     <div class="ob-wrap" style="padding-top:90px">
       <div class="ob-tag">TU RUTINA</div>
       <div class="ob-title">¿Cuántas horas duermes actualmente?</div>
-      <div class="sleep-hours-big" id="sleepHoursBaseDisp">7</div>
+      <div class="sleep-hours-big" id="sleepHoursBaseDisp">–</div>
       <div class="sleep-hours-unit">horas</div>
       <div class="sleep-hours-grid">
         <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,4)">4h</div>
         <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,5)">5h</div>
         <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,6)">6h</div>
-        <div class="sleep-hour-btn sel" onclick="pickSleepBaseline(this,7)">7h</div>
+        <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,7)">7h</div>
         <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,8)">8h</div>
         <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,9)">9h</div>
         <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,10)">10h</div>
         <div class="sleep-hour-btn" onclick="pickSleepBaseline(this,11)">+10h</div>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="collectSleepHoursBaseline(); go('ob-training-days')">Continuar</button>
+        <button class="btn-primary" id="obSleepHoursBtn" disabled onclick="collectSleepHoursBaseline(); go('ob-training-days')">Continuar</button>
       </div>
     </div>
   </div>
@@ -2181,65 +2300,40 @@ body.native-mode .back-btn { position: fixed !important; }
 
   <!-- ═══════════ PAYWALL: FEATURES + PRECIOS ═══════════ -->
   <div class="screen" id="paywall-features">
-    <button onclick="showDownsell()" aria-label="Cerrar" style="position:absolute;top:50px;right:18px;background:none;border:none;color:#555;font-size:24px;line-height:1;cursor:pointer;z-index:10;padding:6px">✕</button>
-    <div class="ob-wrap" style="padding-top:56px">
+    <button onclick="openExitPaywall()" aria-label="Cerrar" style="position:absolute;top:max(54px, calc(env(safe-area-inset-top, 0px) + 10px));right:18px;background:none;border:none;color:#555;font-size:24px;line-height:1;cursor:pointer;z-index:10;padding:6px">✕</button>
+    <div class="ob-wrap" style="padding-top:calc(env(safe-area-inset-top, 0px) + 14px);padding-bottom:max(22px, env(safe-area-inset-bottom, 0px))">
+      <div style="flex:1 1 0;min-height:0;max-height:60px"></div>
       <div class="ob-title" style="font-size:24px;line-height:1.18;margin-bottom:10px">Optimiza tu <span style="color:#3B82F6">recuperación</span> y maximiza tu <span style="color:#3B82F6">rendimiento</span></div>
-      <div style="font-size:13px;color:#777;margin-bottom:18px;line-height:1.4">Accede a todo lo que Human tiene para ti y desbloquea tu mejor versión.</div>
-      <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:16px">
-        <div style="display:flex;align-items:center;gap:12px;background:#0d0d0d;border-radius:12px;border-left:3px solid #3B82F6;padding:12px 14px"><span style="width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">✓</span><span style="font-size:14px;font-weight:600">Agente personalizado y disponible 24/7</span></div>
-        <div style="display:flex;align-items:center;gap:12px;background:#0d0d0d;border-radius:12px;border-left:3px solid #3B82F6;padding:12px 14px"><span style="width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">✓</span><span style="font-size:14px;font-weight:600">Análisis biométrico</span></div>
-        <div style="display:flex;align-items:center;gap:12px;background:#0d0d0d;border-radius:12px;border-left:3px solid #3B82F6;padding:12px 14px"><span style="width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">✓</span><span style="font-size:14px;font-weight:600">Plan personalizado de optimización</span></div>
-        <div style="display:flex;align-items:center;gap:12px;background:#0d0d0d;border-radius:12px;border-left:3px solid #3B82F6;padding:12px 14px"><span style="width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">✓</span><span style="font-size:14px;font-weight:600">Seguimiento y progreso constante</span></div>
+      <div style="font-size:13px;color:#777;margin-bottom:14px;line-height:1.4">Accede a todo lo que Human tiene para ti y desbloquea tu mejor versión.</div>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:12px;background:#0d0d0d;border-radius:12px;border-left:3px solid #3B82F6;padding:10px 13px"><span style="width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">✓</span><span style="font-size:14px;font-weight:600">Agente personalizado y disponible 24/7</span></div>
+        <div style="display:flex;align-items:center;gap:12px;background:#0d0d0d;border-radius:12px;border-left:3px solid #3B82F6;padding:10px 13px"><span style="width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">✓</span><span style="font-size:14px;font-weight:600">Análisis biométrico</span></div>
+        <div style="display:flex;align-items:center;gap:12px;background:#0d0d0d;border-radius:12px;border-left:3px solid #3B82F6;padding:10px 13px"><span style="width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">✓</span><span style="font-size:14px;font-weight:600">Plan personalizado de optimización</span></div>
+        <div style="display:flex;align-items:center;gap:12px;background:#0d0d0d;border-radius:12px;border-left:3px solid #3B82F6;padding:10px 13px"><span style="width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">✓</span><span style="font-size:14px;font-weight:600">Seguimiento y progreso constante</span></div>
       </div>
-      <div id="planAnnual" onclick="selectPlan('annual')" style="position:relative;background:#3B82F6;border-radius:16px;padding:16px 18px;margin:14px 0 10px;cursor:pointer;transition:opacity .2s">
-        <div style="position:absolute;top:-10px;right:14px;background:#1a1a1a;color:#fff;font-size:10px;padding:4px 10px;border-radius:999px">Más popular</div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div><div style="font-weight:800;color:#fff"><span style="font-size:22px">Anual</span> <span style="font-size:16px">2.50€ / mes</span></div><div style="font-size:13px;color:#dbe7ff;margin-top:3px">29.99€ / año</div></div>
-          <div style="text-align:right;font-size:11px;color:#fff;font-weight:600;line-height:1.3">¡Oferta temporal!<br>Ahorra +70%</div>
+      <div style="flex:1 1 0;min-height:0;max-height:30px"></div>
+      <div id="planAnnual" onclick="selectPlan('annual')" style="position:relative;background:#3B82F6;border:1px solid #3B82F6;border-radius:16px;padding:14px 18px;margin:10px 0 8px;cursor:pointer;transition:opacity .2s, transform .2s, background .2s, border-color .2s">
+        <div style="position:absolute;top:-10px;right:14px;background:#fff;color:#111;font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px">Más popular</div>
+        <div style="position:absolute;top:16px;right:14px;background:rgba(255,255,255,0.22);color:#fff;font-size:10px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap">Ahorra +70%</div>
+        <div>
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <span style="color:#fff;font-size:24px;font-weight:700;line-height:1.1">Anual</span>
+            <span style="font-weight:800;color:#fff;font-size:18px;line-height:1.1">29.99€ <span style="font-size:18px;font-weight:600">/ año</span></span>
+          </div>
+          <div id="planAnnualSub" style="font-size:12px;color:#dbe7ff;margin-top:3px;transition:color .2s">Equivale a 2.50€ / mes</div>
         </div>
       </div>
-      <div id="planMonthly" onclick="selectPlan('monthly')" style="display:flex;align-items:center;justify-content:space-between;background:#0d0d0d;border:1px solid #1c1c1c;border-radius:16px;padding:16px 18px;margin-bottom:20px;cursor:pointer;opacity:0.5;transition:opacity .2s">
-        <div><div style="font-size:20px;font-weight:700">Mensual</div><div style="font-size:13px;color:#777;margin-top:3px">9.99€ / mes</div></div>
-        <div style="display:flex;align-items:center;gap:12px;color:#777;font-size:13px">119.99€ / año <span style="width:20px;height:20px;border-radius:50%;border:2px solid #3a3a3a;display:inline-block"></span></div>
+      <div id="planMonthly" onclick="selectPlan('monthly')" style="display:flex;align-items:center;justify-content:space-between;background:#0d0d0d;border:1px solid #1c1c1c;border-radius:16px;padding:13px 18px;margin-bottom:14px;cursor:pointer;opacity:0.5;transition:opacity .2s, transform .2s, background .2s, border-color .2s">
+        <div><div style="font-size:20px;font-weight:700">Mensual</div><div id="planMonthlySub" style="font-size:13px;color:#777;margin-top:3px;transition:color .2s">9.99€ / mes</div></div>
+        <div style="display:flex;align-items:center;gap:12px;font-size:13px"><span id="planMonthlyRadio" style="width:20px;height:20px;border-radius:50%;border:2px solid #3a3a3a;display:inline-block;box-sizing:border-box;transition:border-color .2s, background .2s"></span></div>
       </div>
-      <button class="btn-primary" id="paywallCTA" onclick="startPurchase()" style="background:#fff;color:#000">Comenzar ahora</button>
-      <div style="text-align:center;font-size:12px;color:#666;margin-top:12px">7 días gratis · Cancela cuando quieras</div>
-      <div style="text-align:center;font-size:11px;color:#444;margin-top:6px"><span onclick="restorePurchases()" style="cursor:pointer">Restaurar compra</span> · <span onclick="openLegal(LEGAL_TERMS_URL)" style="cursor:pointer;text-decoration:underline">Términos</span> · <span onclick="openLegal(LEGAL_PRIVACY_URL)" style="cursor:pointer;text-decoration:underline">Privacidad</span></div>
-    </div>
-  </div>
-
-  <!-- ═══════════ PAYWALL: DOWNSELL (al cerrar el paywall principal) ═══════════ -->
-  <div class="screen" id="paywall-downsell">
-    <div class="ob-wrap" style="padding-top:64px">
-      <div class="ob-tag" style="color:#3B82F6">ESPERA</div>
-      <div class="ob-title" style="font-size:23px;line-height:1.18;margin-bottom:8px">Una última oferta antes de irte</div>
-      <div style="font-size:13px;color:#777;margin-bottom:20px;line-height:1.4">No queremos que el precio te frene. Empieza a optimizar tu recuperación hoy por mucho menos.</div>
-      <div id="dsMonthly" onclick="selectDownsellPlan('monthly')" style="position:relative;background:#3B82F6;border-radius:16px;padding:16px 18px;margin:6px 0 10px;cursor:pointer;transition:opacity .2s">
-        <div style="position:absolute;top:-10px;right:14px;background:#1a1a1a;color:#fff;font-size:10px;padding:4px 10px;border-radius:999px">Oferta exclusiva</div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div><div style="font-weight:800;color:#fff"><span style="font-size:22px">Mensual</span> <span style="font-size:16px">4.99€ / mes</span></div><div style="font-size:13px;color:#dbe7ff;margin-top:3px"><s style="opacity:.7">9.99€</s> · 50% de descuento</div></div>
-        </div>
-      </div>
-      <div id="dsAnnual" onclick="selectDownsellPlan('annual')" style="display:flex;align-items:center;justify-content:space-between;background:#0d0d0d;border:1px solid #1c1c1c;border-radius:16px;padding:16px 18px;margin-bottom:20px;cursor:pointer;opacity:0.5;transition:opacity .2s">
-        <div><div style="font-size:20px;font-weight:700">Anual</div><div style="font-size:13px;color:#777;margin-top:3px">29.99€ / año · 2.50€/mes</div></div>
-        <span style="width:20px;height:20px;border-radius:50%;border:2px solid #3a3a3a;display:inline-block"></span>
-      </div>
-      <button class="btn-primary" id="downsellCTA" onclick="startDownsellPurchase()" style="background:#fff;color:#000">Aprovechar oferta</button>
-      <div style="text-align:center;font-size:12px;color:#666;margin-top:12px">7 días gratis · Cancela cuando quieras</div>
-      <div style="text-align:center;font-size:11px;color:#444;margin-top:10px"><span onclick="go('splash')" style="cursor:pointer">No, gracias</span> · <span onclick="restorePurchases()" style="cursor:pointer">Restaurar compra</span></div>
-    </div>
-  </div>
-
-  <!-- ═══════════ WELCOME (post-paywall) ═══════════ -->
-  <div class="screen" id="welcome">
-    <div class="ob-wrap" style="justify-content:center;align-items:center;text-align:center;padding-top:120px">
-      <div style="font-size:13px;letter-spacing:2px;color:#3B82F6;text-transform:uppercase;margin-bottom:18px">BIENVENIDO</div>
-      <div class="welcome-title" style="font-size:32px;font-weight:700;letter-spacing:-0.6px;line-height:1.15;margin-bottom:14px">Hola <span id="welcomeName">—</span></div>
-      <div style="font-size:16px;color:#888;line-height:1.5;margin-bottom:48px;max-width:300px">Tu agente <span id="welcomeAgent" style="color:#fff;font-weight:600">Jarvis</span> está listo para acompañarte. Guarda tu progreso para empezar.</div>
-      <div style="width:100%;display:flex;flex-direction:column;gap:12px;max-width:340px">
-        <button class="btn-primary" onclick="goCreateAccount('register')">Crear cuenta</button>
-        <button class="btn-outline" onclick="goCreateAccount('login')">Ya tengo cuenta · Iniciar sesión</button>
-      </div>
+      <div style="flex:1 1 0;min-height:0;max-height:30px"></div>
+      <button class="btn-primary" id="paywallCTA" onclick="startPurchase()" style="background:#fff;color:#000">Comenzar prueba gratuita</button>
+      <div style="text-align:center;font-size:12px;color:#666;margin-top:10px">7 días gratis · Cancela cuando quieras</div>
+      <div style="text-align:center;font-size:9.5px;color:#5e5e5e;margin-top:7px;line-height:1.35">Renovación automática al precio indicado salvo que canceles 24 h antes del fin del periodo. Gestiónala en tu cuenta de Apple.</div>
+      <div style="text-align:center;font-size:12px;color:#9aa7c0;margin-top:7px;line-height:1.45"><span onclick="openLegal(LEGAL_TERMS_URL)" style="cursor:pointer;text-decoration:underline">Términos de uso</span> · <span onclick="openLegal(LEGAL_EULA_URL)" style="cursor:pointer;text-decoration:underline">EULA</span> · <span onclick="openLegal(LEGAL_PRIVACY_URL)" style="cursor:pointer;text-decoration:underline">Política de privacidad</span></div>
+      <div style="text-align:center;font-size:11px;color:#666;margin-top:6px"><span onclick="restorePurchases()" style="cursor:pointer;text-decoration:underline">Restaurar compra</span></div>
+      <div style="flex:1 1 0;min-height:0"></div>
     </div>
   </div>
 
@@ -2258,22 +2352,18 @@ body.native-mode .back-btn { position: fixed !important; }
       <div class="ca-title">Crea tu cuenta</div>
       <div class="ca-sub">Crea tu cuenta para guardar tu progreso.</div>
       <div class="ca-btns">
-        <!-- Botones sociales (Apple + Google) -->
-        <div id="socialBtns" style="width:100%;display:flex;flex-direction:column;gap:10px">
-          <button class="btn-social" onclick="doSocialAuth('apple')">
-            <svg viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-            Continuar con Apple
-          </button>
-          <button class="btn-social" onclick="doSocialAuth('google')">
-            <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-            Continuar con Google
-          </button>
-          <div class="divider"><span>o continúa con email</span></div>
-        </div>
+        <!-- Login social desactivado en v1.0 (se reintroduce Apple nativo en v1.1) -->
+        <div id="socialBtns" style="display:none"></div>
         <div id="emailForm" style="display:none;width:100%">
           <input class="field-input" id="regEmail" type="email" autocomplete="email" inputmode="email" placeholder="tu@email.com" style="margin-bottom:10px">
-          <input class="field-input" id="regPassword" type="password" autocomplete="new-password" placeholder="Contraseña (mín. 8 caracteres)">
-          <input class="field-input" id="regPassword2" type="password" autocomplete="new-password" placeholder="Confirmar contraseña" style="margin-top:10px">
+          <div class="pw-field" style="position:relative">
+            <input class="field-input" id="regPassword" type="password" autocomplete="new-password" placeholder="Contraseña (mín. 8 caracteres)" style="padding-right:46px">
+            <button type="button" class="pw-eye" aria-label="Mostrar contraseña" onclick="togglePw('regPassword', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#888;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+          <div class="pw-field" id="regPassword2Wrap" style="position:relative;margin-top:10px">
+            <input class="field-input" id="regPassword2" type="password" autocomplete="new-password" placeholder="Confirmar contraseña" style="padding-right:46px">
+            <button type="button" class="pw-eye" aria-label="Mostrar contraseña" onclick="togglePw('regPassword2', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#888;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
           <div id="regError" style="color:#ef4444;font-size:13px;text-align:center;margin-top:8px;display:none"></div>
           <button class="btn-primary" id="regBtn" style="margin-top:12px" onclick="doRegister()">Crear mi cuenta →</button>
         </div>
@@ -2295,6 +2385,10 @@ body.native-mode .back-btn { position: fixed !important; }
           <div class="dash-name" id="dashName">—</div>
         </div>
         <div class="dash-actions">
+          <div class="streak-chip" id="streakChip" onclick="switchTab('profile')" title="Racha de tests diarios">
+            <svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            <span id="streakNum">0</span>
+          </div>
           <button class="bell-btn" id="bellBtn" onclick="openNotifications()" aria-label="Notificaciones">
             <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
             <span class="bell-badge" id="bellBadge">0</span>
@@ -2467,10 +2561,13 @@ body.native-mode .back-btn { position: fixed !important; }
         <div style="width:36px"></div>
       </div>
       <div class="profile-avatar-wrap">
-        <div class="profile-av" id="profileAv">·</div>
+        <div class="profile-av-box">
+          <div class="profile-av" id="profileAv" onclick="pickAvatar()">·</div>
+          <button class="profile-av-edit" onclick="pickAvatar()" aria-label="Cambiar foto de perfil"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+        </div>
+        <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="onAvatarPicked(this)">
         <div class="profile-uname" id="profileUname">—</div>
-        <div class="profile-email" id="profileEmail" style="font-size:13px;color:#888;margin-top:4px"></div>
-        <div class="profile-badges">
+        <div class="profile-badges" style="margin-top:0">
           <span class="pill pill-blue" id="profileIdentityPill" style="display:none">·</span>
         </div>
       </div>
@@ -2506,6 +2603,10 @@ body.native-mode .back-btn { position: fixed !important; }
 
       <div class="profile-section">
         <div class="profile-section-title">CUENTA</div>
+        <div class="account-btn" style="cursor:default">
+          <span style="color:#888">Email</span>
+          <span id="profileEmail" style="font-size:13px;color:#fff;max-width:66%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        </div>
         <button class="account-btn" onclick="doLogout()">
           <span>Cerrar sesión</span>
           <span style="opacity:0.5">›</span>
@@ -2517,7 +2618,7 @@ body.native-mode .back-btn { position: fixed !important; }
       </div>
 
       <div style="text-align:center; padding:24px 0 100px; color:#444; font-size:11px">
-        Human App · v1.0
+        Human App · v1.5
       </div>
     </div>
 
@@ -2574,6 +2675,15 @@ body.native-mode .back-btn { position: fixed !important; }
   </div>
 
   <!-- ═══════════ MODAL: CANCELAR SUSCRIPCIÓN (retención) ═══════════ -->
+  <div class="hmodal-overlay" id="exitPaywallModal">
+    <div class="hmodal-card">
+      <div class="hmodal-title">¿Seguro que quieres salir?</div>
+      <div class="hmodal-sub">Perderás todo tu progreso y tendrás que empezar desde el principio. Estás a un solo paso de conocer a tu agente.</div>
+      <button class="btn-primary" onclick="closeExitPaywall()">Continuar donde estaba</button>
+      <button class="btn-text" onclick="confirmExitPaywall()">Salir y perder mi progreso</button>
+    </div>
+  </div>
+
   <div class="hmodal-overlay" id="cancelModal">
     <div class="hmodal-card">
       <div class="hmodal-title">¿Por qué te vas?</div>
@@ -2597,7 +2707,6 @@ body.native-mode .back-btn { position: fixed !important; }
     <div class="test-wrap">
       <div class="test-top">
         <span class="test-label">SUEÑO</span>
-        <span class="test-skip" onclick="go('test-stress')">Saltar</span>
       </div>
       <div class="test-prog-bar"><div class="test-prog-fill" style="width:25%"></div></div>
       <div class="test-q-label">CALIDAD</div>
@@ -2606,7 +2715,7 @@ body.native-mode .back-btn { position: fixed !important; }
         <div class="scale-btn" onclick="pickScale(this)">1</div>
         <div class="scale-btn" onclick="pickScale(this)">2</div>
         <div class="scale-btn" onclick="pickScale(this)">3</div>
-        <div class="scale-btn sel" onclick="pickScale(this)">4</div>
+        <div class="scale-btn" onclick="pickScale(this)">4</div>
         <div class="scale-btn" onclick="pickScale(this)">5</div>
       </div>
       <div class="scale-labels"><span>Muy mal</span><span>Mal</span><span>Regular</span><span>Bien</span><span>Muy bien</span></div>
@@ -2620,7 +2729,7 @@ body.native-mode .back-btn { position: fixed !important; }
         <button class="big-picker-btn" onclick="adjustSleepHours(1)">+</button>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="go('test-stress')">Siguiente</button>
+        <button class="btn-primary" id="testSleepNext" disabled onclick="go('test-stress')">Siguiente</button>
       </div>
     </div>
   </div>
@@ -2631,14 +2740,13 @@ body.native-mode .back-btn { position: fixed !important; }
     <div class="test-wrap" style="padding-top:70px">
       <div class="test-top">
         <span class="test-label">ESTRÉS</span>
-        <span class="test-skip" onclick="go('test-nutrition')">Saltar</span>
       </div>
       <div class="test-prog-bar"><div class="test-prog-fill" style="width:50%"></div></div>
       <div class="test-q-label">NIVEL</div>
       <div class="test-question">¿Cuál fue tu nivel de estrés ayer?</div>
       <div class="scale-row">
         <div class="scale-btn" onclick="pickScale(this)">1</div>
-        <div class="scale-btn sel" onclick="pickScale(this)">2</div>
+        <div class="scale-btn" onclick="pickScale(this)">2</div>
         <div class="scale-btn" onclick="pickScale(this)">3</div>
         <div class="scale-btn" onclick="pickScale(this)">4</div>
         <div class="scale-btn" onclick="pickScale(this)">5</div>
@@ -2646,12 +2754,12 @@ body.native-mode .back-btn { position: fixed !important; }
       <div class="scale-labels"><span>Muy bajo</span><span>Bajo</span><span>Medio</span><span>Alto</span><span>Muy alto</span></div>
       <div class="test-q-label" style="margin-top:4px">¿CUÁNDO FUE PEOR?</div>
       <div class="time-row">
-        <div class="time-card" onclick="pickTime(this)"><span class="icon">🌅</span><span>Mañana</span></div>
-        <div class="time-card sel" onclick="pickTime(this)"><span class="icon">☀️</span><span>Tarde</span></div>
-        <div class="time-card" onclick="pickTime(this)"><span class="icon">🌙</span><span>Noche</span></div>
+        <div class="time-card" onclick="pickTime(this)"><span class="icon"><svg viewBox="0 0 24 24"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="9" x2="12" y2="2"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="1" y1="18" x2="3" y2="18"/><line x1="21" y1="18" x2="23" y2="18"/><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/><line x1="23" y1="22" x2="1" y2="22"/><polyline points="8 6 12 2 16 6"/></svg></span><span>Mañana</span></div>
+        <div class="time-card" onclick="pickTime(this)"><span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><line x1="12" y1="1.5" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22.5"/><line x1="4.6" y1="4.6" x2="6.4" y2="6.4"/><line x1="17.6" y1="17.6" x2="19.4" y2="19.4"/><line x1="1.5" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22.5" y2="12"/><line x1="4.6" y1="19.4" x2="6.4" y2="17.6"/><line x1="17.6" y1="6.4" x2="19.4" y2="4.6"/></svg></span><span>Tarde</span></div>
+        <div class="time-card" onclick="pickTime(this)"><span class="icon"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span><span>Noche</span></div>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="go('test-nutrition')">Siguiente</button>
+        <button class="btn-primary" id="testStressNext" disabled onclick="go('test-nutrition')">Siguiente</button>
       </div>
     </div>
   </div>
@@ -2662,7 +2770,6 @@ body.native-mode .back-btn { position: fixed !important; }
     <div class="test-wrap" style="padding-top:70px">
       <div class="test-top">
         <span class="test-label">NUTRICIÓN</span>
-        <span class="test-skip" onclick="go('test-sport')">Saltar</span>
       </div>
       <div class="test-prog-bar"><div class="test-prog-fill" style="width:75%"></div></div>
       <div class="test-q-label">CALIDAD</div>
@@ -2671,7 +2778,7 @@ body.native-mode .back-btn { position: fixed !important; }
         <div class="scale-btn" onclick="pickScale(this)">1</div>
         <div class="scale-btn" onclick="pickScale(this)">2</div>
         <div class="scale-btn" onclick="pickScale(this)">3</div>
-        <div class="scale-btn sel" onclick="pickScale(this)">4</div>
+        <div class="scale-btn" onclick="pickScale(this)">4</div>
         <div class="scale-btn" onclick="pickScale(this)">5</div>
       </div>
       <div class="scale-labels"><span>Muy mal</span><span>Mal</span><span>Normal</span><span>Bien</span><span>Perfecto</span></div>
@@ -2685,7 +2792,7 @@ body.native-mode .back-btn { position: fixed !important; }
         <button class="big-picker-btn" onclick="adjustMeals(1)">+</button>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="go('test-sport')">Siguiente</button>
+        <button class="btn-primary" id="testNutritionNext" disabled onclick="go('test-sport')">Siguiente</button>
       </div>
     </div>
   </div>
@@ -2696,7 +2803,6 @@ body.native-mode .back-btn { position: fixed !important; }
     <div class="test-wrap" style="padding-top:70px">
       <div class="test-top">
         <span class="test-label">DEPORTE</span>
-        <span class="test-skip" onclick="finishTest()">Saltar</span>
       </div>
       <div class="test-prog-bar"><div class="test-prog-fill" style="width:100%"></div></div>
       <div class="test-q-label">INTENSIDAD</div>
@@ -2704,7 +2810,7 @@ body.native-mode .back-btn { position: fixed !important; }
       <div class="scale-row">
         <div class="scale-btn" onclick="pickScale(this)">1</div>
         <div class="scale-btn" onclick="pickScale(this)">2</div>
-        <div class="scale-btn sel" onclick="pickScale(this)">3</div>
+        <div class="scale-btn" onclick="pickScale(this)">3</div>
         <div class="scale-btn" onclick="pickScale(this)">4</div>
         <div class="scale-btn" onclick="pickScale(this)">5</div>
       </div>
@@ -2719,8 +2825,22 @@ body.native-mode .back-btn { position: fixed !important; }
         <button class="big-picker-btn" onclick="adjustDur(15)">+</button>
       </div>
       <div class="ob-footer">
-        <button class="btn-primary" onclick="finishTestOrOb()">Finalizar test</button>
+        <button class="btn-primary" id="testSportNext" disabled onclick="finishTestOrOb()">Finalizar test</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ RACHA: +1 DÍA (post-test diario) ═══════════ -->
+  <div class="screen" id="streak-screen">
+    <div>
+      <div class="streak-flame"><svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></div>
+      <div class="streak-plus">+1 día</div>
+      <div class="streak-total" id="streakTotal">1</div>
+      <div class="streak-sub" id="streakSub">día de racha</div>
+      <div class="streak-msg">Cada test alimenta tu plan. La constancia es tu ventaja.</div>
+    </div>
+    <div class="ob-footer">
+      <button class="btn-primary" onclick="continueFromStreak()">Continuar</button>
     </div>
   </div>
 
@@ -2733,8 +2853,8 @@ body.native-mode .back-btn { position: fixed !important; }
 const API_URL = 'https://human-app-backend-production.up.railway.app'
 
 // ── Supabase Auth ──
-const SUPABASE_URL  = 'https://rmdtzxozwghdupeurbzx.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtZHR6eG96d2doZHVwZXVyYnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzOTM5MzUsImV4cCI6MjA5NDk2OTkzNX0.9lY_zX1yK4st6KIQK7L2Sl5MBiISpPdf6NSg0yIv1jY'
+const SUPABASE_URL  = 'https://urgdecttzeddyektdgfs.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyZ2RlY3R0emVkZHlla3RkZ2ZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0MDk2OTUsImV4cCI6MjA5ODk4NTY5NX0.vJU2icKww16eA4QOKcNhQ40RnKsnHoLw5qK4qZiQ6Ek'
 
 let sb = null
 if (window.supabase && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('__')) {
@@ -2794,6 +2914,7 @@ async function doLogout() {
   appState.tests = []
   document.querySelectorAll('.screen, .main-screen').forEach(s => s.classList.remove('active'))
   document.getElementById('splash')?.classList.add('active')
+  revealSplashButtons()
   showToast('Sesión cerrada')
 }
 
@@ -2833,6 +2954,7 @@ async function doDeleteAccount() {
   appState.dailyTest = {}
   document.querySelectorAll('.screen, .main-screen').forEach(s => s.classList.remove('active'))
   document.getElementById('splash')?.classList.add('active')
+  revealSplashButtons()
   showToast(backendOk ? 'Cuenta borrada.' : 'Datos borrados. Sesión cerrada.')
 }
 
@@ -2852,6 +2974,14 @@ function go(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
   const el = document.getElementById(id)
   if (el) el.classList.add('active')
+  // Si se navega al splash manualmente (logout, borrar cuenta, salir del paywall,
+  // volver atrás), los botones de bienvenida deben estar siempre visibles.
+  if (id === 'splash') revealSplashButtons()
+  // Onboarding: recalcular si el botón "Continuar" debe estar bloqueado al entrar al paso
+  validateObStep(id)
+  // Test diario obligatorio: al entrar a una pantalla del test, refleja si ya hay
+  // escala seleccionada (habilita/deshabilita "Siguiente"/"Finalizar").
+  syncTestGate(id)
   // Hooks por pantalla
   if (id === 'paywall-promise') {
     const title = document.getElementById('paywallPromiseTitle')
@@ -2862,14 +2992,6 @@ function go(id) {
         ? `${firstName}, una promesa contigo mismo`
         : 'Una promesa contigo mismo'
     }
-  }
-  if (id === 'welcome') {
-    const fullName  = (appState.profile.name || '').trim()
-    const firstName = fullName.split(' ')[0] || ''
-    const wn = document.getElementById('welcomeName')
-    const wa = document.getElementById('welcomeAgent')
-    if (wn) wn.textContent = firstName || 'a bordo'
-    if (wa) wa.textContent = agentName || 'Jarvis'
   }
 }
 
@@ -2920,6 +3042,13 @@ function startLoading() {
 // ── Onboarding — recoger datos ──
 function collectOb1() {
   appState.profile.name = document.getElementById('inputName').value.trim() || 'Usuario'
+  // Persistir el nombre al instante (igual que el agente): sobrevive a recargas
+  // de la webview entre el onboarding y el registro.
+  try {
+    if (appState.profile.name && appState.profile.name !== 'Usuario') {
+      localStorage.setItem('human_name_choice', appState.profile.name)
+    }
+  } catch {}
   appState.profile.age  = parseInt(document.getElementById('inputAge').value) || 18
   const selSex = document.querySelector('#ob-name .radio-item.sel span')
   appState.profile.sex  = selSex ? selSex.textContent.toLowerCase() : null
@@ -2950,12 +3079,14 @@ function pickGoalCustom(el, event) {
     const input = el.querySelector('.goal-custom-input')
     if (input) setTimeout(() => input.focus(), 50)
   }
+  revalidateActiveOb()
 }
 function onGoalCustomInput(input) {
   const item = input.closest('.goal-item')
   if (!item) return
   if (input.value.trim().length > 0) item.classList.add('sel')
   else item.classList.remove('sel')
+  revalidateActiveOb()
 }
 function addGoalCustom() {
   const list = document.getElementById('goalCustomList')
@@ -3045,6 +3176,7 @@ function pickSleepBaseline(el, hours) {
   el.classList.add('sel')
   sleepHoursBaselineVal = hours
   document.getElementById('sleepHoursBaseDisp').textContent = hours
+  revalidateActiveOb()
 }
 function collectSleepHoursBaseline() {
   appState.profile.sleep_hours_baseline = sleepHoursBaselineVal
@@ -3128,7 +3260,7 @@ function collectBaselines() {
 function showEmailForm() {
   document.getElementById('emailForm').style.display = 'block'
   document.getElementById('emailRegBtn').style.display = 'none'
-  const p2 = document.getElementById('regPassword2')
+  const p2 = document.getElementById('regPassword2Wrap')
   if (p2) p2.style.display = 'block'
   // En modo registro, restaurar barra de progreso y ocultar back btn
   const prog = document.querySelector('#create-account .ca-progress')
@@ -3179,7 +3311,7 @@ function showLoginForm() {
   const emailRegBtn = document.getElementById('emailRegBtn')
   if (emailRegBtn) emailRegBtn.style.display = 'none'
   // Ocultar confirmar contraseña
-  const p2 = document.getElementById('regPassword2')
+  const p2 = document.getElementById('regPassword2Wrap')
   if (p2) p2.style.display = 'none'
   // Ajustar botón y textos
   const btn = document.getElementById('regBtn')
@@ -3201,8 +3333,14 @@ function goCreateAccount(mode) {
   // Reset estado antes de mostrar
   const socialBtns = document.getElementById('socialBtns')
   if (socialBtns) socialBtns.style.display = mode === 'login' ? 'flex' : 'none'
-  document.querySelector('.ca-title').textContent = mode === 'login' ? 'Bienvenido de vuelta' : 'Crea tu cuenta'
-  document.querySelector('.ca-sub').textContent = mode === 'login' ? 'Inicia sesión en tu cuenta.' : 'Crea tu cuenta para guardar tu progreso.'
+  const caFirstName = ((appState.profile.name || '').trim()).split(' ')[0] || ''
+  if (mode === 'login') {
+    document.querySelector('.ca-title').textContent = 'Bienvenido de vuelta'
+    document.querySelector('.ca-sub').textContent = 'Inicia sesión en tu cuenta.'
+  } else {
+    document.querySelector('.ca-title').textContent = caFirstName ? `Hola ${caFirstName}` : 'Crea tu cuenta'
+    document.querySelector('.ca-sub').textContent = `Tu agente ${agentName || 'Jarvis'} está listo. Crea tu cuenta para guardar tu progreso.`
+  }
   go('create-account')
   if (mode === 'login') showLoginForm()
   else showEmailForm()
@@ -3266,6 +3404,8 @@ async function doRegister() {
       }
     }
     try { await saveDailyTest() } catch (e) { console.error('first saveDailyTest:', e) }
+    // El test del onboarding cuenta como test de HOY: nunca relanzarlo tras el registro
+    try { localStorage.setItem(`daily_test_offered_${new Date().toISOString().slice(0, 10)}`, '1') } catch {}
     await enterApp()
     // Polling para mostrar el plan en cuanto el backend lo escriba (~3-15s)
     pollForDailyPlan()
@@ -3315,6 +3455,19 @@ async function doLogin() {
 
 async function _saveOnboarding() {
   if (!appState.userId || !sb) return
+  // Restaurar la elección de agente persistida si la variable global se perdió
+  // (recarga de la webview entre elegir agente y terminar el registro).
+  try {
+    const savedAgent = localStorage.getItem('human_agent_choice')
+    if (savedAgent && (!agentName || agentName === 'Jarvis')) agentName = savedAgent
+  } catch {}
+  // Ídem con el nombre del usuario (bug de la "B" en el avatar).
+  try {
+    const savedName = (localStorage.getItem('human_name_choice') || '').trim()
+    if (savedName && (!appState.profile.name || appState.profile.name === 'Usuario')) {
+      appState.profile.name = savedName
+    }
+  } catch {}
   const payload = {
     name:            appState.profile.name             || 'Usuario',
     age:             appState.profile.age              || 18,
@@ -3453,6 +3606,7 @@ async function loadUserData() {
 
   renderHeader(profile)
   renderAgent(profile)
+  renderStreakChip(appState.stats)
   renderDashboard(profile, lastTest)
   renderInsights(appState.tests)
   renderProfile(profile, appState.stats)
@@ -3487,13 +3641,28 @@ async function loadUserData() {
 
 // ── Saludo y avatar en dashboard ──
 function renderHeader(profile) {
-  const name = (profile?.name || '').trim() || 'Bienvenido'
-  const firstName = name.split(' ')[0]
-  const initial = firstName ? firstName[0].toUpperCase() : '·'
+  let name = (profile?.name || '').trim()
+  // Self-heal: si la BD no tiene nombre pero este dispositivo guardó el del
+  // onboarding, usarlo y reparar la BD.
+  try {
+    const savedName = (localStorage.getItem('human_name_choice') || '').trim()
+    if (!name && savedName) {
+      name = savedName
+      if (sb && appState.userId) {
+        sb.from('profiles').update({ name: savedName }).eq('id', appState.userId)
+          .then(({ error }) => { if (error) console.warn('name self-heal:', error.message) })
+      }
+    }
+  } catch {}
+  const firstName = (name || 'Bienvenido').split(' ')[0]
+  // Inicial del avatar: SIEMPRE del nombre real; si no hay, del email.
+  // Nunca de la palabra "Bienvenido" (bug de la "B" en el avatar).
+  const emailTrim = (profile?.email || '').trim()
+  const initial = name ? name[0].toUpperCase() : (emailTrim ? emailTrim[0].toUpperCase() : '·')
   const dashName = document.getElementById('dashName')
   const dashAvatar = document.getElementById('dashAvatar')
   if (dashName) dashName.textContent = firstName
-  if (dashAvatar) dashAvatar.textContent = initial
+  _applyUserAvatar(dashAvatar, profile, initial)
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Buenos días,' : hour < 20 ? 'Buenas tardes,' : 'Buenas noches,'
@@ -3505,6 +3674,18 @@ function renderHeader(profile) {
 function renderAgent(profile) {
   if (profile?.agent_name) {
     agentName = profile.agent_name
+    // Self-heal: si la BD guardó el default 'Jarvis' pero en este dispositivo hay una
+    // elección real distinta, la elección del usuario manda y se repara la BD.
+    try {
+      const saved = localStorage.getItem('human_agent_choice')
+      if (saved && saved !== 'Jarvis' && profile.agent_name === 'Jarvis') {
+        agentName = saved
+        if (sb && appState.userId) {
+          sb.from('profiles').update({ agent_name: saved }).eq('id', appState.userId)
+            .then(({ error }) => { if (error) console.warn('agent_name self-heal:', error.message) })
+        }
+      }
+    } catch {}
   }
   const agentEl = document.getElementById('chatAgentName')
   if (agentEl) agentEl.textContent = agentName
@@ -3514,6 +3695,60 @@ function renderAgent(profile) {
   if (tag) {
     tag.innerHTML = `<span style="display:inline-block;width:8px;height:8px;background:#3B82F6;border-radius:50%;margin-right:8px;vertical-align:middle;"></span>${agentName.toUpperCase()}`
   }
+}
+
+// ── Foto de perfil del usuario ──
+// Pinta la foto (avatar_url) o cae a la inicial.
+function _applyUserAvatar(el, profile, initial) {
+  if (!el) return
+  const url = profile?.avatar_url
+  if (url && (url.startsWith('data:image/') || url.startsWith('http'))) {
+    el.innerHTML = `<img src="${url}" alt="">`
+  } else {
+    el.textContent = initial
+  }
+}
+function pickAvatar() {
+  document.getElementById('avatarInput')?.click()
+}
+async function onAvatarPicked(input) {
+  const file = input.files && input.files[0]
+  if (!file) return
+  try {
+    const dataUrl = await _resizeImageToDataUrl(file, 256, 0.85)
+    appState.profile.avatar_url = dataUrl
+    // Reflejar al instante en perfil + dashboard
+    _applyUserAvatar(document.getElementById('profileAv'), appState.profile, '·')
+    _applyUserAvatar(document.getElementById('dashAvatar'), appState.profile, '·')
+    if (sb && appState.userId) {
+      const { error } = await sb.from('profiles').update({ avatar_url: dataUrl }).eq('id', appState.userId)
+      if (error) { console.warn('avatar save:', error.message); showToast('No se pudo guardar la foto') }
+      else showToast('Foto de perfil actualizada')
+    }
+  } catch (e) {
+    console.error('onAvatarPicked:', e)
+    showToast('No se pudo procesar la imagen')
+  }
+  input.value = ''
+}
+// Recorta al centro (cuadrado) y reduce a size×size JPEG — ~20-40KB.
+function _resizeImageToDataUrl(file, size, quality) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const objUrl = URL.createObjectURL(file)
+    img.onload = () => {
+      try {
+        const s = Math.min(img.width, img.height)
+        const c = document.createElement('canvas')
+        c.width = size; c.height = size
+        c.getContext('2d').drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size)
+        URL.revokeObjectURL(objUrl)
+        resolve(c.toDataURL('image/jpeg', quality))
+      } catch (e) { URL.revokeObjectURL(objUrl); reject(e) }
+    }
+    img.onerror = (e) => { URL.revokeObjectURL(objUrl); reject(e) }
+    img.src = objUrl
+  })
 }
 
 // ── Dashboard: estado vacío vs lleno ──
@@ -3585,7 +3820,7 @@ function renderDashboard(profile, lastTest) {
   // variables del test de hoy + los hábitos fijos garantizados cada día.
   // El plan de Claude (backend) solo se usa para enriquecer el mensaje del agente.
   const local = buildLocalPlan(profile, lastTest)
-  if (planItems) planItems.innerHTML = local.html
+  if (planItems) { planItems.innerHTML = local.html; applyPlanDoneState() }
 
   const serverLines = (lastTest.daily_plan || '').split('\n').filter(Boolean)
   const msgLine     = serverLines.find(l => l.startsWith('MENSAJE DE JARVIS:'))
@@ -3613,9 +3848,49 @@ function capSentences(text, max) {
 }
 function planItem(title, body, eyebrow) {
   const eb = eyebrow ? `<div class="plan-item-eyebrow">${escapeHtml(eyebrow)}</div>` : ''
-  return `<div class="plan-item" onclick="togglePlanItem(this)">${eb}<div class="plan-item-name">${escapeHtml(title)}</div><div class="plan-item-time">${escapeHtml(body)}</div><div class="plan-item-toggle"><span>Descripción</span><span class="chev"></span></div></div>`
+  const hid = _habitId(title)
+  const check = `<button class="habit-check" onclick="toggleHabitDone(event, this)" aria-label="Marcar hábito como completado"><span class="hc-circle"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span></button>`
+  return `<div class="plan-item has-check" data-habit="${hid}" onclick="togglePlanItem(this)">${check}${eb}<div class="plan-item-name">${escapeHtml(title)}</div><div class="plan-item-time">${escapeHtml(body)}</div><div class="plan-item-toggle"><span>Descripción</span><span class="chev"></span></div></div>`
 }
 function togglePlanItem(el) { if (el) el.classList.toggle('expanded') }
+
+// ── Hábitos completados del día (persistencia por usuario + fecha) ──
+function _habitId(title) {
+  return String(title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60)
+}
+function _planDoneKey() {
+  return `plan_done_${appState.userId || 'anon'}_${new Date().toISOString().slice(0, 10)}`
+}
+function _getPlanDone() {
+  try { return JSON.parse(localStorage.getItem(_planDoneKey()) || '[]') } catch { return [] }
+}
+function toggleHabitDone(ev, btn) {
+  ev.stopPropagation()  // no abrir/cerrar la Descripción al marcar el check
+  const card = btn.closest('.plan-item')
+  const id = card?.dataset?.habit
+  if (!card || !id) return
+  const done = _getPlanDone()
+  const idx = done.indexOf(id)
+  if (idx >= 0) done.splice(idx, 1)
+  else done.push(id)
+  try { localStorage.setItem(_planDoneKey(), JSON.stringify(done)) } catch {}
+  card.classList.toggle('done', idx < 0)
+}
+// Reaplicar el estado guardado tras re-renderizar el plan + limpiar claves de días pasados
+function applyPlanDoneState() {
+  const done = _getPlanDone()
+  document.querySelectorAll('.plan-item[data-habit]').forEach(card => {
+    card.classList.toggle('done', done.includes(card.dataset.habit))
+  })
+  try {
+    const todayKey = _planDoneKey()
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i)
+      if (k && k.startsWith('plan_done_') && k !== todayKey) localStorage.removeItem(k)
+    }
+  } catch {}
+}
 
 // ── Delta por stat: pinta ↑/↓/→ con color según si la dirección es deseable ──
 function applyStatDelta(elId, todayVal, prevVal, direction) {
@@ -3920,9 +4195,10 @@ function flagDailyTestState(profile, lastTest) {
 function renderProfile(profile, stats) {
   const name = (profile?.name || '').trim()
   const firstName = name.split(' ')[0] || ''
-  const initial = firstName ? firstName[0].toUpperCase() : '·'
+  const _pEmail = (profile?.email || '').trim()
+  const initial = firstName ? firstName[0].toUpperCase() : (_pEmail ? _pEmail[0].toUpperCase() : '·')
   setText('profileUname', name || '—')
-  setText('profileAv', initial)
+  _applyUserAvatar(document.getElementById('profileAv'), profile, initial)
   setText('profileEmail', profile?.email || '')
 
   const pill = document.getElementById('profileIdentityPill')
@@ -4405,17 +4681,17 @@ function onCustomAgentName(val) {
     // Deselect all grid cards
     document.querySelectorAll('#ob-agent .agent-card').forEach(c => c.classList.remove('sel'))
     agentName = trimmed
+    try { localStorage.setItem('human_agent_choice', trimmed) } catch {}
     document.getElementById('agentName').textContent = trimmed
     document.getElementById('agentBtn').textContent = `Continuar con ${trimmed}`
   }
+  revalidateActiveOb()
 }
 
 async function finishTest() {
   collectTestData()
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
-  document.getElementById('main-app').classList.add('active')
-  switchTab('dashboard')
-  showToast('✓ Test completado')
+  // Celebración de racha: +1 día y total, antes de volver al inicio
+  showStreakScreen()
   if (appState.userId) {
     try {
       await saveDailyTest()
@@ -4425,6 +4701,50 @@ async function finishTest() {
       showToast('⚠️ No se pudo guardar el test. Reintenta.')
     }
   }
+}
+
+// ── Racha diaria (basada en tests diarios consecutivos) ──
+// Racha contando el test de HOY recién completado.
+function computeStreakAfterToday() {
+  const dateSet = new Set((appState.tests || []).map(t => String(t.date || '').slice(0, 10)))
+  const today = new Date()
+  dateSet.add(today.toISOString().slice(0, 10))
+  let s = 0
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today); d.setDate(today.getDate() - i)
+    if (dateSet.has(d.toISOString().slice(0, 10))) s++
+    else break
+  }
+  return s
+}
+// Chip del dashboard (llama + número). Oculto si racha 0.
+function renderStreakChip(stats) {
+  const chip = document.getElementById('streakChip')
+  const num = document.getElementById('streakNum')
+  if (!chip || !num) return
+  const s = stats?.streak || 0
+  num.textContent = s
+  chip.classList.toggle('on', s > 0)
+}
+// Pantalla "+1 día" tras el test diario (no aplica al onboarding).
+function showStreakScreen() {
+  const s = computeStreakAfterToday()
+  const total = document.getElementById('streakTotal')
+  const sub = document.getElementById('streakSub')
+  if (total) total.textContent = s
+  if (sub) sub.textContent = s === 1 ? 'día de racha' : 'días de racha'
+  // Actualizar ya el chip del dashboard para cuando vuelva
+  renderStreakChip({ streak: s })
+  document.querySelectorAll('.screen').forEach(x => x.classList.remove('active'))
+  const scr = document.getElementById('streak-screen')
+  if (!scr) { continueFromStreak(); return }
+  scr.classList.add('active')
+  scr.classList.remove('anim'); void scr.offsetWidth; scr.classList.add('anim')
+}
+function continueFromStreak() {
+  document.querySelectorAll('.screen').forEach(x => x.classList.remove('active'))
+  document.getElementById('main-app').classList.add('active')
+  switchTab('dashboard')
 }
 
 // ── Toast robusto: funciona en web y en Capacitor nativo ──
@@ -4560,6 +4880,7 @@ let _voiceListening = false
 let _mediaRecorder = null
 let _audioChunks = []
 let _whisper = null
+let _voicePrevPlaceholder = ''   // placeholder original del input, para restaurarlo tras grabar
 
 async function toggleVoice() {
   const input = document.getElementById('chatInput')
@@ -4582,6 +4903,8 @@ async function toggleVoice() {
     _mediaRecorder.ondataavailable = e => { if (e.data && e.data.size) _audioChunks.push(e.data) }
     _mediaRecorder.onstop = async () => {
       try { stream.getTracks().forEach(t => t.stop()) } catch {}
+      // Restaurar el placeholder y avisar de que está transcribiendo.
+      input.placeholder = 'Transcribiendo…'
       const blob = new Blob(_audioChunks, { type: (_mediaRecorder && _mediaRecorder.mimeType) || 'audio/mp4' })
       showToast('Transcribiendo…')
       try {
@@ -4589,10 +4912,14 @@ async function toggleVoice() {
         if (text) input.value = (input.value ? input.value.trim() + ' ' : '') + text
         else showToast('No te he entendido, inténtalo otra vez.')
       } catch (err) { console.error('transcribe:', err); showToast('No se pudo transcribir el audio.') }
+      finally { input.placeholder = _voicePrevPlaceholder }
     }
     _mediaRecorder.start()
     _voiceListening = true
     if (mic) mic.classList.add('recording')
+    // Indicador claro de que está escuchando (aunque la transcripción llegue al parar).
+    _voicePrevPlaceholder = input.getAttribute('placeholder') || ''
+    input.placeholder = 'Escuchando…'
   } catch (err) {
     console.error('voice:', err)
     _voiceListening = false
@@ -4749,25 +5076,72 @@ function pick(el, group) {
       .forEach(i => i.classList.remove('sel'))
     el.classList.add('sel')
   }
+  revalidateActiveOb()
 }
 function pickFreq(el) {
   el.closest('.freq-row').querySelectorAll('.freq-btn').forEach(b => b.classList.remove('sel'))
   el.classList.add('sel')
+  revalidateActiveOb()
 }
 function pickAgent(el, name) {
   const grid = el.closest('.agent-grid') || el.closest('.agent-grid-3') || el.parentElement
   grid.querySelectorAll('.agent-card').forEach(c => c.classList.remove('sel'))
   el.classList.add('sel')
   agentName = name
+  // Persistir la elección al instante: sobrevive a recargas de la webview entre
+  // elegir agente y completar el registro (causa del bug "elegí Nino, salió Jarvis")
+  try { localStorage.setItem('human_agent_choice', name) } catch {}
   document.getElementById('agentName').textContent = name
   document.getElementById('agentBtn').textContent = 'Continuar con ' + name
   // Clear custom name input if a preset is picked
   const customInput = document.getElementById('agentCustomName')
   if (customInput) customInput.value = ''
+  revalidateActiveOb()
 }
 function pickPeriod(el) {
   el.closest('.period-tabs').querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'))
   el.classList.add('active')
+}
+
+// ── Onboarding obligatorio: "Continuar" bloqueado hasta responder el paso ──
+function validateObStep(stepId) {
+  const set = (btnId, ok) => { const b = document.getElementById(btnId); if (b) b.disabled = !ok }
+  switch (stepId) {
+    case 'ob-name': {
+      const name = (document.getElementById('inputName')?.value || '').trim()
+      const age  = (document.getElementById('inputAge')?.value || '').trim()
+      const sexo = !!document.querySelector('#ob-name .radio-item.sel')
+      set('obNameBtn', name.length > 0 && age.length > 0 && sexo)
+      break
+    }
+    case 'ob-identity':
+      set('obIdentityBtn', !!document.querySelector('#ob-identity .identity-card.sel'))
+      break
+    case 'ob-goal':
+      set('obGoalBtn', !!document.querySelector('#ob-goal .goal-item.sel'))
+      break
+    case 'ob-symptoms': {
+      const blocks = document.querySelectorAll('#ob-symptoms .symptom-block')
+      let allDone = blocks.length > 0
+      blocks.forEach(bl => { if (!bl.querySelector('.freq-btn.sel')) allDone = false })
+      set('obSymptomsBtn', allDone)
+      break
+    }
+    case 'ob-sleep-hours':
+      set('obSleepHoursBtn', !!document.querySelector('#ob-sleep-hours .sleep-hour-btn.sel'))
+      break
+    case 'ob-agent': {
+      const picked = !!document.querySelector('#ob-agent .agent-card.sel')
+      const custom = (document.getElementById('agentCustomName')?.value || '').trim().length > 0
+      set('agentBtn', picked || custom)
+      break
+    }
+  }
+}
+// Revalida el paso de onboarding actualmente visible (tras cada selección)
+function revalidateActiveOb() {
+  const active = document.querySelector('.screen.active')
+  if (active && active.id) validateObStep(active.id)
 }
 function pickHours(el, val) {
   el.closest('.hours-grid').querySelectorAll('.pill-btn').forEach(b => b.classList.remove('sel'))
@@ -4778,9 +5152,47 @@ function pickTime(el) {
   el.closest('.time-row').querySelectorAll('.time-card').forEach(c => c.classList.remove('sel'))
   el.classList.add('sel')
 }
+// ── Mostrar/ocultar contraseña (registro + login comparten los mismos campos) ──
+const PW_ICON_SHOW = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+const PW_ICON_HIDE = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+function togglePw(id, btn) {
+  const input = document.getElementById(id)
+  if (!input) return
+  const show = input.type === 'password'
+  input.type = show ? 'text' : 'password'
+  btn.innerHTML = show ? PW_ICON_HIDE : PW_ICON_SHOW
+  btn.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña')
+}
 function pickScale(el) {
-  el.closest('.scale-row').querySelectorAll('.scale-btn').forEach(b => b.classList.remove('sel'))
+  const row = el.closest('.scale-row')
+  row.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('sel'))
   el.classList.add('sel')
+  // Resaltar en blanco la etiqueta correspondiente (Muy mal, Mal, Regular…)
+  const idx = [...row.querySelectorAll('.scale-btn')].indexOf(el)
+  const labels = row.nextElementSibling
+  if (labels && labels.classList.contains('scale-labels')) {
+    labels.querySelectorAll('span').forEach((s, i) => s.classList.toggle('sel', i === idx))
+  }
+  // Test diario obligatorio: al elegir la escala 1-5, desbloquear el botón de esa pantalla
+  const scr = el.closest('.screen')
+  if (scr) syncTestGate(scr.id)
+}
+// Test diario OBLIGATORIO: el botón "Siguiente"/"Finalizar" de cada pantalla del
+// test queda deshabilitado hasta que el usuario selecciona la escala 1-5.
+// Aplica al test del onboarding y al de cada día (comparten pantallas).
+function syncTestGate(id) {
+  const map = {
+    'test-sleep':     'testSleepNext',
+    'test-stress':    'testStressNext',
+    'test-nutrition': 'testNutritionNext',
+    'test-sport':     'testSportNext'
+  }
+  const btnId = map[id]
+  if (!btnId) return
+  const btn = document.getElementById(btnId)
+  if (!btn) return
+  const picked = document.querySelector('#' + id + ' .scale-row .scale-btn.sel')
+  btn.disabled = !picked
 }
 function adjustMeals(delta) {
   const el = document.getElementById('mealsNum')
@@ -4808,6 +5220,10 @@ function pickDur(el, val) {
 
 // ── Arranque ──
 window.addEventListener('load', async () => {
+  // Arrancar RevenueCat lo antes posible y guardar su promesa, para que el
+  // auto-login (enterApp → hasActivePremium) espere a que configure() termine.
+  rcReady = initRevenueCat()
+
   // Detectar modo nativo (Capacitor o standalone)
   const isNative = window.Capacitor?.isNativePlatform?.() ||
     window.navigator.standalone === true ||
@@ -4885,21 +5301,7 @@ window.addEventListener('load', async () => {
   // Limpiar restos del sistema antiguo (pre-Supabase Auth)
   try { localStorage.removeItem('humanUserId') } catch {}
 
-  if (!sb) return  // Sin SDK no hay nada que hacer
-
-  // ⚠️ TEMPORAL — Fuerza signOut UNA vez tras este build, para que Nikos pueda
-  // salir de la sesión actual y probar el flujo de login limpio.
-  // Quitar este bloque cuando ya no haga falta (búscalo por FORCE_SIGNOUT_FLAG).
-  const FORCE_SIGNOUT_FLAG = 'human_force_signout_2026_05_30_v1'
-  try {
-    if (!localStorage.getItem(FORCE_SIGNOUT_FLAG)) {
-      await sb.auth.signOut()
-      localStorage.setItem(FORCE_SIGNOUT_FLAG, '1')
-      console.log('[Optimus] Forced signOut once — flag set.')
-    }
-  } catch (e) {
-    console.warn('Forced signOut error:', e?.message)
-  }
+  if (!sb) { revealSplashButtons(); return }  // Sin SDK no hay nada que hacer
 
   // Listener de cambios de auth (login en otra pestaña, expiry, signOut)
   sb.auth.onAuthStateChange((event, session) => {
@@ -4932,39 +5334,57 @@ window.addEventListener('load', async () => {
     }
   } catch (e) { /* noop */ }
 
-  // Auto-login si hay sesión persistida
+  // Auto-login si hay sesión persistida.
+  // Red de seguridad: si en 6s no se ha resuelto nada (y no hay sesión),
+  // mostramos los botones para no dejar la app bloqueada en el logo.
+  const _bootSafety = setTimeout(() => { if (!appState.userId) revealSplashButtons() }, 6000)
   try {
     const { data: { session } } = await sb.auth.getSession()
     if (session?.user) {
       appState.userId = session.user.id
+      clearTimeout(_bootSafety)
       await enterApp()
       return
     }
   } catch (err) {
     console.warn('getSession error:', err.message)
   }
+  // Sin sesión → usuario nuevo o deslogueado: mostrar Registrarse / Iniciar sesión
+  clearTimeout(_bootSafety)
+  revealSplashButtons()
 })
+
+// ── Gate del splash: revelar los botones de bienvenida (una sola vez) ──
+function revealSplashButtons() {
+  document.getElementById('splash')?.classList.remove('boot-checking')
+}
 
 // ─────────────────────────────────────────────
 // ── PAYWALL — RevenueCat + StoreKit 2 ──
 // ─────────────────────────────────────────────
 
 // IDs de producto (configurar en App Store Connect + RevenueCat)
-const RC_API_KEY       = 'appl_mxmUwodTeHbAxCivvkpUirABaYl'   // API key pública iOS de RevenueCat (proyecto Human)
+const RC_API_KEY_IOS     = 'appl_mxmUwodTeHbAxCivvkpUirABaYl'   // API key pública iOS (App Store) de RevenueCat (proyecto Human)
+const RC_API_KEY_ANDROID = 'goog_UiqkvVUpURwhUGDHoAOBoeBFtjI'   // API key pública Android (Google Play) de RevenueCat (proyecto Human)
 const PRODUCT_ANNUAL          = 'com.nikoshonik.humanapp.premium.yearly'    // ID del producto anual (29,99€) en App Store Connect
 const PRODUCT_MONTHLY         = 'com.nikoshonik.humanapp.premium.monthly'   // ID del producto mensual (9,99€) en App Store Connect
-const PRODUCT_MONTHLY_DOWNSELL = 'com.nikoshonik.humanapp.premium.downsell' // ID del downsell mensual (4,99€) en App Store Connect
 
 let selectedPlan = 'annual'   // plan seleccionado por defecto en el paywall principal
-let downsellPlan = 'monthly'  // plan seleccionado por defecto en el downsell (4,99€)
+
+// Promesa global de inicialización de RevenueCat.
+// hasActivePremium() la espera antes de consultar el entitlement, para evitar
+// la race condition en la que getCustomerInfo() corre antes de que configure() termine.
+let rcReady = null
 
 // Inicializar RevenueCat al arrancar (solo en dispositivo nativo)
 async function initRevenueCat() {
   try {
     const { Purchases } = window.Capacitor?.Plugins || {}
     if (!Purchases || !window.Capacitor?.isNativePlatform?.()) return
-    await Purchases.configure({ apiKey: RC_API_KEY })
-    console.log('[RC] RevenueCat inicializado')
+    const _rcPlatform = window.Capacitor.getPlatform()
+    const _rcApiKey = (_rcPlatform === 'android') ? RC_API_KEY_ANDROID : RC_API_KEY_IOS
+    await Purchases.configure({ apiKey: _rcApiKey })
+    console.log('[RC] RevenueCat inicializado para', _rcPlatform)
   } catch (e) {
     console.warn('[RC] Error al inicializar:', e)
   }
@@ -4977,13 +5397,23 @@ async function initRevenueCat() {
 async function hasActivePremium() {
   const { Purchases } = window.Capacitor?.Plugins || {}
   if (!Purchases || !window.Capacitor?.isNativePlatform?.()) return true
-  try {
-    const { customerInfo } = await Purchases.getCustomerInfo()
-    return !!customerInfo?.entitlements?.active?.premium
-  } catch (e) {
-    console.warn('[RC] hasActivePremium error:', e)
-    return false
+  // Esperar a que configure() de RevenueCat termine antes de consultar (evita race condition).
+  try { if (rcReady) await rcReady } catch {}
+  // Reintentos con backoff: getCustomerInfo puede fallar si el SDK aún no está listo
+  // o si hay un fallo de red transitorio. Solo devolvemos false tras agotar los reintentos.
+  const MAX_RETRIES = 3
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      const { customerInfo } = await Purchases.getCustomerInfo()
+      return !!customerInfo?.entitlements?.active?.premium
+    } catch (e) {
+      console.warn(`[RC] hasActivePremium error (intento ${attempt + 1}/${MAX_RETRIES}):`, e)
+      if (attempt < MAX_RETRIES - 1) {
+        await new Promise(r => setTimeout(r, 400 * (attempt + 1)))  // 400ms, 800ms
+      }
+    }
   }
+  return false
 }
 
 // Selección visual de plan
@@ -4992,19 +5422,79 @@ function selectPlan(plan) {
   const annualEl  = document.getElementById('planAnnual')
   const monthlyEl = document.getElementById('planMonthly')
   if (!annualEl || !monthlyEl) return
+  const mSub   = document.getElementById('planMonthlySub')
+  const mRadio = document.getElementById('planMonthlyRadio')
+  const aSub   = document.getElementById('planAnnualSub')
   if (plan === 'annual') {
-    annualEl.style.opacity  = '1'
-    monthlyEl.style.opacity = '0.5'
+    annualEl.style.opacity   = '1'
+    annualEl.style.transform = 'scale(1.02)'
+    annualEl.style.background = '#3B82F6'
+    annualEl.style.borderColor = '#3B82F6'
+    if (aSub) aSub.style.color = '#dbe7ff'
+    monthlyEl.style.opacity  = '0.5'
+    monthlyEl.style.transform = 'scale(1)'
+    monthlyEl.style.background = '#0d0d0d'
+    monthlyEl.style.borderColor = '#1c1c1c'
+    if (mSub)   mSub.style.color = '#777'
+    if (mRadio) { mRadio.style.borderColor = '#3a3a3a'; mRadio.style.background = 'transparent' }
   } else {
-    annualEl.style.opacity  = '0.5'
-    monthlyEl.style.opacity = '1'
+    annualEl.style.opacity   = '0.55'
+    annualEl.style.transform = 'scale(1)'
+    annualEl.style.background = '#0d0d0d'
+    annualEl.style.borderColor = '#1c1c1c'
+    if (aSub) aSub.style.color = '#777'
+    monthlyEl.style.opacity  = '1'
+    monthlyEl.style.transform = 'scale(1.02)'
+    monthlyEl.style.background = '#3B82F6'
+    monthlyEl.style.borderColor = '#3B82F6'
+    if (mSub)   mSub.style.color = '#dbe7ff'
+    if (mRadio) { mRadio.style.borderColor = '#fff'; mRadio.style.background = '#fff' }
   }
+}
+
+// ── Modal de salida del paywall (X) ──
+function openExitPaywall()  { document.getElementById('exitPaywallModal')?.classList.add('open') }
+function closeExitPaywall() { document.getElementById('exitPaywallModal')?.classList.remove('open') }
+function confirmExitPaywall() { closeExitPaywall(); go('splash') }
+
+// Obtiene el StoreProduct de RevenueCat por su identificador.
+// purchaseStoreProduct EXIGE un objeto product (no un string), por eso hay que pedirlo antes.
+async function _rcGetProduct(Purchases, productId) {
+  try {
+    const off = await Purchases.getOfferings()
+    const groups = []
+    if (off?.current?.availablePackages) groups.push(off.current.availablePackages)
+    if (off?.all) Object.values(off.all).forEach(o => { if (o?.availablePackages) groups.push(o.availablePackages) })
+    for (const pkgs of groups) {
+      const m = pkgs.find(p => p?.product?.identifier === productId)
+      if (m?.product) return m.product
+    }
+  } catch (e) { console.warn('[RC] getOfferings:', e) }
+  for (const t of ['subs', undefined]) {
+    try {
+      const arg = { productIdentifiers: [productId] }
+      if (t) arg.type = t
+      const res = await Purchases.getProducts(arg)
+      const p = (res?.products || [])[0]
+      if (p) return p
+    } catch (e) { console.warn('[RC] getProducts:', e) }
+  }
+  return null
 }
 
 // Lanzar compra
 async function startPurchase() {
   const btn = document.getElementById('paywallCTA')
+  const resetBtn = () => { if (btn) { btn.textContent = 'Comenzar prueba gratuita'; btn.disabled = false } }
   if (btn) { btn.textContent = 'Procesando…'; btn.disabled = true }
+
+  // Red de seguridad: si la compra se cuelga (hoja de compra que no aparece,
+  // transacción previa pendiente, RevenueCat sin responder…), reactivar el botón
+  // para NO dejarlo en "Procesando…" para siempre.
+  let settled = false
+  const safety = setTimeout(() => {
+    if (!settled) { resetBtn(); alert('La compra está tardando demasiado. Revisa tu conexión e inténtalo de nuevo.') }
+  }, 45000)
 
   try {
     const { Purchases } = window.Capacitor?.Plugins || {}
@@ -5012,15 +5502,24 @@ async function startPurchase() {
     // Modo web/simulador: saltar paywall directamente
     if (!Purchases || !window.Capacitor?.isNativePlatform?.()) {
       console.warn('[RC] Modo web/simulador — saltando paywall')
-      go('welcome')
+      goCreateAccount('register')
       return
     }
 
+    // Asegurar que RevenueCat.configure() terminó antes de comprar (evita cuelgues al inicio).
+    try { if (rcReady) await rcReady } catch {}
+
     const productId = selectedPlan === 'annual' ? PRODUCT_ANNUAL : PRODUCT_MONTHLY
-    const { customerInfo } = await Purchases.purchaseStoreProduct({ productIdentifier: productId })
+    // Cargar el producto con timeout: getOfferings/getProducts a veces no responde.
+    const product = await Promise.race([
+      _rcGetProduct(Purchases, productId),
+      new Promise(res => setTimeout(() => res(null), 15000))
+    ])
+    if (!product) { alert('No se pudo cargar el producto. Revisa tu conexión e inténtalo de nuevo.'); return }
+    const { customerInfo } = await Purchases.purchaseStoreProduct({ product })
 
     if (customerInfo?.entitlements?.active?.premium) {
-      go('welcome')
+      goCreateAccount('register')
     } else {
       alert('La compra no se pudo completar. Inténtalo de nuevo.')
     }
@@ -5029,47 +5528,9 @@ async function startPurchase() {
       alert('Error en la compra: ' + (e?.message || e))
     }
   } finally {
-    if (btn) { btn.textContent = 'Comenzar ahora'; btn.disabled = false }
-  }
-}
-
-// ── Downsell: se muestra al cerrar el paywall principal ──
-function showDownsell() {
-  selectDownsellPlan('monthly')
-  go('paywall-downsell')
-}
-
-function selectDownsellPlan(plan) {
-  downsellPlan = plan
-  const m = document.getElementById('dsMonthly')
-  const a = document.getElementById('dsAnnual')
-  if (!m || !a) return
-  m.style.opacity = plan === 'monthly' ? '1' : '0.5'
-  a.style.opacity = plan === 'annual'  ? '1' : '0.5'
-}
-
-async function startDownsellPurchase() {
-  const btn = document.getElementById('downsellCTA')
-  if (btn) { btn.textContent = 'Procesando…'; btn.disabled = true }
-  try {
-    const { Purchases } = window.Capacitor?.Plugins || {}
-    // Modo web/simulador: saltar compra directamente
-    if (!Purchases || !window.Capacitor?.isNativePlatform?.()) {
-      console.warn('[RC] Modo web/simulador — saltando downsell')
-      go('welcome')
-      return
-    }
-    const productId = downsellPlan === 'annual' ? PRODUCT_ANNUAL : PRODUCT_MONTHLY_DOWNSELL
-    const { customerInfo } = await Purchases.purchaseStoreProduct({ productIdentifier: productId })
-    if (customerInfo?.entitlements?.active?.premium) {
-      go('welcome')
-    } else {
-      alert('La compra no se pudo completar. Inténtalo de nuevo.')
-    }
-  } catch (e) {
-    if (e?.code !== 'PURCHASE_CANCELLED') alert('Error en la compra: ' + (e?.message || e))
-  } finally {
-    if (btn) { btn.textContent = 'Aprovechar oferta'; btn.disabled = false }
+    settled = true
+    clearTimeout(safety)
+    resetBtn()
   }
 }
 
@@ -5083,7 +5544,7 @@ async function restorePurchases() {
     }
     const { customerInfo } = await Purchases.restorePurchases()
     if (customerInfo?.entitlements?.active?.premium) {
-      go('welcome')
+      goCreateAccount('login')
     } else {
       alert('No se encontró ninguna compra activa.')
     }
@@ -5127,7 +5588,6 @@ async function renderSubscription() {
     let planName = 'Premium'
     if (_currentPlanId === PRODUCT_ANNUAL)               planName = 'Plan Anual'
     else if (_currentPlanId === PRODUCT_MONTHLY)          planName = 'Plan Mensual'
-    else if (_currentPlanId === PRODUCT_MONTHLY_DOWNSELL) planName = 'Plan Mensual (oferta)'
     nameEl.textContent = planName
     if (badgeEl) badgeEl.style.display = 'inline-block'
     if (statusEl) {
@@ -5171,7 +5631,9 @@ async function confirmChangePlan() {
   const { Purchases } = window.Capacitor?.Plugins || {}
   if (!Purchases || !window.Capacitor?.isNativePlatform?.()) { showToast('Solo disponible en el dispositivo'); closeChangePlan(); return }
   try {
-    const { customerInfo } = await Purchases.purchaseStoreProduct({ productIdentifier: _changePlanTarget })
+    const product = await _rcGetProduct(Purchases, _changePlanTarget)
+    if (!product) { alert('No se pudo cargar el plan. Inténtalo de nuevo.'); return }
+    const { customerInfo } = await Purchases.purchaseStoreProduct({ product })
     if (customerInfo?.entitlements?.active?.premium) {
       showToast('✓ Plan actualizado')
       closeChangePlan()
@@ -5224,6 +5686,7 @@ async function openManageSubscriptions() {
 // ── Enlaces legales (Términos / Privacidad) ──
 const LEGAL_TERMS_URL   = 'https://human-app-backend-production.up.railway.app/terminos'
 const LEGAL_PRIVACY_URL = 'https://human-app-backend-production.up.railway.app/privacidad'
+const LEGAL_EULA_URL    = 'https://human-app-backend-production.up.railway.app/eula'
 function openLegal(url) {
   try {
     const Browser = window.Capacitor?.Plugins?.Browser
@@ -5232,8 +5695,46 @@ function openLegal(url) {
   window.open(url, '_blank')
 }
 
-// Llamar initRevenueCat al cargar
-window.addEventListener('load', () => { initRevenueCat() }, { once: false })
+// initRevenueCat se arranca en el listener 'load' principal (arriba), que guarda
+// su promesa en rcReady para que hasActivePremium() la espere. No se duplica aquí.
+
+// ── TECLADO: plugin @capacitor/keyboard (resize "native") ───────
+// El WebView se encoge al abrir el teclado → el layout se readapta.
+// El plugin avisa (kb-open) para ocultar la nav y pegar el input.
+// Fallback web/simulador sin plugin: visualViewport.
+;(function(){
+  function setKb(open) {
+    document.body.classList.toggle('kb-open', open)
+    if (open) {
+      const wrap = document.querySelector('.chat-messages-wrap')
+      if (wrap) setTimeout(() => { wrap.scrollTop = wrap.scrollHeight }, 120)
+    }
+  }
+  const Kb = window.Capacitor?.Plugins?.Keyboard
+  console.log('[Human] Keyboard plugin disponible:', !!(Kb && Kb.addListener))
+  // Refuerzo: el input del chat togglea kb-open al instante por focus/blur
+  const ci = document.getElementById('chatInput')
+  if (ci) {
+    ci.addEventListener('focus', () => setKb(true))
+    ci.addEventListener('blur', () => setTimeout(() => setKb(false), 120))
+  }
+  if (Kb?.addListener) {
+    Kb.addListener('keyboardWillShow', () => setKb(true))
+    Kb.addListener('keyboardWillHide', () => setKb(false))
+  } else if (window.visualViewport) {
+    const vv = window.visualViewport
+    const onVV = () => setKb(Math.max(0, window.innerHeight - vv.height - vv.offsetTop) > 60)
+    vv.addEventListener('resize', onVV)
+    vv.addEventListener('scroll', onVV)
+  }
+  // Formularios (login, onboarding): asegurar que el input enfocado quede visible
+  document.addEventListener('focusin', (e) => {
+    const el = e.target
+    if (!el.matches || !el.matches('input, textarea')) return
+    if (el.id === 'chatInput') return
+    setTimeout(() => { try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }) } catch (_) {} }, 300)
+  })
+})()
 </script>
 </body>
 </html>

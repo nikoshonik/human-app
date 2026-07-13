@@ -76,6 +76,16 @@ async function run() {
       .map(p => [p.user_id, p.push_token])
   );
 
+  // 3. Badge real: nº de notificaciones no leídas por user, para que el número
+  //    del icono refleje la realidad (antes era un "1" fijo que nunca cuadraba).
+  const { data: unreadRows } = await supabase
+    .from('notification_deliveries')
+    .select('user_id')
+    .in('user_id', userIds)
+    .neq('status', 'read');
+  const unreadByUser = {};
+  for (const r of (unreadRows || [])) unreadByUser[r.user_id] = (unreadByUser[r.user_id] || 0) + 1;
+
   let sent = 0, skipped = 0, failed = 0;
 
   for (const n of pending) {
@@ -92,7 +102,7 @@ async function run() {
     note.topic = process.env.APNS_BUNDLE_ID;
     note.alert = { title: n.title, body: n.body };
     note.sound = 'default';
-    note.badge = 1;
+    note.badge = unreadByUser[n.user_id] || 1;
     note.payload = { ...(n.payload || {}), deliveryId: n.id, category: n.category };
 
     try {

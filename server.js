@@ -14,9 +14,9 @@ dotenv.config()
 // La anon key es pública por diseño (Supabase la documenta así y va embebida
 // en cualquier cliente JS). Hardcoded como fallback para no depender de la
 // env var en Railway. Si se rota, se sobreescribe con la env var.
-const SUPABASE_ANON_KEY_FALLBACK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtZHR6eG96d2doZHVwZXVyYnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzOTM5MzUsImV4cCI6MjA5NDk2OTkzNX0.9lY_zX1yK4st6KIQK7L2Sl5MBiISpPdf6NSg0yIv1jY'
+const SUPABASE_ANON_KEY_FALLBACK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyZ2RlY3R0emVkZHlla3RkZ2ZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0MDk2OTUsImV4cCI6MjA5ODk4NTY5NX0.vJU2icKww16eA4QOKcNhQ40RnKsnHoLw5qK4qZiQ6Ek'
 
-const SUPABASE_URL  = process.env.SUPABASE_URL || 'https://rmdtzxozwghdupeurbzx.supabase.co'
+const SUPABASE_URL  = process.env.SUPABASE_URL || 'https://urgdecttzeddyektdgfs.supabase.co'
 const SERVICE_KEY   = process.env.SUPABASE_SERVICE_KEY
 const ANON_KEY      = process.env.SUPABASE_ANON_KEY || SUPABASE_ANON_KEY_FALLBACK
 
@@ -522,18 +522,27 @@ app.post('/api/onboarding', requireAuth, async (req, res) => {
   if (integrations && !Array.isArray(integrations))       return res.status(400).json({ error: 'integrations debe ser array' })
 
   try {
-    const { error } = await req.supabase.from('profiles').upsert({
+    const patch = {
       id: req.user.id,
       email: req.user.email,
-      name: name ? String(name).slice(0, 80) : null,
       age, sex, identity, goal, symptoms,
-      agent_name: agentName ? String(agentName).slice(0, 40) : null,
       wake_time:        wake_time        || '07:00',
       sleep_time:       sleep_time       || '23:00',
       stress_baseline:  stress_baseline  || 3,
       score_baseline:   score_baseline   || 45,
       integrations:     integrations     || []
-    })
+    }
+    // agent_name: solo escribir si llega un valor real. Nunca pisar la elección
+    // ya guardada con null/ausente (bug "elegí Nino, salió Jarvis").
+    if (agentName && String(agentName).trim()) {
+      patch.agent_name = String(agentName).trim().slice(0, 40)
+    }
+    // name: misma regla — solo escribir si llega un nombre real (nunca null ni
+    // el placeholder "Usuario"), para no pisar el guardado (bug de la "B").
+    if (name && String(name).trim() && String(name).trim().toLowerCase() !== 'usuario') {
+      patch.name = String(name).trim().slice(0, 80)
+    }
+    const { error } = await req.supabase.from('profiles').upsert(patch)
     if (error) throw error
     res.json({ ok: true })
   } catch (err) {
